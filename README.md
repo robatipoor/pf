@@ -1,7 +1,7 @@
 # pf
 [![Crates.io](https://img.shields.io/crates/v/pf.svg?style=plastic)](http://crates.io/crates/pf)
-[![Build Status](https://travis-ci.org/mehrati/pf.svg?branch=master)](https://travis-ci.org/robatipoor/pf)
-[![Build status](https://ci.appveyor.com/api/projects/status/ykq7h2c5a8p5a31y?svg=true)](https://ci.appveyor.com/project/robatipoor/pf)
+[![Build Status](https://travis-ci.org/robatipoor/pf.svg?branch=master)](https://travis-ci.org/robatipoor/pf)
+[![Build status](https://ci.appveyor.com/api/projects/status/d2we8j2c58n6wq7o?svg=true)](https://ci.appveyor.com/project/robatipoor/pf)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 client tool for [paste.rs](https://paste.rs)
