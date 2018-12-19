@@ -1,0 +1,16 @@
+[package]
+name = "pf"
+description = "paste file "
+homepage = "https://github.com/robatipoor/pf"
+keywords = ["paste", "file","transfer"]
+license = "MIT"
+repository = "https://github.com/robatipoor/pf"
+version = "0.1.0"
+authors = ["Mahdi <Mahdi.robatipoor@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+reqwest = "0.9.5"
+url = "1.7.2"
+clap = "2.32.0"
+tempfile = "3.0.5"
