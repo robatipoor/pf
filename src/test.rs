@@ -2,11 +2,11 @@ use super::*;
 use tempfile::{tempdir, NamedTempFile};
 
 #[test]
-#[cfg(target_os="linux")]
 fn write_read_file_test() {
-    let tmp_file: NamedTempFile = NamedTempFile::new().unwrap();
-    write_file(tmp_file.path(), "Hi this is a test file");
-    assert_eq!(read_file(tmp_file.path()), "Hi this is a test file");
+    let p = Path::new("test");
+    write_file(p, "Hi this is a test file");
+    assert_eq!(read_file(p), "Hi this is a test file");
+    fs::remove_file(p).expect("remove test file unsuccessful");
 }
 #[test]
 fn post_get_file_test() {
