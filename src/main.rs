@@ -1,60 +1,22 @@
-use clap::{App, Arg};
-use reqwest::Client;
-use reqwest::Response;
-use std::fs::{self, File};
-use std::io::{self, Read, Write};
+use log::info;
+use reqwest::{Client, Response};
+use std::fs;
+use std::io::{self, Read};
 use std::path::Path;
 use url::Url;
 
+mod app;
+mod file_mod;
+mod log_mod;
 #[cfg(test)]
-mod test;
+mod tests;
+use crate::file_mod::*;
 
 const URL_SERVICE: &str = "https://paste.rs/";
 
 fn main() {
-    let matches = App::new("pf")
-        .version("0.1.1")
-        .author("Mahdi <Mahdi.robatipoor@gmail.com>")
-        .about("file sharing from the command line")
-        .arg(
-            Arg::with_name("get")
-                .short("g")
-                .long("get")
-                .value_name("URL")
-                .help("Sets a url")
-                .takes_value(true),
-        )
-        .arg(
-            Arg::with_name("post")
-                .short("p")
-                .long("post")
-                .value_name("FILE")
-                .help("Sets a text file")
-                .takes_value(true),
-        )
-        .arg(
-            Arg::with_name("delete")
-                .short("d")
-                .long("delete")
-                .value_name("URL")
-                .help("Sets a url")
-                .takes_value(true),
-        )
-        .arg(
-            Arg::with_name("output")
-                .short("o")
-                .long("output")
-                .value_name("PATH FILE")
-                .help("Sets a path file")
-                .takes_value(true),
-        )
-        .arg(
-            Arg::with_name("option")
-                .value_name("FILE/URL")
-                .help("Sets a file or url")
-                .takes_value(true),
-        )
-        .get_matches();
+    let matches = app::get_arg_matches();
+    log_mod::config_log();
     if let Some(u) = matches.value_of("get") {
         if is_url(u) {
             if let Some(o) = matches.value_of("output") {
@@ -78,7 +40,7 @@ fn main() {
         }
     } else if let Some(u) = matches.value_of("delete") {
         if del_file(u).status().is_success() {
-            println!("{} {}", u,"Deleted !");
+            println!("{} {}", u, "Deleted !");
         } else {
             eprintln!("unsuccessful delete file");
         }
@@ -101,6 +63,8 @@ fn main() {
                 eprintln!("unsuccessful post file");
             }
         }
+    } else if matches.is_present("log") {
+        println!("{}", read_file(log_mod::path_log_file().as_path()));
     } else {
         let mut buf = String::new();
         io::stdin().read_to_string(&mut buf).unwrap();
@@ -137,22 +101,13 @@ fn path_url(s: &str) -> String {
     Url::parse(s).unwrap().path()[1..].to_owned()
 }
 
-fn read_file(path: &Path) -> String {
-    let mut file: File = File::open(path).expect("can't open file");
-    let mut buf = String::new();
-    file.read_to_string(&mut buf).expect("can't read file");
-    buf
-}
-
-fn write_file(path: &Path, data: &str) {
-    let mut file: File = File::create(path).expect("can't create file");
-    file.write(data.as_bytes()).expect("can't write to file");
-}
-
 fn get_file(url: &str) -> Option<String> {
     let client = Client::new();
     let mut resp: Response = client.get(url).send().expect("can't get file");
-    handle_response(&mut resp)
+    handle_response(&mut resp).and_then(|x| {
+        info!("GET : {:?} ", url.trim());
+        Some(x)
+    })
 }
 
 fn post_file(data: String) -> Option<String> {
@@ -162,12 +117,26 @@ fn post_file(data: String) -> Option<String> {
         .body(data)
         .send()
         .expect("can't post file");
-    handle_response(&mut resp)
+    handle_response(&mut resp).and_then(|url| {
+        info!("POST : {:?} ", url.trim());
+        Some(url)
+    })
 }
 
 fn del_file(url: &str) -> Response {
     let client = Client::new();
-    client.delete(url).send().expect("can't delete file")
+    client
+        .delete(url)
+        .send()
+        .and_then(|x| {
+            if x.status().is_success() {
+                info!("DELETE : {:?} ", url.trim());
+                return Ok(x);
+            } else {
+                panic!("Error !");
+            }
+        })
+        .expect("unsuccessful delete file ")
 }
 
 fn handle_response(resp: &mut Response) -> Option<String> {

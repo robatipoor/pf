@@ -30,7 +30,7 @@ git, rustc, cargo, gnu make, binutils, upx
 
 ```sh
 # post string
-echo "Hello !" | pf
+echo 'Hello !' | pf
 # post file
 pf some-file.txt
 # get file 
