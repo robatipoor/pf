@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate clap;
+
 use log::info;
 use reqwest::{Client, Response};
 use std::fs;

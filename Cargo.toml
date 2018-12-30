@@ -1,6 +1,6 @@
 [package]
 name = "pf"
-description = "paste file "
+description = "transfer file command line tool"
 homepage = "https://github.com/robatipoor/pf"
 keywords = ["paste", "file","transfer"]
 license = "MIT"

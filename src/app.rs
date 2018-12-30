@@ -1,10 +1,10 @@
 use clap::{App, Arg, ArgMatches};
 
 pub fn get_arg_matches<'a>() -> ArgMatches<'a> {
-    App::new("pf")
-        .version("0.1.1")
-        .author("Mahdi <Mahdi.robatipoor@gmail.com>")
-        .about("file sharing from the command line")
+    App::new(crate_name!())
+        .version(crate_version!())
+        .author(crate_authors!())
+        .about(crate_description!())
         .arg(
             Arg::with_name("get")
                 .short("g")
@@ -41,7 +41,6 @@ pub fn get_arg_matches<'a>() -> ArgMatches<'a> {
             Arg::with_name("log")
                 .short("l")
                 .long("log")
-                // .value_name("PATH FILE")
                 .help("get log file")
                 .takes_value(false),
         )

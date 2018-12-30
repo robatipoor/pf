@@ -37,5 +37,6 @@ pf some-file.txt
 pf https://paste.rs/some
 # delete file
 pf -d https://paste.rs/some
-
+# read log file
+pf --log
 ```
