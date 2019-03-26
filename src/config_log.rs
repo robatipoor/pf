@@ -1,4 +1,5 @@
-use std::path::{Path, PathBuf};
+use crate::constants::*;
+use crate::utils;
 
 pub fn config_log() {
     fern::Dispatch::new()
@@ -12,11 +13,8 @@ pub fn config_log() {
             ))
         })
         .level(log::LevelFilter::Info)
-        .chain(fern::log_file(path_log_file()).unwrap())
+        .chain(fern::log_file(utils::path_in_home_dir(LOG_FILE_NAME)).unwrap())
         .apply()
         .unwrap();
 }
 
-pub fn path_log_file() -> PathBuf {
-    dirs::home_dir().unwrap().join(Path::new(".pf.log"))
-}

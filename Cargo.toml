@@ -5,16 +5,16 @@ homepage = "https://github.com/robatipoor/pf"
 keywords = ["paste", "file","transfer"]
 license = "MIT"
 repository = "https://github.com/robatipoor/pf"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["Mahdi <Mahdi.robatipoor@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-reqwest = "0.9.5"
+reqwest = "0.9.12"
 url = "1.7.2"
 clap = "2.32.0"
-tempfile = "3.0.5"
-fern = "0.5.7"
+tempfile = "3.0.7"
+fern = "0.5.8"
 chrono = "0.4.6"
 log = "0.4.6"
-dirs = "1.0.4"
+dirs = "1.0.5"
