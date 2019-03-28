@@ -1,28 +1,13 @@
-#[macro_use]
-extern crate clap;
-extern crate chrono;
-extern crate dirs;
-extern crate fern;
-extern crate log;
-extern crate reqwest;
-extern crate url;
+mod cli;
 
-mod app;
-mod constants;
-mod utils;
-mod config_log;
-mod request;
-
-use app::RequestMode::*;
-use constants::*;
+use cli::{AppArgs, RequestMode::*};
+use pf::*;
 use std::path::Path;
-
-#[cfg(test)]
-mod tests;
+use std::process;
 
 fn main() {
-    let app_args = app::get_app_args();
-    config_log::config_log();
+    let app_args = AppArgs::get_app_args();
+    conf::config_log();
     if app_args.log {
         println!(
             "{}",
@@ -33,51 +18,55 @@ fn main() {
     if let None = app_args.request_mode {
         if let Some(opt) = app_args.option {
             if utils::is_url(&*opt) {
-                println!("{:?}", request::fetch_file(&*opt).unwrap());
+                println!("{}", PastFile::fetch(&*opt).unwrap());
             } else if utils::is_valid_path_file(Path::new(&*opt)) {
-                println!("{:?}", request::create_file(opt).unwrap());
+                println!("{}", PastFile::create(utils::read_file(opt)).unwrap());
             } else {
                 panic!("invalid args !");
             }
             return;
         }
     }
-
-    match app_args.request_mode.unwrap() {
-        FETCH(u) => {
-            if utils::is_url(&*u) {
-                if let Some(o) = app_args.output {
-                    if utils::is_valid_directory(&*o) {
-                        utils::write_file(
-                            o.join(format!("pafi-{}", utils::file_name_url(&*u)))
-                                .as_path(),
-                            &*request::fetch_file(&*u).unwrap(),
-                        );
+    if let Some(rm) = app_args.request_mode {
+        match rm {
+            FETCH(u) => {
+                if utils::is_url(&*u) {
+                    if let Some(o) = app_args.output {
+                        if utils::is_valid_directory(&*o) {
+                            utils::write_file(
+                                o.join(format!("pafi-{}", utils::file_name_url(&*u)))
+                                    .as_path(),
+                                &*PastFile::fetch(&*u).unwrap(),
+                            );
+                        }
+                    } else {
+                        println!("{} ", &*PastFile::fetch(&*u).unwrap());
                     }
+                    process::exit(0);
                 } else {
-                    println!("{}", &*request::fetch_file(&*u).unwrap());
+                    panic!("url not valid");
                 }
-            } else {
-                panic!("url not valid");
+            }
+            CREATE(p) => {
+                if let Ok(resp_url) = PastFile::create(utils::read_file(p)) {
+                    println!("{} ", resp_url);
+                    process::exit(0);
+                } else {
+                    panic!("error post file");
+                }
+            }
+            DELETE(u) => {
+                if let Ok(o) = PastFile::delete(&*u) {
+                    println!("{} ", o);
+                    process::exit(0);
+                } else {
+                    panic!("unsuccessful delete file");
+                }
             }
         }
-        CREATE(p) => {
-            if let Ok(resp_url) = request::create_file(utils::read_file(p)) {
-                println!("{}", resp_url);
-            } else {
-                panic!("error post file");
-            }
+    } else {
+        if let Ok(resp_url) = PastFile::create(utils::read_stdin().unwrap()) {
+            println!("{} ", resp_url);
         }
-        DELETE(u) => {
-            if let Ok(o) = request::delete_file(&*u) {
-                println!("{}  Deleted !", o,);
-            } else {
-                panic!("unsuccessful delete file");
-            }
-        }
-    }
-    
-    if let Ok(resp_url) = request::create_file(utils::read_stdin().unwrap()) {
-        println!("{}", resp_url);
     }
 }

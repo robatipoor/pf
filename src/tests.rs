@@ -1,6 +1,7 @@
 use crate::*;
 use std::fs;
 use tempfile::{tempdir, NamedTempFile};
+use std::path::Path;
 
 #[test]
 fn write_read_file_test() {
@@ -12,7 +13,7 @@ fn write_read_file_test() {
 #[test]
 fn post_get_file_test() {
     assert_eq!(
-        request::fetch_file(&request::create_file("hi this is test file".to_owned()).unwrap())
+        PastFile::fetch(&PastFile::create("hi this is test file".to_owned()).unwrap())
             .unwrap(),
         "hi this is test file"
     )
@@ -20,8 +21,8 @@ fn post_get_file_test() {
 #[test]
 
 fn del_file_test() {
-    let re = request::create_file("hi this is test file".to_owned()).unwrap();
-    request::delete_file(&re).unwrap();
+    let re = PastFile::create("hi this is test file".to_owned()).unwrap();
+    PastFile::delete(&*re).unwrap();
 }
 
 #[test]
