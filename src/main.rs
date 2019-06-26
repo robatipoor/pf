@@ -1,28 +1,27 @@
-mod cli;
+mod args;
 
-use cli::{AppArgs, RequestMode::*};
+use args::{AppArgs, RequestMode::*};
 use pf::*;
-use std::path::Path;
 use std::process;
 
 fn main() {
     let app_args = AppArgs::get_app_args();
     conf::config_log();
     if app_args.log {
-        println!(
-            "{}",
-            utils::read_file(utils::path_in_home_dir(LOG_FILE_NAME).as_path())
-        );
+        let log = utils::read_file(utils::home_dir().unwrap().join(LOG_FILE)).unwrap();
+        println!("{}", log);
         return;
     }
-    if let None = app_args.request_mode {
+    if app_args.request_mode.is_none() {
         if let Some(opt) = app_args.option {
-            if utils::is_url(&*opt) {
+            if utils::is_valid_url(&*opt) {
                 println!("{}", PastFile::fetch(&*opt).unwrap());
-            } else if utils::is_valid_path_file(Path::new(&*opt)) {
-                println!("{}", PastFile::create(utils::read_file(opt)).unwrap());
+            } else if utils::path_exist(&*opt) {
+                let link = PastFile::create(utils::read_file(opt).unwrap()).unwrap();
+                println!("{}", link);
             } else {
-                panic!("invalid args !");
+                eprintln!("invalid args !");
+                process::exit(1);
             }
             return;
         }
@@ -30,43 +29,44 @@ fn main() {
     if let Some(rm) = app_args.request_mode {
         match rm {
             FETCH(u) => {
-                if utils::is_url(&*u) {
+                if utils::is_valid_url(&*u) {
                     if let Some(o) = app_args.output {
-                        if utils::is_valid_directory(&*o) {
+                        if utils::path_exist(&*o) {
                             utils::write_file(
-                                o.join(format!("pafi-{}", utils::file_name_url(&*u)))
-                                    .as_path(),
+                                o.join(format!("pafi-{}", utils::path_url(&*u).unwrap())).as_path(),
                                 &*PastFile::fetch(&*u).unwrap(),
-                            );
+                            )
+                            .unwrap();
                         }
                     } else {
                         println!("{} ", &*PastFile::fetch(&*u).unwrap());
                     }
-                    process::exit(0);
+                    return;
                 } else {
-                    panic!("url not valid");
+                    eprintln!("url not valid");
+                    process::exit(1);
                 }
             }
             CREATE(p) => {
-                if let Ok(resp_url) = PastFile::create(utils::read_file(p)) {
+                if let Ok(resp_url) = PastFile::create(utils::read_file(p).unwrap()) {
                     println!("{} ", resp_url);
-                    process::exit(0);
+                    return;
                 } else {
-                    panic!("error post file");
+                    eprintln!("error post file");
+                    process::exit(1);
                 }
             }
             DELETE(u) => {
                 if let Ok(o) = PastFile::delete(&*u) {
                     println!("{} ", o);
-                    process::exit(0);
+                    return;
                 } else {
-                    panic!("unsuccessful delete file");
+                    eprintln!("unsuccessful delete file");
+                    process::exit(1);
                 }
             }
         }
-    } else {
-        if let Ok(resp_url) = PastFile::create(utils::read_stdin().unwrap()) {
-            println!("{} ", resp_url);
-        }
+    } else if let Ok(link) = PastFile::create(utils::read_from_stdin().unwrap()) {
+        println!("{} ", link);
     }
 }

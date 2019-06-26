@@ -1,53 +1,97 @@
+use crate::errors::*;
 use std::fs::{self, File};
-use std::io::{self,Read, Write};
+use std::io::BufRead;
+use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use url::Url;
 
-
-pub fn read_stdin() -> Option<String> {
-    let mut re = String::new();
-    return io::stdin().read_to_string(&mut re).ok().map(|_| re);
+#[macro_export]
+macro_rules! fatal {
+    ($msg:tt) => {{
+        eprintln!("{} in file {} line {}", $msg, file!(), line!());
+        clean();
+        std::process::exit(1)
+    }};
 }
 
-pub fn read_file<T: AsRef<Path>>(path: T) -> String {
-    let mut file: File = File::open(path).expect("failed open file");
-    let mut buf = String::new();
-    file.read_to_string(&mut buf).expect("failed read file");
-    buf
+pub fn read_from_stdin() -> Result<String> {
+    std::io::stdin()
+        .lock()
+        .lines()
+        .next()
+        .unwrap()
+        .map_err(|e| {
+            eprintln!("{}", e);
+            Error::StdinError
+        })
 }
 
-pub fn write_file<T: AsRef<Path>>(path: T, data: &str) {
-    let mut file: File = File::create(path).expect("failed create file");
-    file.write(data.as_bytes()).expect("failed write to file");
-}
-
-pub fn is_valid_path_file<T: AsRef<Path>>(path: T) -> bool {
-    if path.as_ref().exists() && fs::metadata(path).unwrap().is_file() {
-        return true;
+pub fn remove_file<P: AsRef<Path>>(p: P) -> Result {
+    if p.as_ref().exists() {
+        std::fs::remove_file(p).map_err(|e| {
+            eprintln!("{}", e);
+            Error::RemoveFileError
+        })
     } else {
-        return false;
+        Err(Error::FileNotExistError)
     }
 }
 
-pub fn is_valid_directory<T: AsRef<Path>>(path: T) -> bool {
-    if path.as_ref().exists() && fs::metadata(path).unwrap().is_dir() {
-        return true;
+pub fn read_file<P: AsRef<Path>>(p: P) -> Result<String> {
+    File::open(p)
+        .map_err(|e| {
+            eprintln!("open file error {}", e);
+            Error::OpenFileError
+        })
+        .and_then(|mut f: File| {
+            let mut buf = String::new();
+            f.read_to_string(&mut buf).map_err(|e| {
+                eprintln!("read to string error {}", e);
+                Error::ReadToStringError
+            })?;
+            Ok(buf)
+        })
+}
+
+pub fn write_file<P: AsRef<Path>>(path: P, s: &str) -> Result {
+    let mut file: File = File::create(path).map_err(|e| {
+        eprintln!("{}", e);
+        Error::CreateFileError
+    })?;
+    file.write_all(s.as_bytes()).map_err(|e| {
+        eprintln!("{}", e);
+        Error::WriteToFileError
+    })?;
+    Ok(())
+}
+
+pub fn file_exist<T: AsRef<Path>>(path: T) -> bool {
+    if fs::metadata(&path).is_ok() {
+        fs::metadata(path).unwrap().is_file()
     } else {
-        return false;
+        false
     }
 }
 
-pub fn path_in_home_dir(file_name: &str) -> PathBuf {
-    dirs::home_dir().unwrap().join(Path::new(file_name))
+pub fn path_exist<T: AsRef<Path>>(path: T) -> bool {
+    fs::metadata(path).is_ok()
 }
 
-pub fn is_url(s: &str) -> bool {
-    match Url::parse(s) {
-        Ok(_) => true,
-        Err(_) => false,
-    }
+pub fn home_dir() -> Option<PathBuf> {
+    dirs::home_dir()
 }
 
-pub fn file_name_url(s: &str) -> String {
-    Url::parse(s).unwrap().path()[1..].to_owned()
+pub fn is_valid_url(s: &str) -> bool {
+    Url::parse(s).is_ok()
+}
+
+pub fn path_url(s: &str) -> Result<String> {
+    let path = Url::parse(s)
+        .map_err(|e| {
+            eprintln!("{}", e);
+            Error::ParseError
+        })?
+        .path()[1..]
+        .to_owned();
+    Ok(path)
 }

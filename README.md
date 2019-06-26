@@ -4,7 +4,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/d2we8j2c58n6wq7o?svg=true)](https://ci.appveyor.com/project/robatipoor/pf)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-client tool for [paste.rs](https://paste.rs)
+pf is client tool for file sharing from the command line using the [paste.rs](https://paste.rs) service
 
 
 **install**
@@ -16,17 +16,15 @@ cargo install pf
 **Build and install**
 
 ```sh
+# dependencies git, rustc, cargo, gnu make, binutils, upx
 # build and install pf 
 git clone https://github.com/robatipoor/pf \
 && cd pf \
 && make 
 ```
 
-**Build dependency**
 
-git, rustc, cargo, gnu make, binutils, upx
-
-**run**
+**how to use command**
 
 ```sh
 # post string
@@ -39,4 +37,16 @@ pf https://paste.rs/some
 pf -d https://paste.rs/some
 # read log file
 pf --log
+```
+
+**how to use crate**
+```rust
+extern crate pf;
+
+use pf::PastFile;
+
+fn main() {
+    let link = PastFile::create("Some Text ...").unwrap();
+    println!("{}", link);
+}
 ```

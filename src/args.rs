@@ -85,6 +85,6 @@ impl AppArgs {
         if let Some(o) = matches.value_of("output") {
             app_args.output = Some(PathBuf::from(o));
         }
-        return app_args;
+        app_args
     }
 }

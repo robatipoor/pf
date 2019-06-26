@@ -13,8 +13,7 @@ pub fn config_log() {
             ))
         })
         .level(log::LevelFilter::Info)
-        .chain(fern::log_file(utils::path_in_home_dir(LOG_FILE_NAME)).unwrap())
+        .chain(fern::log_file(utils::home_dir().unwrap().join(LOG_FILE)).unwrap())
         .apply()
         .unwrap();
 }
-
