@@ -6,7 +6,7 @@ use tempfile::{tempdir, NamedTempFile};
 #[test]
 fn write_read_file_test() {
     let p = Path::new("test");
-    utils::write_file(p, "Hi this is a test file");
+    utils::write_file(p, "Hi this is a test file").unwrap();
     assert_eq!(utils::read_file(p).unwrap(), "Hi this is a test file");
     fs::remove_file(p).expect("remove test file unsuccessful");
 }

@@ -15,5 +15,4 @@ pub mod utils;
 #[cfg(test)]
 pub mod tests;
 
-pub use constants::*;
 pub use request::PastFile;
