@@ -18,12 +18,9 @@ pub fn read_from_stdin() -> Result<String> {
     std::io::stdin()
         .lock()
         .lines()
-        .next()
-        .unwrap()
-        .map_err(|e| {
-            eprintln!("{}", e);
-            Error::StdinError
-        })
+        .collect::<std::result::Result<Vec<_>, std::io::Error>>()
+        .and_then(|lines| Ok(lines.join("\n")))
+        .or(Err(Error::StdinError))
 }
 
 pub fn remove_file<P: AsRef<Path>>(p: P) -> Result {
