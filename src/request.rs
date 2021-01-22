@@ -1,8 +1,7 @@
 use crate::constants::*;
 use crate::errors::{Error, Result};
 use log::info;
-use reqwest::Client;
-use reqwest::Response;
+use reqwest::blocking::{Client,Response};
 use std::io::Read;
 
 pub struct PastFile;
