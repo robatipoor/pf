@@ -5,7 +5,7 @@ homepage = "https://github.com/robatipoor/pf"
 keywords = ["paste", "file","transfer"]
 license = "MIT"
 repository = "https://github.com/robatipoor/pf"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Mahdi <Mahdi.robatipoor@gmail.com>"]
 edition = "2018"
 
