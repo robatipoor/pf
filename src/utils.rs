@@ -18,8 +18,7 @@ pub fn read_from_stdin() -> Result<String> {
     std::io::stdin()
         .lock()
         .lines()
-        .collect::<std::result::Result<Vec<_>, std::io::Error>>()
-        .and_then(|lines| Ok(lines.join("\n")))
+        .collect::<std::result::Result<Vec<_>, std::io::Error>>().map(|lines| lines.join("\n"))
         .or(Err(Error::StdinError))
 }
 

@@ -42,7 +42,6 @@ fn main() {
                     } else {
                         println!("{} ", &*PastFile::fetch(&*u).unwrap());
                     }
-                    return;
                 } else {
                     eprintln!("url not valid");
                     process::exit(1);
@@ -51,7 +50,6 @@ fn main() {
             CREATE(p) => {
                 if let Ok(resp_url) = PastFile::create(utils::read_file(p).unwrap()) {
                     println!("{} ", resp_url);
-                    return;
                 } else {
                     eprintln!("error post file");
                     process::exit(1);
@@ -60,7 +58,6 @@ fn main() {
             DELETE(u) => {
                 if let Ok(o) = PastFile::delete(&*u) {
                     println!("{} ", o);
-                    return;
                 } else {
                     eprintln!("unsuccessful delete file");
                     process::exit(1);

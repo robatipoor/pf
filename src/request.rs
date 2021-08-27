@@ -19,7 +19,7 @@ impl PastFile {
                         .expect("failed read response");
                     info!("FETCH : {:?} ", url.trim());
                     out = out.trim().to_owned();
-                    return Ok(out);
+                    Ok(out)
                 } else {
                     panic!("unsuccessful request !")
                 }
@@ -40,7 +40,7 @@ impl PastFile {
                         .expect("failed read response");
                     out = out.trim().to_owned();
                     info!("CREATE : {:?} ", out);
-                    return Ok(out);
+                    Ok(out)
                 } else {
                     panic!("unsuccessful create request !")
                 }
