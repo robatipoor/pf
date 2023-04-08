@@ -1,5 +1,5 @@
-use config::ConfigError;
 use common::config::{arg::parse_config_path_from_arguments, get_env_source};
+use config::ConfigError;
 use once_cell::sync::Lazy;
 use serde::Deserialize;
 use std::{

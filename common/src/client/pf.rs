@@ -28,8 +28,7 @@ impl PasteFileClient {
     let file_part = reqwest::multipart::Part::bytes(file)
       .file_name(filename)
       .mime_str(content_type)?;
-    let form = reqwest::multipart::Form::new()
-      .part("file", file_part);
+    let form = reqwest::multipart::Form::new().part("file", file_part);
     let resp = self
       .client
       .post(format!("{}/upload", self.addr))

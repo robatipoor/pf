@@ -25,7 +25,7 @@ lto = true
 
 [workspace.dependencies]
 tokio = { version = "1.27.0",features = ["macros","time","process","net","rt-multi-thread"] }
-axum = { version = "0.6.12",features = ["headers"]}
+axum = { version = "0.6.12",features = ["headers","multipart"]}
 hyper = "0.14.25"
 config = { version = "0.13.3",default-features = false, features = ["toml"] }
 chrono = { version = "0.4.24", features = ["serde"] }

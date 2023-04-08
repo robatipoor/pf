@@ -54,11 +54,11 @@ pub struct ApiServer {
 }
 impl ApiServer {
   pub async fn build(mut config: AppConfig) -> ApiResult<Self> {
-    let socket_addr = config.app.get_socket_addr()?;
+    let socket_addr = config.server.get_socket_addr()?;
     let tcp = TcpListener::bind(socket_addr)?;
     let addr = tcp.local_addr()?;
     info!("Listening to: {addr} ...");
-    config.app.port = addr.port();
+    config.server.port = addr.port();
     let state = ApiState {
       http: Arc::new(reqwest::Client::new()),
       config: Arc::new(config),
