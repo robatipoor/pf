@@ -1,0 +1,50 @@
+name: test coverage
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  test:
+    name: coverage
+    runs-on: ubuntu-latest
+    env:
+      API_PROFILE: test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+
+      - name: Cache tarpaulin
+        uses: actions/cache@v3
+        id: cache-tarpaulin
+        with:
+          path: |
+            ~/.cargo/bin/cargo-tarpaulin
+          key: ${{ runner.os }}-sqlx-${{ env.SQLX_VERSION }}-${{ env.SQLX_FEATURES }}
+
+      - name: Install tarpaulin
+        uses: actions-rs/cargo@v1
+        if: steps.cache-sqlx.outputs.cache-hit == false
+        with:
+          command: install
+          args: >
+            cargo-tarpaulin
+      
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Generate code coverage
+        run: |
+          cargo +nightly tarpaulin --verbose --all-features --workspace --timeout 120 --out Xml
+
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v3
+        with:
+          #token: ${{secrets.CODECOV_TOKEN}} # not required for public repos
+          fail_ci_if_error: true

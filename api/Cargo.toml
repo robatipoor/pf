@@ -1,0 +1,33 @@
+[package]
+name = "api"
+version = "0.1.0"
+edition.workspace = true
+
+[[bin]]
+name = "api"
+path = "src/bin/main.rs"
+
+[dependencies]
+common = { path = "../common" }
+axum = { workspace = true }
+hyper = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+config = { workspace = true }
+reqwest = { workspace = true }
+fake = { workspace = true }
+rand = { workspace = true }
+anyhow = { workspace = true }
+url = { workspace = true }
+futures-util = { workspace = true }
+once_cell = { workspace = true }
+strum_macros = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+validator = { workspace = true }
+cuid2 = { workspace = true }
+async-trait = { workspace = true }
+test-context = { workspace = true }
+build_html = { workspace = true }

@@ -1,0 +1,26 @@
+[package]
+name = "common"
+version = "0.1.0"
+edition.workspace = true
+
+[dependencies]
+axum = { workspace = true }
+tokio = { workspace = true }
+config = { workspace = true }
+hyper = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+chrono = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { workspace = true }
+fake = { workspace = true }
+rand = { workspace = true }
+regex = { workspace = true }
+url = { workspace = true }
+once_cell = { workspace = true }
+futures-util = { workspace = true }
+strum_macros = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+validator = { workspace = true }
