@@ -1,45 +1,43 @@
+pub mod file;
+
 use axum::{
-  extract::{Multipart, Path, State},
-  response::Html,
+  body::{boxed, StreamBody},
+  extract::{BodyStream, Path, State},
+  response::{Html, Response},
   Json,
 };
 use common::{error::ApiResult, model::response::MessageResponse};
 
-use crate::server::ApiState;
+use crate::{server::ApiState, service};
 
-pub async fn health_check() -> MessageResponse {
-  MessageResponse {
+pub async fn health_check() -> Json<MessageResponse> {
+  Json(MessageResponse {
     message: "OK".to_string(),
-  }
+  })
 }
 
 pub async fn home_page() -> Html<&'static str> {
-  Html::from("")
-}
-
-pub async fn upload(
-  State(state): State<ApiState>,
-  mut multipart: Multipart,
-) -> ApiResult<Json<MessageResponse>> {
-  while let Some(field) = multipart.next_field().await.unwrap() {
-    let name = field.name().unwrap().to_string();
-    let file_name = field.file_name().unwrap().to_string();
-    let content_type = field.content_type().unwrap().to_string();
-    let data = field.bytes().await.unwrap();
-  }
-  todo!()
-}
-
-pub async fn download(
-  State(state): State<ApiState>,
-  Path((code, filename)): Path<(String, String)>,
-) -> ApiResult<Json<MessageResponse>> {
-  todo!()
-}
-
-pub async fn delete(
-  State(state): State<ApiState>,
-  Path((code, filename)): Path<(String, String)>,
-) -> ApiResult<Json<MessageResponse>> {
-  todo!()
+  Html(
+    r#"
+        <!doctype html>
+        <html>
+            <head>
+                <title>Upload something!</title>
+            </head>
+            <body>
+                <form action="/" method="post" enctype="multipart/form-data">
+                    <div>
+                        <label>
+                            Upload file:
+                            <input type="file" name="file" multiple>
+                        </label>
+                    </div>
+                    <div>
+                        <input type="submit" value="Upload files">
+                    </div>
+                </form>
+            </body>
+        </html>
+        "#,
+  )
 }

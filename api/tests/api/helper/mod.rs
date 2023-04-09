@@ -20,10 +20,10 @@ impl AsyncTestContext for ApiTestContext {
   async fn setup() -> Self {
     Lazy::force(&INIT_SUBSCRIBER);
     let mut config = CONFIG.clone();
-    config.app.port = 0;
-    config.db.path = PathBuf::from(cuid2::create_id());
+    config.server.port = 0;
+    // config.db.path = PathBuf::from(cuid2::create_id());
     let server = ApiServer::build(config).await.unwrap();
-    let client = PasteFileClient::new(&server.state.config.app.get_http_addr());
+    let client = PasteFileClient::new(&server.state.config.server.get_http_addr());
     tokio::spawn(server.start);
     Self {
       state: server.state,
@@ -32,9 +32,9 @@ impl AsyncTestContext for ApiTestContext {
   }
 
   async fn teardown(self) {
-    tokio::fs::remove_dir_all(&self.state.config.db.path)
-      .await
-      .unwrap();
+    // tokio::fs::remove_dir_all(&self.state.config.db.path)
+    //   .await
+    //   .unwrap();
   }
 }
 

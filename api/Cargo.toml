@@ -10,6 +10,7 @@ path = "src/bin/main.rs"
 [dependencies]
 common = { path = "../common" }
 axum = { workspace = true }
+axum-extra = { workspace = true }
 hyper = { workspace = true }
 tokio = { workspace = true }
 serde = { workspace = true }
@@ -28,6 +29,7 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 validator = { workspace = true }
 cuid2 = { workspace = true }
+tokio-util = { workspace = true }
 async-trait = { workspace = true }
 test-context = { workspace = true }
 build_html = { workspace = true }
