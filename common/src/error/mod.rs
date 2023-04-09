@@ -138,3 +138,23 @@ impl IntoResponse for ApiError {
     (status_code, Json(body)).into_response()
   }
 }
+
+#[derive(Debug, thiserror::Error)]
+pub enum TaskError {
+  #[error(transparent)]
+  ConfigError(#[from] config::ConfigError),
+  #[error(transparent)]
+  AddrParseError(#[from] AddrParseError),
+  #[error(transparent)]
+  IoError(#[from] std::io::Error),
+  #[error(transparent)]
+  ParseJsonError(#[from] serde_json::Error),
+  #[error(transparent)]
+  ReqwestError(#[from] reqwest::Error),
+  #[error(transparent)]
+  SystemTimeError(#[from] SystemTimeError),
+  #[error(transparent)]
+  SpawnTaskError(#[from] JoinError),
+  #[error(transparent)]
+  HyperError(#[from] hyper::Error),
+}

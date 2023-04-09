@@ -1,3 +1,5 @@
+pub mod worker;
+
 use crate::config::AppConfig;
 use crate::database::DataBase;
 use crate::router::get_router;

@@ -7,7 +7,7 @@ use chrono::{DateTime, Utc};
 use common::error::ApiResult;
 use tokio::sync::RwLock;
 
-// code/filename.ext
+// code/file_name.ext
 pub type PathFile = String;
 
 #[derive(Default)]
@@ -17,20 +17,20 @@ pub struct DataBase {
 }
 
 impl DataBase {
-  pub async fn find_by_path_file(&self, path: &PathFile) -> Option<MetaDataFile> {
+  pub async fn find(&self, path: &PathFile) -> Option<MetaDataFile> {
     let guard = self.inner.read().await;
     guard.get(path).map(Clone::clone)
   }
-  pub async fn exist_by_path_file(&self, path: &PathFile) -> bool {
+  pub async fn exist(&self, path: &PathFile) -> bool {
     let guard = self.inner.read().await;
     guard.get(path).is_some()
   }
-  pub async fn save(&self, path: PathFile, meta: MetaDataFile) -> ApiResult {
+  pub async fn store(&self, path: PathFile, meta: MetaDataFile) -> ApiResult {
     let mut guard = self.inner.write().await;
     guard.insert(path, meta);
     Ok(())
   }
-  pub async fn remove_by_path_file(&self, path: &PathFile) -> Option<MetaDataFile> {
+  pub async fn delete(&self, path: &PathFile) -> Option<MetaDataFile> {
     let mut guard = self.inner.write().await;
     guard.remove(path)
   }

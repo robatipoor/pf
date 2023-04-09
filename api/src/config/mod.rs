@@ -2,16 +2,14 @@ use common::config::{arg::parse_config_path_from_arguments, get_env_source};
 use config::ConfigError;
 use once_cell::sync::Lazy;
 use serde::Deserialize;
-use std::{
-  net::{AddrParseError, SocketAddr},
-  path::PathBuf,
-};
+use std::net::{AddrParseError, SocketAddr};
 
 pub static CONFIG: Lazy<AppConfig> = Lazy::new(|| AppConfig::read().unwrap());
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct AppConfig {
   pub server: ServerConfig,
+  pub worker: WorkerConfig,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -31,8 +29,8 @@ impl ServerConfig {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct DatabaseConfig {
-  pub path: PathBuf,
+pub struct WorkerConfig {
+  pub failed_task_delay: u64,
 }
 
 impl AppConfig {
