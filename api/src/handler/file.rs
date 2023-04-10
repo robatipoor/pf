@@ -27,10 +27,22 @@ pub async fn download(
   todo!()
 }
 
+pub async fn info(
+  State(state): State<ApiState>,
+  Path((code, file_name)): Path<(String, String)>,
+) -> ApiResult<Response> {
+  service::file::info(&state, &code, &file_name).await?;
+  // let response = Response::builder().body(boxed(body)).unwrap();
+  // Ok(response)
+  todo!()
+}
+
 pub async fn delete(
   State(state): State<ApiState>,
   Path((code, file_name)): Path<(String, String)>,
 ) -> ApiResult<Json<MessageResponse>> {
   service::file::delete(&state, &code, &file_name).await?;
-  todo!()
+  Ok(Json(MessageResponse {
+    message: "OK".to_string(),
+  }))
 }

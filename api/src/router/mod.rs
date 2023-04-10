@@ -11,6 +11,7 @@ pub fn get_router(state: ApiState) -> Router {
     .route("/", get(handler::home_page))
     .route("/:filename", post(handler::file::upload))
     .route("/:code/:filename", get(handler::file::download))
+    .route("/:code/:filename/info", get(handler::file::info))
     .route("/:code/:filename", delete(handler::file::delete))
     .layer(DefaultBodyLimit::disable())
     .layer(DefaultBodyLimit::max(1024))

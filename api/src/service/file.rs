@@ -15,24 +15,21 @@ pub async fn store(state: &ApiState, file_name: &str) -> ApiResult<String> {
   todo!()
 }
 
+pub async fn info(state: &ApiState, code: &str, file_name: &str) -> ApiResult<()> {
+  let path = format!("{code}/{file_name}");
+  if let Some(mut meta) = state.db.fetch_any(&path).await {}
+  Ok(())
+}
+
 pub async fn fetch(state: &ApiState, code: &str, file_name: &str) -> ApiResult<()> {
   let path = format!("{code}/{file_name}");
-  if let Some(mut meta) = state.db.find(&path).await {
-    if let Some(max) = meta.max_download {
-      if max <= 1 {
-        state.db.delete(&path).await;
-      } else {
-        meta.max_download = Some(max - 1);
-        state.db.store(path, meta).await?;
-      }
-    }
-  }
+  if let Some(mut meta) = state.db.fetch_count(&path).await {}
   Ok(())
 }
 
 pub async fn delete(state: &ApiState, code: &str, file_name: &str) -> ApiResult<()> {
   let path = format!("{code}/{file_name}");
-  if let Some(info) = state.db.find(&path).await {
+  if let Some(info) = state.db.fetch_any(&path).await {
     if info.is_deleteable {
       state.db.delete(&path).await;
     } else {
