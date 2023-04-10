@@ -4,9 +4,6 @@ use axum::{
   Json,
 };
 use serde::{Deserialize, Serialize};
-use std::{net::AddrParseError, time::SystemTimeError};
-use strum_macros::Display;
-use tokio::task::JoinError;
 
 pub type ApiResult<T = ()> = std::result::Result<T, ApiError>;
 
@@ -18,14 +15,16 @@ pub enum ApiError {
   BadRequest(String),
   #[error("resource not found {0}")]
   NotFound(String),
+  #[error("{0}")]
+  PermissionDenied(String),
   #[error("resource not available {0}")]
   NotAvailable(String),
   #[error("resource {0} exists already")]
-  ResourceExists(ResourceType),
+  ResourceExists(String),
   #[error(transparent)]
   ConfigError(#[from] config::ConfigError),
   #[error(transparent)]
-  AddrParseError(#[from] AddrParseError),
+  AddrParseError(#[from] std::net::AddrParseError),
   #[error(transparent)]
   IoError(#[from] std::io::Error),
   #[error(transparent)]
@@ -33,21 +32,13 @@ pub enum ApiError {
   #[error(transparent)]
   ReqwestError(#[from] reqwest::Error),
   #[error(transparent)]
-  SystemTimeError(#[from] SystemTimeError),
+  SystemTimeError(#[from] std::time::SystemTimeError),
   #[error(transparent)]
-  SpawnTaskError(#[from] JoinError),
+  SpawnTaskError(#[from] tokio::task::JoinError),
   #[error(transparent)]
   HyperError(#[from] hyper::Error),
   #[error(transparent)]
   Unknown(#[from] anyhow::Error),
-}
-
-#[derive(Debug, Display)]
-pub enum ResourceType {
-  Volume,
-  Bucket,
-  Object,
-  File,
 }
 
 impl ApiError {
@@ -60,6 +51,7 @@ impl ApiError {
         StatusCode::UNPROCESSABLE_ENTITY,
       ),
       BadRequest(err) => ("BAD_REQUEST", err.to_string(), StatusCode::BAD_REQUEST),
+      PermissionDenied(err) => ("PERMISSION_DENIED", err.to_string(), StatusCode::FORBIDDEN),
       NotAvailable(err) => ("NOT_AVAILABLE", err.to_string(), StatusCode::NOT_FOUND),
       NotFound(err) => ("NOT_FOUND", err.to_string(), StatusCode::NOT_FOUND),
       ResourceExists(err) => ("RESOURCE_EXISTS", err.to_string(), StatusCode::CONFLICT),
@@ -144,7 +136,7 @@ pub enum TaskError {
   #[error(transparent)]
   ConfigError(#[from] config::ConfigError),
   #[error(transparent)]
-  AddrParseError(#[from] AddrParseError),
+  AddrParseError(#[from] std::net::AddrParseError),
   #[error(transparent)]
   IoError(#[from] std::io::Error),
   #[error(transparent)]
@@ -152,9 +144,9 @@ pub enum TaskError {
   #[error(transparent)]
   ReqwestError(#[from] reqwest::Error),
   #[error(transparent)]
-  SystemTimeError(#[from] SystemTimeError),
+  SystemTimeError(#[from] std::time::SystemTimeError),
   #[error(transparent)]
-  SpawnTaskError(#[from] JoinError),
+  SpawnTaskError(#[from] tokio::task::JoinError),
   #[error(transparent)]
   HyperError(#[from] hyper::Error),
 }
