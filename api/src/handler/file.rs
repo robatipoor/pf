@@ -22,7 +22,8 @@ pub async fn upload(
   body: BodyStream,
 ) -> ApiResult<Json<UploadResponse>> {
   query.validate()?;
-  let code = service::file::store(&state, &file_name, &query);
+  let pass = None;
+  let code = service::file::store(&state, &file_name, &query, pass);
   todo!()
 }
 
@@ -30,7 +31,8 @@ pub async fn download(
   State(state): State<ApiState>,
   Path((code, file_name)): Path<(String, String)>,
 ) -> ApiResult<Response> {
-  let meta = service::file::fetch(&state, &code, &file_name).await?;
+  let pass = None;
+  let meta = service::file::fetch(&state, &code, &file_name, pass).await?;
   // let response = Response::builder().body(boxed(body)).unwrap();
   // Ok(response)
   todo!()
@@ -40,8 +42,8 @@ pub async fn info(
   State(state): State<ApiState>,
   Path((code, file_name)): Path<(String, String)>,
 ) -> ApiResult<Json<MetaDataFileResponse>> {
-  let res = service::file::info(&state, &code, &file_name).await?;
-  todo!()
+  let meta = service::file::info(&state, &code, &file_name).await?;
+  Ok(Json(MetaDataFileResponse::from(&meta)))
 }
 
 pub async fn delete(
