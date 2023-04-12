@@ -54,24 +54,28 @@ pub async fn fetch(
   password: Option<String>,
 ) -> ApiResult<MetaDataFile> {
   let path = format!("{code}/{file_name}");
-  state
+  let meta = state
     .db
     .fetch_count(&path)
     .await
-    .filter(|m| {
-      m.expire_time < Utc::now()
-        && (m.max_download.is_none() || m.max_download.unwrap() >= m.downloads)
-        && (m.password.is_none() // TODO hash func
-          || (password.is_some() && &password.unwrap() == m.password.as_ref().unwrap()))
-    })
-    .ok_or_else(|| ApiError::NotFound(format!("{path} not found")))
+    .ok_or_else(|| ApiError::NotFound(format!("{path} not found")))?;
+  if let Some(max) = meta.max_download {
+    if meta.downloads >= max {
+      state.db.delete(path.clone()).await;
+      return Err(ApiError::NotFound(format!("{path} not found")));
+    }
+  }
+  if meta.password.is_none() || password == meta.password {
+    return Err(ApiError::PermissionDenied("password invalid".to_string()));
+  }
+  Ok(meta)
 }
 
 pub async fn delete(state: &ApiState, code: &str, file_name: &str) -> ApiResult<()> {
   let path = format!("{code}/{file_name}");
   if let Some(info) = state.db.fetch(&path).await {
     if info.is_deleteable {
-      state.db.delete(&path).await;
+      state.db.delete(path).await;
     } else {
       return Err(ApiError::PermissionDenied(format!(
         "it is not possible to delete {path}"

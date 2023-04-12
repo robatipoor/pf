@@ -1,8 +1,10 @@
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
+use std::ops::Sub;
 use std::sync::atomic::AtomicU32;
 use std::sync::Arc;
+use std::time::Duration;
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, DurationRound, Utc};
 use common::error::ApiResult;
 use common::model::response::MetaDataFileResponse;
 use tokio::sync::RwLock;
@@ -10,9 +12,14 @@ use tokio::sync::RwLock;
 // code/file_name.ext
 pub type PathFile = String;
 
+pub type Expires = Arc<RwLock<BTreeSet<(DateTime<Utc>, PathFile)>>>;
+
+type Db = Arc<RwLock<HashMap<PathFile, MetaData>>>;
+
 #[derive(Default, Clone)]
 pub struct DataBase {
-  inner: Arc<RwLock<HashMap<PathFile, MetaData>>>,
+  inner: Db,
+  expires: Expires,
 }
 
 impl DataBase {
@@ -26,7 +33,8 @@ impl DataBase {
     guard.get(path).map(|m| {
       let downloads = m
         .downloads
-        .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        .fetch_add(1, std::sync::atomic::Ordering::SeqCst)
+        + 1;
       MetaDataFile {
         create_at: m.create_at,
         expire_time: m.expire_time,
@@ -37,19 +45,50 @@ impl DataBase {
       }
     })
   }
-
   pub async fn exist(&self, path: &PathFile) -> bool {
     let guard = self.inner.read().await;
     guard.get(path).is_some()
   }
   pub async fn store(&self, path: PathFile, meta: MetaDataFile) -> ApiResult {
-    let mut guard = self.inner.write().await;
-    guard.insert(path, meta.into());
+    self
+      .expires
+      .write()
+      .await
+      .insert((meta.expire_time, path.clone()));
+    self.inner.write().await.insert(path, meta.into());
+    // trigger gc
     Ok(())
   }
-  pub async fn delete(&self, path: &PathFile) -> Option<MetaDataFile> {
-    let mut guard = self.inner.write().await;
-    guard.remove(path).map(MetaDataFile::from)
+  pub async fn delete(&self, path: PathFile) -> Option<MetaDataFile> {
+    if let Some(meta) = self
+      .inner
+      .write()
+      .await
+      .remove(&path)
+      .map(MetaDataFile::from)
+    {
+      self.expires.write().await.remove(&(meta.expire_time, path));
+      Some(meta)
+    } else {
+      None
+    }
+  }
+
+  pub async fn purge(&self) -> ApiResult<Option<Duration>> {
+    let mut expires = self.expires.write().await;
+    let mut db = self.inner.write().await;
+    let expires = &mut *expires;
+    let db = &mut *db;
+    let now = Utc::now();
+    while let Some((date, path)) = expires.iter().next() {
+      if date < &now {
+        db.remove(path);
+        expires.remove(&(*date, path.to_string()));
+      } else {
+        // return Ok(Some(date.signed_duration_since(now)));
+      }
+    }
+    Ok(None)
   }
 }
 
@@ -119,6 +158,32 @@ impl From<&MetaDataFile> for MetaDataFileResponse {
       is_deleteable: value.is_deleteable,
       max_download: value.max_download,
       downloads: value.downloads,
+    }
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use std::collections::{BTreeMap, BTreeSet};
+
+  use chrono::{DateTime, Utc};
+  use fake::{Fake, Faker};
+
+  #[test]
+  fn test_map() {
+    let f1: DateTime<Utc> = Faker.fake();
+    let f2: DateTime<Utc> = Faker.fake();
+    let f3: DateTime<Utc> = Faker.fake();
+    let f4: DateTime<Utc> = Faker.fake();
+    let f5: DateTime<Utc> = Faker.fake();
+    let mut b: BTreeSet<(DateTime<Utc>, u32)> = BTreeSet::new();
+    b.insert((f1, 1));
+    b.insert((f2, 2));
+    b.insert((f3, 3));
+    b.insert((f4, 4));
+    b.insert((f5, 5));
+    for k in b.iter() {
+      println!("{k:?}");
     }
   }
 }
