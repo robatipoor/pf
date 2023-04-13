@@ -38,7 +38,7 @@ impl DataBase {
       MetaDataFile {
         create_at: m.create_at,
         expire_time: m.expire_time,
-        password: m.password.clone(),
+        auth: m.auth.clone(),
         is_deleteable: m.is_deleteable,
         max_download: m.max_download,
         downloads,
@@ -96,7 +96,7 @@ impl DataBase {
 pub struct MetaDataFile {
   pub create_at: DateTime<Utc>,
   pub expire_time: DateTime<Utc>,
-  pub password: Option<String>,
+  pub auth: Option<String>,
   pub is_deleteable: bool,
   pub max_download: Option<u32>,
   pub downloads: u32,
@@ -107,7 +107,7 @@ impl From<&MetaData> for MetaDataFile {
     MetaDataFile {
       create_at: value.create_at,
       expire_time: value.expire_time,
-      password: value.password.clone(),
+      auth: value.auth.clone(),
       is_deleteable: value.is_deleteable,
       max_download: value.max_download,
       downloads: value.downloads.load(std::sync::atomic::Ordering::SeqCst),
@@ -120,7 +120,7 @@ impl From<MetaData> for MetaDataFile {
     MetaDataFile {
       create_at: value.create_at,
       expire_time: value.expire_time,
-      password: value.password,
+      auth: value.auth,
       is_deleteable: value.is_deleteable,
       max_download: value.max_download,
       downloads: value.downloads.load(std::sync::atomic::Ordering::SeqCst),
@@ -133,7 +133,7 @@ impl From<MetaDataFile> for MetaData {
     MetaData {
       create_at: value.create_at,
       expire_time: value.expire_time,
-      password: value.password,
+      auth: value.auth,
       is_deleteable: value.is_deleteable,
       max_download: value.max_download,
       downloads: AtomicU32::new(value.downloads),
@@ -145,7 +145,7 @@ struct MetaData {
   pub create_at: DateTime<Utc>,
   pub expire_time: DateTime<Utc>,
   pub is_deleteable: bool,
-  pub password: Option<String>,
+  pub auth: Option<String>,
   pub max_download: Option<u32>,
   pub downloads: AtomicU32,
 }

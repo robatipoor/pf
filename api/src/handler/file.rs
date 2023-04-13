@@ -2,7 +2,7 @@ use axum::{
   body::boxed,
   extract::{BodyStream, Path, Query, State},
   response::Response,
-  Json,
+  Json, TypedHeader,
 };
 use common::{
   error::ApiResult,
@@ -11,6 +11,7 @@ use common::{
     response::{MessageResponse, MetaDataFileResponse, UploadResponse},
   },
 };
+use hyper::HeaderMap;
 use validator::Validate;
 
 use crate::{server::ApiState, service};
@@ -19,11 +20,13 @@ pub async fn upload(
   State(state): State<ApiState>,
   Path(file_name): Path<String>,
   Query(query): Query<UploadParamQuery>,
+  headers: HeaderMap,
   body: BodyStream,
 ) -> ApiResult<Json<UploadResponse>> {
   common::util::file_name::validate(&file_name)?;
   query.validate()?;
-  let (path, expire_time) = service::file::store(&state, &file_name, &query).await?;
+  let auth = common::util::http::parse_basic_auth(&headers)?;
+  let (path, expire_time) = service::file::store(&state, &file_name, &query, auth).await?;
   let url = format!("{}/{path}", state.config.server.domain);
   let qrcode = common::util::qrcode::encode(&url)?;
   Ok(Json(UploadResponse {
@@ -36,9 +39,10 @@ pub async fn upload(
 pub async fn download(
   State(state): State<ApiState>,
   Path((code, file_name)): Path<(String, String)>,
+  headers: HeaderMap,
 ) -> ApiResult<Response> {
-  let pass = None;
-  let meta = service::file::fetch(&state, &code, &file_name, pass).await?;
+  let auth = common::util::http::parse_basic_auth(&headers)?;
+  let meta = service::file::fetch(&state, &code, &file_name, auth).await?;
   // let response = Response::builder().body(boxed(body)).unwrap();
   // Ok(response)
   todo!()

@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use axum::extract::BodyStream;
+use axum::headers::authorization::Basic;
 use axum_extra::body::AsyncReadBody;
 use chrono::{DateTime, Utc};
 use common::error::{ApiError, ApiResult};
@@ -18,9 +19,9 @@ pub async fn store(
   state: &ApiState,
   file_name: &str,
   query: &UploadParamQuery,
+  auth: Option<String>,
 ) -> ApiResult<(String, DateTime<Utc>)> {
-  let hash_password = query
-    .password
+  let auth = auth
     .as_ref()
     .map(common::util::hash::argon_hash)
     .transpose()
@@ -36,7 +37,7 @@ pub async fn store(
         expire_time,
         is_deleteable: query.deleteable.unwrap(),
         max_download: query.max_download,
-        password: hash_password,
+        auth,
         downloads: 0,
       };
       state.db.store(path, meta).await?;
@@ -66,7 +67,7 @@ pub async fn fetch(
   state: &ApiState,
   code: &str,
   file_name: &str,
-  password: Option<String>,
+  auth: Option<String>,
 ) -> ApiResult<MetaDataFile> {
   let path = format!("{code}/{file_name}");
   let meta = state
@@ -80,9 +81,9 @@ pub async fn fetch(
       return Err(ApiError::NotFound(format!("{path} not found")));
     }
   }
-  if let Some(hash) = meta.password.as_ref() {
+  if let Some(hash) = meta.auth.as_ref() {
     if !matches!(
-      password.map(|p| common::util::hash::argon_verify(p, hash)),
+      auth.map(|p| common::util::hash::argon_verify(p, hash)),
       Some(Ok(()))
     ) {
       return Err(ApiError::PermissionDenied("password invalid".to_string()));
