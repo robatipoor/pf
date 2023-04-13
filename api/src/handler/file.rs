@@ -23,9 +23,14 @@ pub async fn upload(
 ) -> ApiResult<Json<UploadResponse>> {
   common::util::file_name::validate(&file_name)?;
   query.validate()?;
-  let path = service::file::store(&state, &file_name, &query).await?;
-  let url = format!("{}/{path}", state.config.server.get_http_addr());
-  todo!()
+  let (path, expire_time) = service::file::store(&state, &file_name, &query).await?;
+  let url = format!("{}/{path}", state.config.server.domain);
+  let qrcode = common::util::qrcode::encode(&url)?;
+  Ok(Json(UploadResponse {
+    url,
+    expire_time,
+    qrcode,
+  }))
 }
 
 pub async fn download(

@@ -7,7 +7,7 @@ pub struct UploadParamQuery {
   #[validate(range(min = 4, max = 100))]
   pub length_code: Option<usize>,
   #[validate(range(min = 10, max = 1000000))]
-  pub expire_time: Option<u32>,
+  pub expire_time: Option<u64>,
   pub deleteable: Option<bool>,
   #[validate(length(min = 2, max = 1000))]
   pub password: Option<String>,
@@ -19,7 +19,7 @@ impl Default for UploadParamQuery {
       max_download: None,
       password: None,
       length_code: Some(4),
-      expire_time: Some(3600),
+      expire_time: Some(7200),
       deleteable: Some(true),
     }
   }
