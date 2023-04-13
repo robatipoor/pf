@@ -33,6 +33,8 @@ pub enum ApiError {
   ReqwestError(#[from] reqwest::Error),
   #[error(transparent)]
   SystemTimeError(#[from] std::time::SystemTimeError),
+  #[error("hash error {0}")]
+  HashError(String),
   #[error(transparent)]
   SpawnTaskError(#[from] tokio::task::JoinError),
   #[error(transparent)]
@@ -85,6 +87,11 @@ impl ApiError {
         err.to_string(),
         StatusCode::INTERNAL_SERVER_ERROR,
       ),
+      HashError(err) => (
+        "HASH_ERROR",
+        err.to_string(),
+        StatusCode::INTERNAL_SERVER_ERROR,
+      ),
       SpawnTaskError(err) => (
         "SPAWN_TASK_ERROR",
         err.to_string(),
@@ -131,22 +138,15 @@ impl IntoResponse for ApiError {
   }
 }
 
-#[derive(Debug, thiserror::Error)]
-pub enum TaskError {
-  #[error(transparent)]
-  ConfigError(#[from] config::ConfigError),
-  #[error(transparent)]
-  AddrParseError(#[from] std::net::AddrParseError),
-  #[error(transparent)]
-  IoError(#[from] std::io::Error),
-  #[error(transparent)]
-  ParseJsonError(#[from] serde_json::Error),
-  #[error(transparent)]
-  ReqwestError(#[from] reqwest::Error),
-  #[error(transparent)]
-  SystemTimeError(#[from] std::time::SystemTimeError),
-  #[error(transparent)]
-  SpawnTaskError(#[from] tokio::task::JoinError),
-  #[error(transparent)]
-  HyperError(#[from] hyper::Error),
+pub fn invalid_input_error(feild: &'static str, message: &'static str) -> ApiError {
+  let mut err = validator::ValidationErrors::new();
+  err.add(
+    feild,
+    validator::ValidationError {
+      code: std::borrow::Cow::from("1"),
+      message: Some(std::borrow::Cow::Borrowed(message)),
+      params: std::collections::HashMap::new(),
+    },
+  );
+  ApiError::InvalidInput(err)
 }

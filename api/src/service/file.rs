@@ -16,9 +16,13 @@ pub async fn store(
   state: &ApiState,
   file_name: &str,
   query: &UploadParamQuery,
-  password: Option<String>,
 ) -> ApiResult<String> {
-  let hash_password = password.map(|p| p.to_lowercase());
+  let hash_password = query
+    .password
+    .as_ref()
+    .map(common::util::hash::argon_hash)
+    .transpose()
+    .map_err(|e| ApiError::HashError(e.to_string()))?;
   let code = loop {
     let code: String = common::util::string::generate_random_string(query.length_code.unwrap());
     let path = format!("{code}/{file_name}");
@@ -40,11 +44,18 @@ pub async fn store(
 
 pub async fn info(state: &ApiState, code: &str, file_name: &str) -> ApiResult<MetaDataFile> {
   let path = format!("{code}/{file_name}");
-  state
+  let meta = state
     .db
     .fetch(&path)
     .await
-    .ok_or_else(|| ApiError::NotFound(format!("{path} not found")))
+    .ok_or_else(|| ApiError::NotFound(format!("{path} not found")))?;
+  if let Some(max) = meta.max_download {
+    if meta.downloads >= max {
+      state.db.delete(path.clone()).await;
+      return Err(ApiError::NotFound(format!("{path} not found")));
+    }
+  }
+  Ok(meta)
 }
 
 pub async fn fetch(
@@ -65,8 +76,13 @@ pub async fn fetch(
       return Err(ApiError::NotFound(format!("{path} not found")));
     }
   }
-  if meta.password.is_none() || password == meta.password {
-    return Err(ApiError::PermissionDenied("password invalid".to_string()));
+  if let Some(hash) = meta.password.as_ref() {
+    if !matches!(
+      password.map(|p| common::util::hash::argon_verify(p, hash)),
+      Some(Ok(()))
+    ) {
+      return Err(ApiError::PermissionDenied("password invalid".to_string()));
+    }
   }
   Ok(meta)
 }

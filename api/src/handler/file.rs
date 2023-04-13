@@ -21,9 +21,9 @@ pub async fn upload(
   Query(query): Query<UploadParamQuery>,
   body: BodyStream,
 ) -> ApiResult<Json<UploadResponse>> {
+  common::util::file_name::validate(&file_name)?;
   query.validate()?;
-  let pass = None;
-  let path = service::file::store(&state, &file_name, &query, pass).await?;
+  let path = service::file::store(&state, &file_name, &query).await?;
   let url = format!("{}/{path}", state.config.server.get_http_addr());
   todo!()
 }
