@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use axum::extract::State;
 use futures_util::future::join_all;
 use tokio::task::JoinHandle;
-use tracing::info;
+use tracing::{error, info};
 
 use super::ApiState;
 
@@ -45,10 +45,14 @@ impl ApiTask for GarbageCollectorTask {
 
   async fn run(&self) {
     loop {
-      if let Ok(Some(d)) = self.state.db.purge().await {
-        tokio::time::sleep(d).await;
-        // TODO
-      } else {
+      match self.state.db.purge().await {
+        Ok(Some(d)) => {
+          tokio::time::sleep(d).await;
+        }
+        Ok(None) => {}
+        Err(e) => {
+          error!("failed purge task: {e}");
+        }
       }
     }
   }

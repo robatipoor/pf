@@ -1,11 +1,10 @@
 use std::collections::{BTreeSet, HashMap};
-use std::ops::Sub;
 use std::sync::atomic::AtomicU32;
 use std::sync::Arc;
 use std::time::Duration;
 
-use chrono::{DateTime, DurationRound, Utc};
-use common::error::ApiResult;
+use chrono::{DateTime, Utc};
+use common::error::{ApiError, ApiResult};
 use common::model::response::MetaDataFileResponse;
 use tokio::sync::RwLock;
 
@@ -80,12 +79,14 @@ impl DataBase {
     let expires = &mut *expires;
     let db = &mut *db;
     let now = Utc::now();
-    while let Some((date, path)) = expires.iter().next() {
-      if date < &now {
-        db.remove(path);
-        expires.remove(&(*date, path.to_string()));
+    while let Some((date, path)) = expires.iter().next().cloned() {
+      if date < now {
+        db.remove(&path);
+        expires.remove(&(date, path));
       } else {
-        // return Ok(Some(date.signed_duration_since(now)));
+        return Ok(Some((date - now).to_std().map_err(|e| {
+          ApiError::Unknown(anyhow::anyhow!("convert duration failed: {e}"))
+        })?));
       }
     }
     Ok(None)
@@ -164,26 +165,8 @@ impl From<&MetaDataFile> for MetaDataFileResponse {
 
 #[cfg(test)]
 mod tests {
-  use std::collections::{BTreeMap, BTreeSet};
+  use std::collections::BTreeSet;
 
   use chrono::{DateTime, Utc};
   use fake::{Fake, Faker};
-
-  #[test]
-  fn test_map() {
-    let f1: DateTime<Utc> = Faker.fake();
-    let f2: DateTime<Utc> = Faker.fake();
-    let f3: DateTime<Utc> = Faker.fake();
-    let f4: DateTime<Utc> = Faker.fake();
-    let f5: DateTime<Utc> = Faker.fake();
-    let mut b: BTreeSet<(DateTime<Utc>, u32)> = BTreeSet::new();
-    b.insert((f1, 1));
-    b.insert((f2, 2));
-    b.insert((f3, 3));
-    b.insert((f4, 4));
-    b.insert((f5, 5));
-    for k in b.iter() {
-      println!("{k:?}");
-    }
-  }
 }
