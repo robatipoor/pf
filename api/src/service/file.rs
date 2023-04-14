@@ -44,6 +44,11 @@ pub async fn store(
       break code;
     }
   };
+  match state.db.first_expire().await {
+    Some(e) if e > expire_time => state.notify.notify_one(),
+    None => state.notify.notify_one(),
+    _ => (),
+  }
   Ok((code, expire_time))
 }
 

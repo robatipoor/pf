@@ -44,10 +44,12 @@ impl DataBase {
       }
     })
   }
+
   pub async fn exist(&self, path: &PathFile) -> bool {
     let guard = self.inner.read().await;
     guard.get(path).is_some()
   }
+
   pub async fn store(&self, path: PathFile, meta: MetaDataFile) -> ApiResult {
     self
       .expires
@@ -90,6 +92,11 @@ impl DataBase {
       }
     }
     Ok(None)
+  }
+
+  pub async fn first_expire(&self) -> Option<DateTime<Utc>> {
+    let expires = self.expires.read().await;
+    expires.iter().next().map(|(d, _)| *d)
   }
 }
 

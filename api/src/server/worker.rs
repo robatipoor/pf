@@ -47,10 +47,16 @@ impl ApiTask for GarbageCollectorTask {
     loop {
       match self.state.db.purge().await {
         Ok(Some(d)) => {
-          tokio::time::sleep(d).await;
+          tokio::select! {
+            _ = tokio::time::sleep(d) => {},
+            _ = self.state.notify.notified() => {},
+          }
         }
-        Ok(None) => {}
+        Ok(None) => {
+          self.state.notify.notified().await;
+        }
         Err(e) => {
+          self.state.notify.notified().await;
           error!("failed purge task: {e}");
         }
       }

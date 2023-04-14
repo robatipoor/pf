@@ -10,6 +10,7 @@ use common::error::ApiResult;
 use hyper::server::conn::AddrIncoming;
 use std::net::TcpListener;
 use std::sync::Arc;
+use tokio::sync::Notify;
 use tracing::info;
 
 #[derive(Clone)]
@@ -17,6 +18,7 @@ pub struct ApiState {
   pub config: Arc<AppConfig>,
   pub db: Arc<DataBase>,
   pub http: Arc<reqwest::Client>,
+  pub notify: Arc<Notify>,
 }
 
 pub struct ApiServer {
@@ -34,6 +36,7 @@ impl ApiServer {
       http: Arc::new(reqwest::Client::new()),
       config: Arc::new(config),
       db: Default::default(),
+      notify: Arc::new(Notify::new()),
     };
     let router = get_router(state.clone());
     let axum_server = Server::from_tcp(tcp)?.serve(router.into_make_service());
