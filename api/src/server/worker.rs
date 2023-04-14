@@ -49,14 +49,14 @@ impl ApiTask for GarbageCollectorTask {
         Ok(Some(d)) => {
           tokio::select! {
             _ = tokio::time::sleep(d) => {},
-            _ = self.state.notify.notified() => {},
+            _ = self.state.db.waiting_for_notify() => {},
           }
         }
         Ok(None) => {
-          self.state.notify.notified().await;
+          self.state.db.waiting_for_notify().await;
         }
         Err(e) => {
-          self.state.notify.notified().await;
+          self.state.db.waiting_for_notify().await;
           error!("failed purge task: {e}");
         }
       }

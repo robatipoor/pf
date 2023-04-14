@@ -6,7 +6,7 @@ use std::time::Duration;
 use chrono::{DateTime, Utc};
 use common::error::{ApiError, ApiResult};
 use common::model::response::MetaDataFileResponse;
-use tokio::sync::RwLock;
+use tokio::sync::{Notify, RwLock};
 
 // code/file_name.ext
 pub type PathFile = String;
@@ -19,6 +19,7 @@ type Db = Arc<RwLock<HashMap<PathFile, MetaData>>>;
 pub struct DataBase {
   inner: Db,
   expires: Expires,
+  notify: Arc<Notify>,
 }
 
 impl DataBase {
@@ -51,13 +52,19 @@ impl DataBase {
   }
 
   pub async fn store(&self, path: PathFile, meta: MetaDataFile) -> ApiResult {
-    self
-      .expires
-      .write()
-      .await
-      .insert((meta.expire_time, path.clone()));
+    let mut guard = self.expires.write().await;
+    let first = guard.iter().next().map(|(d, _)| *d);
+    guard.insert((meta.expire_time, path.clone()));
+    let notify = match first {
+      Some(e) if e > meta.expire_time => true,
+      None => true,
+      _ => false,
+    };
+    drop(guard);
     self.inner.write().await.insert(path, meta.into());
-    // trigger gc
+    if notify {
+      self.notify_gc();
+    }
     Ok(())
   }
   pub async fn delete(&self, path: PathFile) -> Option<MetaDataFile> {
@@ -94,9 +101,12 @@ impl DataBase {
     Ok(None)
   }
 
-  pub async fn first_expire(&self) -> Option<DateTime<Utc>> {
-    let expires = self.expires.read().await;
-    expires.iter().next().map(|(d, _)| *d)
+  fn notify_gc(&self) {
+    self.notify.notify_one()
+  }
+
+  pub async fn waiting_for_notify(&self) {
+    self.notify.notified().await
   }
 }
 
