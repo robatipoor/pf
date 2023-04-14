@@ -55,12 +55,12 @@ impl DataBase {
     let mut guard = self.expires.write().await;
     let first = guard.iter().next().map(|(d, _)| *d);
     guard.insert((meta.expire_time, path.clone()));
+    drop(guard);
     let notify = match first {
       Some(e) if e > meta.expire_time => true,
       None => true,
       _ => false,
     };
-    drop(guard);
     self.inner.write().await.insert(path, meta.into());
     if notify {
       self.notify_gc();
@@ -182,8 +182,6 @@ impl From<&MetaDataFile> for MetaDataFileResponse {
 
 #[cfg(test)]
 mod tests {
-  use std::collections::BTreeSet;
-
-  use chrono::{DateTime, Utc};
-  use fake::{Fake, Faker};
+  // use chrono::{DateTime, Utc};
+  // use fake::{Fake, Faker};
 }

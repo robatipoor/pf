@@ -1,5 +1,4 @@
 use std::ops::Deref;
-use std::path::PathBuf;
 
 use api::config::CONFIG;
 use api::server::{ApiServer, ApiState};

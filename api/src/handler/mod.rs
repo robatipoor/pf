@@ -1,14 +1,7 @@
 pub mod file;
 
-use axum::{
-  body::{boxed, StreamBody},
-  extract::{BodyStream, Path, State},
-  response::{Html, Response},
-  Json,
-};
-use common::{error::ApiResult, model::response::MessageResponse};
-
-use crate::{server::ApiState, service};
+use axum::{response::Html, Json};
+use common::model::response::MessageResponse;
 
 pub async fn health_check() -> Json<MessageResponse> {
   Json(MessageResponse {

@@ -24,8 +24,6 @@ fn qr_to_str(qr: &QrCode, border: i32) -> String {
 
 #[cfg(test)]
 mod tests {
-  use fake::{Fake, Faker};
-
   use super::*;
 
   #[test]

@@ -1,18 +1,15 @@
-use std::time::Duration;
-
 use axum::extract::BodyStream;
-use axum::headers::authorization::Basic;
 use axum_extra::body::AsyncReadBody;
 use chrono::{DateTime, Utc};
 use common::error::{ApiError, ApiResult};
 use common::model::request::UploadParamQuery;
 use futures_util::TryStreamExt;
+use std::path::PathBuf;
 use tokio::fs::File;
 use tokio::io::BufWriter;
-use tokio::time::Instant;
 use tokio_util::io::StreamReader;
 
-use crate::database::MetaDataFile;
+use crate::database::{MetaDataFile, PathFile};
 use crate::server::ApiState;
 
 pub async fn store(
@@ -20,7 +17,8 @@ pub async fn store(
   file_name: &str,
   query: &UploadParamQuery,
   auth: Option<String>,
-) -> ApiResult<(String, DateTime<Utc>)> {
+  stream: BodyStream,
+) -> ApiResult<(PathFile, DateTime<Utc>)> {
   let auth = auth
     .as_ref()
     .map(common::util::hash::argon_hash)
@@ -28,7 +26,7 @@ pub async fn store(
     .map_err(|e| ApiError::HashError(e.to_string()))?;
   let now = Utc::now();
   let expire_time = now + chrono::Duration::seconds(query.expire_time.unwrap() as i64);
-  let code = loop {
+  let path = loop {
     let code: String = common::util::string::generate_random_string(query.length_code.unwrap());
     let path = format!("{code}/{file_name}");
     if !state.db.exist(&path).await {
@@ -40,11 +38,13 @@ pub async fn store(
         auth,
         downloads: 0,
       };
-      state.db.store(path, meta).await?;
-      break code;
+      state.db.store(path.clone(), meta).await?;
+      break path;
     }
   };
-  Ok((code, expire_time))
+  let file_path = state.config.fs.base_dir.join(&path);
+  store_stream(&file_path, stream).await?;
+  Ok((path, expire_time))
 }
 
 pub async fn info(state: &ApiState, code: &str, file_name: &str) -> ApiResult<MetaDataFile> {
@@ -68,7 +68,7 @@ pub async fn fetch(
   code: &str,
   file_name: &str,
   auth: Option<String>,
-) -> ApiResult<MetaDataFile> {
+) -> ApiResult<AsyncReadBody<File>> {
   let path = format!("{code}/{file_name}");
   let meta = state
     .db
@@ -89,14 +89,16 @@ pub async fn fetch(
       return Err(ApiError::PermissionDenied("password invalid".to_string()));
     }
   }
-  Ok(meta)
+  read_file(&state.config.fs.base_dir.join(&path)).await
 }
 
 pub async fn delete(state: &ApiState, code: &str, file_name: &str) -> ApiResult<()> {
   let path = format!("{code}/{file_name}");
   if let Some(info) = state.db.fetch(&path).await {
     if info.is_deleteable {
+      let file_path = state.config.fs.base_dir.join(&path);
       state.db.delete(path).await;
+      tokio::fs::remove_file(file_path).await?;
     } else {
       return Err(ApiError::PermissionDenied(format!(
         "it is not possible to delete {path}"
@@ -104,4 +106,18 @@ pub async fn delete(state: &ApiState, code: &str, file_name: &str) -> ApiResult<
     }
   }
   Ok(())
+}
+
+pub async fn store_stream(file_path: &PathBuf, stream: BodyStream) -> ApiResult<()> {
+  let stream = stream.map_err(|err| std::io::Error::new(std::io::ErrorKind::Other, err));
+  let stream = StreamReader::new(stream);
+  futures_util::pin_mut!(stream);
+  let mut file = BufWriter::new(File::create(file_path).await?);
+  tokio::io::copy(&mut stream, &mut file).await?;
+  Ok(())
+}
+
+pub async fn read_file(file_path: &PathBuf) -> ApiResult<AsyncReadBody<File>> {
+  let file = File::open(file_path).await?;
+  Ok(AsyncReadBody::new(file))
 }

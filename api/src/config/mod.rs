@@ -2,13 +2,17 @@ use common::config::{arg::parse_config_path_from_arguments, get_env_source};
 use config::ConfigError;
 use once_cell::sync::Lazy;
 use serde::Deserialize;
-use std::net::{AddrParseError, SocketAddr};
+use std::{
+  net::{AddrParseError, SocketAddr},
+  path::PathBuf,
+};
 
 pub static CONFIG: Lazy<AppConfig> = Lazy::new(|| AppConfig::read().unwrap());
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct AppConfig {
   pub server: ServerConfig,
+  pub fs: FileSystemConfig,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -16,6 +20,11 @@ pub struct ServerConfig {
   pub addr: String,
   pub port: u16,
   pub domain: String,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct FileSystemConfig {
+  pub base_dir: PathBuf,
 }
 
 impl ServerConfig {

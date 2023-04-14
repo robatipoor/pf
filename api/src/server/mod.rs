@@ -10,7 +10,6 @@ use common::error::ApiResult;
 use hyper::server::conn::AddrIncoming;
 use std::net::TcpListener;
 use std::sync::Arc;
-use tokio::sync::Notify;
 use tracing::info;
 
 #[derive(Clone)]
