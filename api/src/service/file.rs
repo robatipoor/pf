@@ -43,7 +43,6 @@ pub async fn store(
     }
   };
   let file_path = state.config.fs.base_dir.join(&path);
-  println!(">>>> {file_path:?}");
   store_stream(&file_path, stream).await?;
   Ok((path, expire_time))
 }

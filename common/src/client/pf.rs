@@ -51,14 +51,15 @@ impl PasteFileClient {
   #[logfn(Info)]
   pub async fn download(
     &self,
-    path_file: String,
+    path_file: &str,
     auth: Option<(String, String)>,
-  ) -> anyhow::Result<StatusCode> {
-    let mut builder = self.client.delete(format!("{}/{path_file}", self.addr));
+  ) -> anyhow::Result<(StatusCode, Vec<u8>)> {
+    let mut builder = self.client.get(format!("{}/{path_file}", self.addr));
     if let Some((user, pass)) = auth {
       builder = builder.basic_auth(user, Some(pass));
     }
-    Ok(builder.send().await?.status())
+    let resp = builder.send().await?;
+    Ok((resp.status(), resp.bytes().await?.to_vec()))
   }
 
   #[logfn(Info)]
