@@ -1,6 +1,7 @@
-use crate::error::ApiResponseResult;
+use crate::{error::ApiResponseResult, model::response::UploadResponse};
 
 use super::{PasteFileClient, CLIENT};
+use log_derive::logfn;
 use once_cell::sync::Lazy;
 use reqwest::StatusCode;
 
@@ -12,6 +13,7 @@ impl PasteFileClient {
     }
   }
 
+  #[logfn(Info)]
   pub async fn health_check(&self) -> anyhow::Result<(StatusCode, ApiResponseResult)> {
     let resp = self
       .client
@@ -26,25 +28,27 @@ impl PasteFileClient {
     Ok((resp.status(), resp.text().await?))
   }
 
+  #[logfn(Info)]
   pub async fn upload(
     &self,
-    filename: String,
+    file_name: String,
     content_type: &str,
     file: Vec<u8>,
-  ) -> anyhow::Result<StatusCode> {
+  ) -> anyhow::Result<(StatusCode, ApiResponseResult<UploadResponse>)> {
     let file_part = reqwest::multipart::Part::bytes(file)
-      .file_name(filename)
+      .file_name(file_name.clone())
       .mime_str(content_type)?;
     let form = reqwest::multipart::Form::new().part("file", file_part);
     let resp = self
       .client
-      .post(format!("{}/upload", self.addr))
+      .post(format!("{}/upload/{file_name}", self.addr))
       .multipart(form)
       .send()
       .await?;
-    Ok(resp.status())
+    Ok((resp.status(), resp.json().await?))
   }
 
+  #[logfn(Info)]
   pub async fn download(
     &self,
     path_file: String,
@@ -57,6 +61,7 @@ impl PasteFileClient {
     Ok(builder.send().await?.status())
   }
 
+  #[logfn(Info)]
   pub async fn info(
     &self,
     path_file: String,
@@ -69,6 +74,7 @@ impl PasteFileClient {
     Ok(builder.send().await?.status())
   }
 
+  #[logfn(Info)]
   pub async fn delete(
     &self,
     path_file: String,

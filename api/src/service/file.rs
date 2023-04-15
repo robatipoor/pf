@@ -25,15 +25,15 @@ pub async fn store(
     .transpose()
     .map_err(|e| ApiError::HashError(e.to_string()))?;
   let now = Utc::now();
-  let expire_time = now + chrono::Duration::seconds(query.expire_time.unwrap() as i64);
+  let expire_time = now + chrono::Duration::seconds(query.expire_time.unwrap_or(7200) as i64);
   let path = loop {
-    let code: String = common::util::string::generate_random_string(query.length_code.unwrap());
+    let code: String = common::util::string::generate_random_string(query.length_code.unwrap_or(3));
     let path = format!("{code}/{file_name}");
     if !state.db.exist(&path).await {
       let meta = MetaDataFile {
         create_at: now,
         expire_time,
-        is_deleteable: query.deleteable.unwrap(),
+        is_deleteable: query.deleteable.unwrap_or_default(),
         max_download: query.max_download,
         auth,
         downloads: 0,
@@ -43,6 +43,7 @@ pub async fn store(
     }
   };
   let file_path = state.config.fs.base_dir.join(&path);
+  println!(">>>> {file_path:?}");
   store_stream(&file_path, stream).await?;
   Ok((path, expire_time))
 }
@@ -117,6 +118,9 @@ pub async fn store_stream(file_path: &PathBuf, stream: BodyStream) -> ApiResult<
   let stream = stream.map_err(|err| std::io::Error::new(std::io::ErrorKind::Other, err));
   let stream = StreamReader::new(stream);
   futures_util::pin_mut!(stream);
+  if let Some(p) = file_path.parent() {
+    tokio::fs::create_dir_all(p).await?;
+  }
   let mut file = BufWriter::new(File::create(file_path).await?);
   tokio::io::copy(&mut stream, &mut file).await?;
   Ok(())

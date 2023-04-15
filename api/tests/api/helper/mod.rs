@@ -8,7 +8,7 @@ use once_cell::sync::Lazy;
 use test_context::AsyncTestContext;
 
 pub struct ApiTestContext {
-  pub client: PasteFileClient,
+  client: PasteFileClient,
   pub state: ApiState,
 }
 

@@ -10,14 +10,3 @@ pub struct UploadParamQuery {
   pub expire_time: Option<u64>,
   pub deleteable: Option<bool>,
 }
-
-impl Default for UploadParamQuery {
-  fn default() -> Self {
-    Self {
-      max_download: None,
-      length_code: Some(4),
-      expire_time: Some(7200),
-      deleteable: Some(true),
-    }
-  }
-}
