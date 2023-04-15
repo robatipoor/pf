@@ -1,6 +1,6 @@
 # pf
 [![Crates.io](https://img.shields.io/crates/v/pf.svg?style=plastic)](http://crates.io/crates/pf)
-![License](https://img.shields.io/github/license/robatipoor/rustfulapi)
+![License](https://img.shields.io/github/license/robatipoor/pf)
 ![Lines of code](https://img.shields.io/tokei/lines/github/robatipoor/pf)
 [![Format check](https://github.com/robatipoor/pf/actions/workflows/format.yml/badge.svg)](https://github.com/robatipoor/pf/actions/workflows/format.yml)
 [![Build Check](https://github.com/robatipoor/pf/actions/workflows/check.yml/badge.svg)](https://github.com/robatipoor/pf/actions/workflows/check.yml)
@@ -9,7 +9,7 @@
 [![Docker Image](https://github.com/robatipoor/pf/actions/workflows/build.yml/badge.svg)](https://github.com/robatipoor/pf/actions/workflows/build.yml)
 [![Test Coverage](https://github.com/robatipoor/pf/actions/workflows/coverage.yml/badge.svg)](https://github.com/robatipoor/pf/actions/workflows/coverage.yml)
 [![Codecov](https://codecov.io/gh/robatipoor/pf/branch/main/graph/badge.svg?token=BIMUKRJPE7)](https://codecov.io/gh/robatipoor/pf)
-[![Dependency status](https://deps.rs/repo/github/robatipoor/rustfulapi/status.svg)](https://deps.rs/repo/github/robatipoor/rustfulapi)
+[![Dependency status](https://deps.rs/repo/github/robatipoor/pf/status.svg)](https://deps.rs/repo/github/robatipoor/pf)
 
 
 **install**
@@ -85,7 +85,7 @@ Some of the integration tests use docker to spin up dependencies on demand (ie a
 ```
 ./test.sh
 ```
-![RUSTfulapi grid](https://codecov.io/gh/robatipoor/pf/branch/main/graphs/tree.svg?token=BIMUKRJPE7)
+![api grid](https://codecov.io/gh/robatipoor/pf/branch/main/graphs/tree.svg?token=BIMUKRJPE7)
 ### Configuration
 This project uses [config-rs](https://github.com/mehcode/config-rs) to manage configuration.
 #### Configure with toml files
