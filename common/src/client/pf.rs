@@ -21,6 +21,11 @@ impl PasteFileClient {
     Ok((resp.status(), resp.json().await?))
   }
 
+  pub async fn home_page(&self) -> anyhow::Result<(StatusCode, String)> {
+    let resp = self.client.get(format!("{}/web", self.addr)).send().await?;
+    Ok((resp.status(), resp.text().await?))
+  }
+
   pub async fn upload(
     &self,
     filename: String,

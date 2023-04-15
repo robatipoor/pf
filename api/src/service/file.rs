@@ -65,6 +65,7 @@ pub async fn info(
       return Err(ApiError::NotFound(format!("{path} not found")));
     }
   }
+  authenticate(auth, &meta.auth)?;
   Ok(meta)
 }
 
@@ -86,14 +87,7 @@ pub async fn fetch(
       return Err(ApiError::NotFound(format!("{path} not found")));
     }
   }
-  if let Some(hash) = meta.auth.as_ref() {
-    if !matches!(
-      auth.map(|p| common::util::hash::argon_verify(p, hash)),
-      Some(Ok(()))
-    ) {
-      return Err(ApiError::PermissionDenied("password invalid".to_string()));
-    }
-  }
+  authenticate(auth, &meta.auth)?;
   read_file(&state.config.fs.base_dir.join(&path)).await
 }
 
@@ -104,8 +98,9 @@ pub async fn delete(
   auth: Option<String>,
 ) -> ApiResult<()> {
   let path = format!("{code}/{file_name}");
-  if let Some(info) = state.db.fetch(&path).await {
-    if info.is_deleteable {
+  if let Some(meta) = state.db.fetch(&path).await {
+    if meta.is_deleteable {
+      authenticate(auth, &meta.auth)?;
       let file_path = state.config.fs.base_dir.join(&path);
       state.db.delete(path).await;
       tokio::fs::remove_file(file_path).await?;
@@ -130,4 +125,18 @@ pub async fn store_stream(file_path: &PathBuf, stream: BodyStream) -> ApiResult<
 pub async fn read_file(file_path: &PathBuf) -> ApiResult<AsyncReadBody<File>> {
   let file = File::open(file_path).await?;
   Ok(AsyncReadBody::new(file))
+}
+
+pub fn authenticate(auth: Option<String>, hash: &Option<String>) -> ApiResult<()> {
+  if let Some(hash) = hash {
+    if !matches!(
+      auth.map(|p| common::util::hash::argon_verify(p, hash)),
+      Some(Ok(()))
+    ) {
+      return Err(ApiError::PermissionDenied(
+        "user and password invalid".to_string(),
+      ));
+    }
+  }
+  Ok(())
 }
