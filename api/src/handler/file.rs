@@ -50,16 +50,20 @@ pub async fn download(
 pub async fn info(
   State(state): State<ApiState>,
   Path((code, file_name)): Path<(String, String)>,
+  headers: HeaderMap,
 ) -> ApiResult<Json<MetaDataFileResponse>> {
-  let meta = service::file::info(&state, &code, &file_name).await?;
+  let auth = common::util::http::parse_basic_auth(&headers)?;
+  let meta = service::file::info(&state, &code, &file_name, auth).await?;
   Ok(Json(MetaDataFileResponse::from(&meta)))
 }
 
 pub async fn delete(
   State(state): State<ApiState>,
   Path((code, file_name)): Path<(String, String)>,
+  headers: HeaderMap,
 ) -> ApiResult<Json<MessageResponse>> {
-  service::file::delete(&state, &code, &file_name).await?;
+  let auth = common::util::http::parse_basic_auth(&headers)?;
+  service::file::delete(&state, &code, &file_name, auth).await?;
   Ok(Json(MessageResponse {
     message: "OK".to_string(),
   }))

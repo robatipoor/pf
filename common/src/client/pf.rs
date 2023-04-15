@@ -1,3 +1,5 @@
+use crate::error::ApiResponseResult;
+
 use super::{PasteFileClient, CLIENT};
 use once_cell::sync::Lazy;
 use reqwest::StatusCode;
@@ -10,16 +12,16 @@ impl PasteFileClient {
     }
   }
 
-  pub async fn health_check(&self) -> anyhow::Result<StatusCode> {
+  pub async fn health_check(&self) -> anyhow::Result<(StatusCode, ApiResponseResult)> {
     let resp = self
       .client
       .get(format!("{}/healthz", self.addr))
       .send()
       .await?;
-    Ok(resp.status())
+    Ok((resp.status(), resp.json().await?))
   }
 
-  pub async fn upload_object(
+  pub async fn upload(
     &self,
     filename: String,
     content_type: &str,
@@ -36,5 +38,41 @@ impl PasteFileClient {
       .send()
       .await?;
     Ok(resp.status())
+  }
+
+  pub async fn download(
+    &self,
+    path_file: String,
+    auth: Option<(String, String)>,
+  ) -> anyhow::Result<StatusCode> {
+    let mut builder = self.client.delete(format!("{}/{path_file}", self.addr));
+    if let Some((user, pass)) = auth {
+      builder = builder.basic_auth(user, Some(pass));
+    }
+    Ok(builder.send().await?.status())
+  }
+
+  pub async fn info(
+    &self,
+    path_file: String,
+    auth: Option<(String, String)>,
+  ) -> anyhow::Result<StatusCode> {
+    let mut builder = self.client.delete(format!("{}/{path_file}", self.addr));
+    if let Some((user, pass)) = auth {
+      builder = builder.basic_auth(user, Some(pass));
+    }
+    Ok(builder.send().await?.status())
+  }
+
+  pub async fn delete(
+    &self,
+    path_file: String,
+    auth: Option<(String, String)>,
+  ) -> anyhow::Result<StatusCode> {
+    let mut builder = self.client.delete(format!("{}/{path_file}", self.addr));
+    if let Some((user, pass)) = auth {
+      builder = builder.basic_auth(user, Some(pass));
+    }
+    Ok(builder.send().await?.status())
   }
 }

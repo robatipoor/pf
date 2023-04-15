@@ -1,3 +1,4 @@
+use crate::model::response::MessageResponse;
 use axum::{
   http::StatusCode,
   response::{IntoResponse, Response},
@@ -149,4 +150,28 @@ pub fn invalid_input_error(feild: &'static str, message: &'static str) -> ApiErr
     },
   );
   ApiError::InvalidInput(err)
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ApiResponseResult<T = MessageResponse> {
+  Ok(T),
+  Err(BodyResponseError),
+}
+
+impl<T> ApiResponseResult<T> {
+  pub fn is_ok(&self) -> bool {
+    matches!(*self, Self::Ok(_))
+  }
+
+  pub fn is_err(&self) -> bool {
+    matches!(*self, Self::Err(_))
+  }
+
+  pub fn unwrap(self) -> T {
+    match self {
+      Self::Ok(t) => t,
+      Self::Err(e) => panic!("called `AppResult::unwrap()` on an `Err` value {:?}", &e),
+    }
+  }
 }

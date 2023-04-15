@@ -7,8 +7,6 @@ use common::config::tracing::INIT_SUBSCRIBER;
 use once_cell::sync::Lazy;
 use test_context::AsyncTestContext;
 
-pub mod dummy;
-
 pub struct ApiTestContext {
   pub client: PasteFileClient,
   pub state: ApiState,
@@ -18,9 +16,11 @@ pub struct ApiTestContext {
 impl AsyncTestContext for ApiTestContext {
   async fn setup() -> Self {
     Lazy::force(&INIT_SUBSCRIBER);
+    let workspace = std::path::PathBuf::from(cuid2::create_id());
+    tokio::fs::create_dir_all(&workspace).await.unwrap();
     let mut config = CONFIG.clone();
     config.server.port = 0;
-    // config.db.path = PathBuf::from(cuid2::create_id());
+    config.fs.base_dir = workspace;
     let server = ApiServer::build(config).await.unwrap();
     let client = PasteFileClient::new(&server.state.config.server.get_http_addr());
     tokio::spawn(server.start);
@@ -31,9 +31,9 @@ impl AsyncTestContext for ApiTestContext {
   }
 
   async fn teardown(self) {
-    // tokio::fs::remove_dir_all(&self.state.config.db.path)
-    //   .await
-    //   .unwrap();
+    tokio::fs::remove_dir_all(&self.state.config.fs.base_dir)
+      .await
+      .unwrap();
   }
 }
 

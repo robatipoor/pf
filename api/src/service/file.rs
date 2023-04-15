@@ -47,7 +47,12 @@ pub async fn store(
   Ok((path, expire_time))
 }
 
-pub async fn info(state: &ApiState, code: &str, file_name: &str) -> ApiResult<MetaDataFile> {
+pub async fn info(
+  state: &ApiState,
+  code: &str,
+  file_name: &str,
+  auth: Option<String>,
+) -> ApiResult<MetaDataFile> {
   let path = format!("{code}/{file_name}");
   let meta = state
     .db
@@ -92,7 +97,12 @@ pub async fn fetch(
   read_file(&state.config.fs.base_dir.join(&path)).await
 }
 
-pub async fn delete(state: &ApiState, code: &str, file_name: &str) -> ApiResult<()> {
+pub async fn delete(
+  state: &ApiState,
+  code: &str,
+  file_name: &str,
+  auth: Option<String>,
+) -> ApiResult<()> {
   let path = format!("{code}/{file_name}");
   if let Some(info) = state.db.fetch(&path).await {
     if info.is_deleteable {

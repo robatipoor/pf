@@ -7,6 +7,7 @@ use once_cell::sync::Lazy;
 async fn main() -> ApiResult {
   let config = api::config::AppConfig::read()?;
   Lazy::force(&INIT_SUBSCRIBER);
+  // TODO clean work space
   let server = ApiServer::build(config).await?;
   api::server::worker::spawn(State(server.state.clone()));
   let _ = server.start.await;
