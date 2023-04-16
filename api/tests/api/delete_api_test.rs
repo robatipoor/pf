@@ -3,16 +3,8 @@ use test_context::test_context;
 
 #[test_context(ApiTestContext)]
 #[tokio::test]
-pub async fn test_download(ctx: &mut ApiTestContext) {
-  let filename = String::from("hello.txt");
-  let content_type = "text/plain";
-  let file = "hello".as_bytes().to_vec();
-  let (status, resp) = ctx
-    .upload(filename, content_type, file.clone())
-    .await
-    .unwrap();
-  assert!(status.is_success());
-  let url = url::Url::parse(&resp.unwrap().url).unwrap();
+pub async fn test_delete(ctx: &mut ApiTestContext) {
+  let path = ctx.upload_dummy_object(None, None, None, None).await;
   // let (status, body) = ctx.download(&url.path()[1..], None).await.unwrap();
   // assert!(status.is_success());
 }

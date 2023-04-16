@@ -1,4 +1,10 @@
-use crate::{error::ApiResponseResult, model::response::UploadResponse};
+use crate::{
+  error::ApiResponseResult,
+  model::{
+    request::UploadParamQuery,
+    response::{MetaDataFileResponse, UploadResponse},
+  },
+};
 
 use super::{PasteFileClient, CLIENT};
 use log_derive::logfn;
@@ -33,6 +39,7 @@ impl PasteFileClient {
     &self,
     file_name: String,
     content_type: &str,
+    query: &UploadParamQuery,
     file: Vec<u8>,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<UploadResponse>)> {
     let file_part = reqwest::multipart::Part::bytes(file)
@@ -43,6 +50,7 @@ impl PasteFileClient {
       .client
       .post(format!("{}/upload/{file_name}", self.addr))
       .multipart(form)
+      .query(query)
       .send()
       .await?;
     Ok((resp.status(), resp.json().await?))
@@ -65,14 +73,15 @@ impl PasteFileClient {
   #[logfn(Info)]
   pub async fn info(
     &self,
-    path_file: String,
+    path_file: &str,
     auth: Option<(String, String)>,
-  ) -> anyhow::Result<StatusCode> {
+  ) -> anyhow::Result<(StatusCode, ApiResponseResult<MetaDataFileResponse>)> {
     let mut builder = self.client.delete(format!("{}/{path_file}", self.addr));
     if let Some((user, pass)) = auth {
       builder = builder.basic_auth(user, Some(pass));
     }
-    Ok(builder.send().await?.status())
+    let resp = builder.send().await?;
+    Ok((resp.status(), resp.json().await?))
   }
 
   #[logfn(Info)]

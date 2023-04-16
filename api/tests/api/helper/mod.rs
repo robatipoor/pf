@@ -4,6 +4,9 @@ use api::config::CONFIG;
 use api::server::{ApiServer, ApiState};
 use common::client::PasteFileClient;
 use common::config::tracing::INIT_SUBSCRIBER;
+use common::error::ApiResult;
+use common::model::request::UploadParamQuery;
+use fake::{Fake, Faker};
 use once_cell::sync::Lazy;
 use test_context::AsyncTestContext;
 
@@ -42,5 +45,32 @@ impl Deref for ApiTestContext {
 
   fn deref(&self) -> &Self::Target {
     &self.client
+  }
+}
+
+impl ApiTestContext {
+  pub async fn upload_dummy_object(
+    &self,
+    max: Option<u32>,
+    len: Option<usize>,
+    exp: Option<u64>,
+    del: Option<bool>,
+  ) -> String {
+    let filename: String = format!("{}.txt", Faker.fake::<String>());
+    let content_type = "text/plain";
+    let content = Faker.fake::<String>().as_bytes().to_vec();
+    let query = UploadParamQuery {
+      max_download: max,
+      length_code: len,
+      expire_time: exp,
+      deleteable: del,
+    };
+    let (status, resp) = self
+      .client
+      .upload(filename, content_type, &query, content.clone())
+      .await
+      .unwrap();
+    assert!(status.is_success());
+    url::Url::parse(&resp.unwrap().url).unwrap().path()[1..].to_string()
   }
 }

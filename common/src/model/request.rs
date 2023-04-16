@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize, Validate, Default)]
 pub struct UploadParamQuery {
   pub max_download: Option<u32>,
   #[validate(range(min = 4, max = 100))]
