@@ -8,7 +8,7 @@ use common::error::{ApiError, ApiResult};
 use common::model::response::MetaDataFileResponse;
 use tokio::sync::{Notify, RwLock};
 
-// code/file_name.ext
+/// code/file_name.ext
 pub type PathFile = String;
 
 pub type Expires = Arc<RwLock<BTreeSet<(DateTime<Utc>, PathFile)>>>;

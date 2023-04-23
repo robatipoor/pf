@@ -4,7 +4,6 @@ use api::config::CONFIG;
 use api::server::{ApiServer, ApiState};
 use common::client::PasteFileClient;
 use common::config::tracing::INIT_SUBSCRIBER;
-use common::error::ApiResult;
 use common::model::request::UploadParamQuery;
 use fake::{Fake, Faker};
 use once_cell::sync::Lazy;
@@ -49,14 +48,14 @@ impl Deref for ApiTestContext {
 }
 
 impl ApiTestContext {
-  pub async fn upload_dummy_object(
+  pub async fn upload_dummy_file(
     &self,
     max: Option<u32>,
     len: Option<usize>,
     exp: Option<u64>,
     del: Option<bool>,
-  ) -> String {
-    let filename: String = format!("{}.txt", Faker.fake::<String>());
+  ) -> DummyFile {
+    let file_name: String = format!("{}.txt", Faker.fake::<String>());
     let content_type = "text/plain";
     let content = Faker.fake::<String>().as_bytes().to_vec();
     let query = UploadParamQuery {
@@ -67,10 +66,24 @@ impl ApiTestContext {
     };
     let (status, resp) = self
       .client
-      .upload(filename, content_type, &query, content.clone())
+      .upload(file_name.clone(), content_type, &query, content.clone())
       .await
       .unwrap();
     assert!(status.is_success());
-    url::Url::parse(&resp.unwrap().url).unwrap().path()[1..].to_string()
+    let path = url::Url::parse(&resp.unwrap().url).unwrap().path()[1..].to_string();
+    DummyFile {
+      content,
+      content_type: content_type.to_string(),
+      file_name,
+      path,
+    }
   }
+}
+
+#[derive(Clone)]
+pub struct DummyFile {
+  pub content: Vec<u8>,
+  pub content_type: String,
+  pub file_name: String,
+  pub path: String,
 }

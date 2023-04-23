@@ -87,13 +87,14 @@ impl PasteFileClient {
   #[logfn(Info)]
   pub async fn delete(
     &self,
-    path_file: String,
+    path_file: &str,
     auth: Option<(String, String)>,
-  ) -> anyhow::Result<StatusCode> {
+  ) -> anyhow::Result<(StatusCode, ApiResponseResult)> {
     let mut builder = self.client.delete(format!("{}/{path_file}", self.addr));
     if let Some((user, pass)) = auth {
       builder = builder.basic_auth(user, Some(pass));
     }
-    Ok(builder.send().await?.status())
+    let resp = builder.send().await?;
+    Ok((resp.status(), resp.json().await?))
   }
 }

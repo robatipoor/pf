@@ -16,7 +16,7 @@ use tracing::info;
 pub struct ApiState {
   pub config: Arc<AppConfig>,
   pub db: Arc<DataBase>,
-  pub http: Arc<reqwest::Client>,
+  pub http: reqwest::Client,
 }
 
 pub struct ApiServer {
@@ -31,7 +31,7 @@ impl ApiServer {
     info!("Listening to: {addr} ...");
     config.server.port = addr.port();
     let state = ApiState {
-      http: Arc::new(reqwest::Client::new()),
+      http: reqwest::Client::new(),
       config: Arc::new(config),
       db: Default::default(),
     };

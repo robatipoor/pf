@@ -5,8 +5,8 @@ use crate::helper::ApiTestContext;
 #[test_context(ApiTestContext)]
 #[tokio::test]
 pub async fn test_download(ctx: &mut ApiTestContext) {
-  let path = ctx.upload_dummy_object(None, None, None, None).await;
-  let (status, body) = ctx.download(&path, None).await.unwrap();
+  let file = ctx.upload_dummy_file(None, None, None, None).await;
+  let (status, body) = ctx.download(&file.path, None).await.unwrap();
   assert!(status.is_success());
-  // assert_eq!(file, body);
+  assert_eq!(file.content, body);
 }

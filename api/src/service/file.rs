@@ -126,8 +126,7 @@ pub async fn store_stream(file_path: &PathBuf, stream: BodyStream) -> ApiResult<
 }
 
 pub async fn read_file(file_path: &PathBuf) -> ApiResult<AsyncReadBody<File>> {
-  let file = File::open(file_path).await?;
-  Ok(AsyncReadBody::new(file))
+  Ok(AsyncReadBody::new(File::open(file_path).await?))
 }
 
 pub fn authenticate(auth: Option<String>, hash: &Option<String>) -> ApiResult<()> {

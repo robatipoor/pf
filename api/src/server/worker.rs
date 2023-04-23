@@ -53,11 +53,12 @@ impl ApiTask for GarbageCollectorTask {
           }
         }
         Ok(None) => {
+          // TODO remove unused files in fs
           self.state.db.waiting_for_notify().await;
         }
         Err(e) => {
           self.state.db.waiting_for_notify().await;
-          error!("failed purge task: {e}");
+          error!("failed gc task: {e}");
         }
       }
     }

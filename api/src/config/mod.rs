@@ -13,6 +13,7 @@ pub static CONFIG: Lazy<AppConfig> = Lazy::new(|| AppConfig::read().unwrap());
 pub struct AppConfig {
   pub server: ServerConfig,
   pub fs: FileSystemConfig,
+  // TODO max upload file
 }
 
 #[derive(Debug, Deserialize, Clone)]
