@@ -8,6 +8,7 @@ use crate::{
 
 use super::{PasteFileClient, CLIENT};
 use log_derive::logfn;
+use multer::Multipart;
 use once_cell::sync::Lazy;
 use reqwest::StatusCode;
 
@@ -67,7 +68,19 @@ impl PasteFileClient {
       builder = builder.basic_auth(user, Some(pass));
     }
     let resp = builder.send().await?;
-    Ok((resp.status(), resp.bytes().await?.to_vec()))
+    let status = resp.status();
+    let body = resp.bytes().await;
+    let boundary = std::str::from_utf8(body.as_ref().unwrap())
+      .unwrap()
+      .to_string()
+      .lines()
+      .next()
+      .unwrap()[2..]
+      .to_string();
+    let stream = futures_util::stream::once(async { body });
+    let mut mp = Multipart::new(stream, boundary);
+    let f = mp.next_field().await.unwrap().unwrap();
+    Ok((status, f.bytes().await.unwrap().to_vec()))
   }
 
   #[logfn(Info)]
@@ -76,7 +89,7 @@ impl PasteFileClient {
     path_file: &str,
     auth: Option<(String, String)>,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<MetaDataFileResponse>)> {
-    let mut builder = self.client.delete(format!("{}/{path_file}", self.addr));
+    let mut builder = self.client.get(format!("{}/info/{path_file}", self.addr));
     if let Some((user, pass)) = auth {
       builder = builder.basic_auth(user, Some(pass));
     }

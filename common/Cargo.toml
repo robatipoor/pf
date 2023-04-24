@@ -14,6 +14,7 @@ chrono = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 reqwest = { workspace = true }
+multer = { workspace = true }
 fake = { workspace = true }
 rand = { workspace = true }
 regex = { workspace = true }

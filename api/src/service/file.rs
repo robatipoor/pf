@@ -1,5 +1,4 @@
 use axum::extract::BodyStream;
-use axum_extra::body::AsyncReadBody;
 use chrono::{DateTime, Utc};
 use common::error::{ApiError, ApiResult};
 use common::model::request::UploadParamQuery;
@@ -8,6 +7,7 @@ use std::path::PathBuf;
 use tokio::fs::File;
 use tokio::io::BufWriter;
 use tokio_util::io::StreamReader;
+use tower_http::services::ServeFile;
 
 use crate::database::{MetaDataFile, PathFile};
 use crate::server::ApiState;
@@ -33,7 +33,7 @@ pub async fn store(
       let meta = MetaDataFile {
         create_at: now,
         expire_time,
-        is_deleteable: query.deleteable.unwrap_or_default(),
+        is_deleteable: query.deleteable.unwrap_or(true),
         max_download: query.max_download,
         auth,
         downloads: 0,
@@ -74,7 +74,7 @@ pub async fn fetch(
   code: &str,
   file_name: &str,
   auth: Option<String>,
-) -> ApiResult<AsyncReadBody<File>> {
+) -> ApiResult<ServeFile> {
   let path = format!("{code}/{file_name}");
   let meta = state
     .db
@@ -125,8 +125,8 @@ pub async fn store_stream(file_path: &PathBuf, stream: BodyStream) -> ApiResult<
   Ok(())
 }
 
-pub async fn read_file(file_path: &PathBuf) -> ApiResult<AsyncReadBody<File>> {
-  Ok(AsyncReadBody::new(File::open(file_path).await?))
+pub async fn read_file(file_path: &PathBuf) -> ApiResult<ServeFile> {
+  Ok(ServeFile::new(file_path))
 }
 
 pub fn authenticate(auth: Option<String>, hash: &Option<String>) -> ApiResult<()> {

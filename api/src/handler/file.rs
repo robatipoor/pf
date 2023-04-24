@@ -1,6 +1,7 @@
 use axum::{
-  body::boxed,
+  body::Body,
   extract::{BodyStream, Path, Query, State},
+  http::{header::HeaderMap, Request},
   response::Response,
   Json,
 };
@@ -11,7 +12,8 @@ use common::{
     response::{MessageResponse, MetaDataFileResponse, UploadResponse},
   },
 };
-use hyper::HeaderMap;
+use tower::ServiceExt;
+use tower_http::services::fs::ServeFileSystemResponseBody;
 use validator::Validate;
 
 use crate::{server::ApiState, service};
@@ -39,12 +41,12 @@ pub async fn upload(
 pub async fn download(
   State(state): State<ApiState>,
   Path((code, file_name)): Path<(String, String)>,
-  headers: HeaderMap,
-) -> ApiResult<Response> {
-  let auth = common::util::http::parse_basic_auth(&headers)?;
+  req: Request<Body>,
+) -> ApiResult<Response<ServeFileSystemResponseBody>> {
+  let auth = common::util::http::parse_basic_auth(req.headers())?;
   let file = service::file::fetch(&state, &code, &file_name, auth).await?;
-  let response = Response::builder().body(boxed(file)).unwrap();
-  Ok(response)
+  let resp = file.oneshot(req).await.unwrap();
+  Ok(resp)
 }
 
 pub async fn info(
