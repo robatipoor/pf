@@ -29,7 +29,7 @@ pub async fn upload(
   query.validate()?;
   let auth = common::util::http::parse_basic_auth(&headers)?;
   let (path, expire_time) = service::file::store(&state, &file_name, &query, auth, body).await?;
-  let url = format!("{}/{path}", state.config.server.domain);
+  let url = format!("{}/{path}", state.config.domain);
   let qrcode = common::util::qrcode::encode(&url)?;
   Ok(Json(UploadResponse {
     url,

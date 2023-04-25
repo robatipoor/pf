@@ -1,8 +1,11 @@
+domain = "http://127.0.0.1"
+max_upload_size = 1024
+default_code_length = 3
+default_expire_time = 7200
+
 [server]
 addr = "127.0.0.1"
 port = 8080
-domain = "http://127.0.0.1"
 
 [fs]
 base_dir = "tmp"
-

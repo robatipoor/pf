@@ -19,19 +19,19 @@ pub async fn store(
   auth: Option<String>,
   stream: BodyStream,
 ) -> ApiResult<(PathFile, DateTime<Utc>)> {
-  let auth = auth
-    .as_ref()
-    .map(common::util::hash::argon_hash)
-    .transpose()
-    .map_err(|e| ApiError::HashError(e.to_string()))?;
-  let now = Utc::now();
-  let expire_time = now + chrono::Duration::seconds(query.expire_time.unwrap_or(7200) as i64);
+  let auth = hash(auth)?;
+  let secs = query
+    .expire_time
+    .unwrap_or(state.config.default_expire_time) as i64;
+  let expire_time = calc_expire_time(secs);
+  let code_length = query
+    .code_length
+    .unwrap_or(state.config.default_code_length);
   let path = loop {
-    let code: String = common::util::string::generate_random_string(query.length_code.unwrap_or(3));
-    let path = format!("{code}/{file_name}");
+    let path = generate_file_path(code_length, file_name);
     if !state.db.exist(&path).await {
       let meta = MetaDataFile {
-        create_at: now,
+        create_at: Utc::now(),
         expire_time,
         is_deleteable: query.deleteable.unwrap_or(true),
         max_download: query.max_download,
@@ -141,4 +141,21 @@ pub fn authenticate(auth: Option<String>, hash: &Option<String>) -> ApiResult<()
     }
   }
   Ok(())
+}
+
+pub fn generate_file_path(code_length: usize, file_name: &str) -> String {
+  let code = common::util::string::generate_random_string(code_length);
+  format!("{code}/{file_name}")
+}
+
+pub fn hash(auth: Option<String>) -> ApiResult<Option<String>> {
+  auth
+    .as_ref()
+    .map(common::util::hash::argon_hash)
+    .transpose()
+    .map_err(|e| ApiError::HashError(e.to_string()))
+}
+
+pub fn calc_expire_time(secs: i64) -> DateTime<Utc> {
+  Utc::now() + chrono::Duration::seconds(secs)
 }
