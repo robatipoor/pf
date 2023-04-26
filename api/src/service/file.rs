@@ -23,7 +23,8 @@ pub async fn store(
   let secs = query
     .expire_time
     .unwrap_or(state.config.default_expire_time) as i64;
-  let expire_time = calc_expire_time(secs);
+  let now = Utc::now();
+  let expire_time = calc_expire_time(now, secs);
   let code_length = query
     .code_length
     .unwrap_or(state.config.default_code_length);
@@ -31,7 +32,7 @@ pub async fn store(
     let path = generate_file_path(code_length, file_name);
     if !state.db.exist(&path).await {
       let meta = MetaDataFile {
-        create_at: Utc::now(),
+        create_at: now,
         expire_time,
         is_deleteable: query.deleteable.unwrap_or(true),
         max_download: query.max_download,
@@ -156,6 +157,6 @@ pub fn hash(auth: Option<String>) -> ApiResult<Option<String>> {
     .map_err(|e| ApiError::HashError(e.to_string()))
 }
 
-pub fn calc_expire_time(secs: i64) -> DateTime<Utc> {
-  Utc::now() + chrono::Duration::seconds(secs)
+pub fn calc_expire_time(now: DateTime<Utc>, secs: i64) -> DateTime<Utc> {
+  now + chrono::Duration::seconds(secs)
 }
