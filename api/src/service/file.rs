@@ -1,6 +1,6 @@
 use axum::extract::BodyStream;
 use chrono::{DateTime, Utc};
-use common::error::{ApiError, ApiResult};
+use common::error::{ApiError, ApiResult, ToApiResult};
 use common::model::request::UploadParamQuery;
 use futures_util::TryStreamExt;
 use std::path::PathBuf;
@@ -30,7 +30,7 @@ pub async fn store(
     .unwrap_or(state.config.default_code_length);
   let path = loop {
     let path = generate_file_path(code_length, file_name);
-    if !state.db.exist(&path).await {
+    if !state.db.exist(&path)? {
       let meta = MetaDataFile {
         create_at: now,
         expire_time,
@@ -55,14 +55,10 @@ pub async fn info(
   auth: Option<String>,
 ) -> ApiResult<MetaDataFile> {
   let path = format!("{code}/{file_name}");
-  let meta = state
-    .db
-    .fetch(&path)
-    .await
-    .ok_or_else(|| ApiError::NotFound(format!("{path} not found")))?;
+  let meta = state.db.fetch(&path)?.to_result()?;
   if let Some(max) = meta.max_download {
     if meta.downloads >= max {
-      state.db.delete(path.clone()).await;
+      state.db.delete(path.clone()).await?;
       return Err(ApiError::NotFound(format!("{path} not found")));
     }
   }
@@ -77,14 +73,10 @@ pub async fn fetch(
   auth: Option<String>,
 ) -> ApiResult<ServeFile> {
   let path = format!("{code}/{file_name}");
-  let meta = state
-    .db
-    .fetch_count(&path)
-    .await
-    .ok_or_else(|| ApiError::NotFound(format!("{path} not found")))?;
+  let meta = state.db.fetch_count(&path).await?.to_result()?;
   if let Some(max) = meta.max_download {
     if meta.downloads >= max {
-      state.db.delete(path.clone()).await;
+      state.db.delete(path.clone()).await?;
       return Err(ApiError::NotFound(format!("{path} not found")));
     }
   }
@@ -99,11 +91,11 @@ pub async fn delete(
   auth: Option<String>,
 ) -> ApiResult<()> {
   let path = format!("{code}/{file_name}");
-  if let Some(meta) = state.db.fetch(&path).await {
+  if let Some(meta) = state.db.fetch(&path)? {
     if meta.is_deleteable {
       authenticate(auth, &meta.auth)?;
       let file_path = state.config.fs.base_dir.join(&path);
-      state.db.delete(path).await;
+      state.db.delete(path).await?;
       tokio::fs::remove_file(file_path).await?;
     } else {
       return Err(ApiError::PermissionDenied(format!(

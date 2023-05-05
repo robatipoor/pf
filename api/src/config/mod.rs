@@ -13,6 +13,7 @@ pub static CONFIG: Lazy<AppConfig> = Lazy::new(|| AppConfig::read().unwrap());
 pub struct AppConfig {
   pub server: ServerConfig,
   pub fs: FileSystemConfig,
+  pub db: DatabaseConfig,
   pub domain: String,
   pub max_upload_size: usize,
   pub default_code_length: usize,
@@ -23,6 +24,11 @@ pub struct AppConfig {
 pub struct ServerConfig {
   pub addr: String,
   pub port: u16,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct DatabaseConfig {
+  pub path: PathBuf,
 }
 
 #[derive(Debug, Deserialize, Clone)]

@@ -1,4 +1,5 @@
 use std::ops::Deref;
+use std::path::{Path, PathBuf};
 
 use api::config::CONFIG;
 use api::server::{ApiServer, ApiState};
@@ -18,11 +19,14 @@ pub struct ApiTestContext {
 impl AsyncTestContext for ApiTestContext {
   async fn setup() -> Self {
     Lazy::force(&INIT_SUBSCRIBER);
-    let workspace = std::path::PathBuf::from(cuid2::create_id());
+    let workspace = Path::new("test-out").join(PathBuf::from(cuid2::create_id()));
+    let db_path = Path::new("test-out").join(PathBuf::from(cuid2::create_id()));
     tokio::fs::create_dir_all(&workspace).await.unwrap();
+    tokio::fs::create_dir_all(&db_path).await.unwrap();
     let mut config = CONFIG.clone();
     config.server.port = 0;
     config.fs.base_dir = workspace;
+    config.db.path = db_path;
     let server = ApiServer::build(config).await.unwrap();
     let client = PasteFileClient::new(&server.state.config.server.get_http_addr());
     tokio::spawn(server.start);
@@ -33,6 +37,9 @@ impl AsyncTestContext for ApiTestContext {
   }
 
   async fn teardown(self) {
+    tokio::fs::remove_dir_all(&self.state.config.db.path)
+      .await
+      .unwrap();
     tokio::fs::remove_dir_all(&self.state.config.fs.base_dir)
       .await
       .unwrap();
@@ -60,7 +67,7 @@ impl ApiTestContext {
     let content = Faker.fake::<String>().as_bytes().to_vec();
     let query = UploadParamQuery {
       max_download: max,
-      length_code: len,
+      code_length: len,
       expire_time: exp,
       deleteable: del,
     };

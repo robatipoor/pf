@@ -31,6 +31,8 @@ pub enum ApiError {
   #[error(transparent)]
   ParseJsonError(#[from] serde_json::Error),
   #[error(transparent)]
+  BincodeError(#[from] bincode::Error),
+  #[error(transparent)]
   ReqwestError(#[from] reqwest::Error),
   #[error(transparent)]
   SystemTimeError(#[from] std::time::SystemTimeError),
@@ -40,6 +42,10 @@ pub enum ApiError {
   SpawnTaskError(#[from] tokio::task::JoinError),
   #[error(transparent)]
   HyperError(#[from] hyper::Error),
+  #[error(transparent)]
+  DatabaseError(#[from] sled::Error),
+  #[error(transparent)]
+  Utf8Error(#[from] std::str::Utf8Error),
   #[error(transparent)]
   Unknown(#[from] anyhow::Error),
 }
@@ -78,6 +84,11 @@ impl ApiError {
         err.to_string(),
         StatusCode::INTERNAL_SERVER_ERROR,
       ),
+      BincodeError(err) => (
+        "PARSE_JSON_ERROR",
+        err.to_string(),
+        StatusCode::INTERNAL_SERVER_ERROR,
+      ),
       ReqwestError(err) => (
         "REQWEST_ERROR",
         err.to_string(),
@@ -100,6 +111,16 @@ impl ApiError {
       ),
       HyperError(err) => (
         "HYPER_ERROR",
+        err.to_string(),
+        StatusCode::INTERNAL_SERVER_ERROR,
+      ),
+      DatabaseError(err) => (
+        "DATABASE_ERROR",
+        err.to_string(),
+        StatusCode::INTERNAL_SERVER_ERROR,
+      ),
+      Utf8Error(err) => (
+        "UTF8_ERROR",
         err.to_string(),
         StatusCode::INTERNAL_SERVER_ERROR,
       ),
@@ -173,5 +194,15 @@ impl<T> ApiResponseResult<T> {
       Self::Ok(t) => t,
       Self::Err(e) => panic!("called `AppResult::unwrap()` on an `Err` value {:?}", &e),
     }
+  }
+}
+
+pub trait ToApiResult<T> {
+  fn to_result(self) -> ApiResult<T>;
+}
+
+impl<T> ToApiResult<T> for Option<T> {
+  fn to_result(self) -> ApiResult<T> {
+    self.ok_or_else(|| ApiError::NotFound(format!("{} not found", std::any::type_name::<T>())))
   }
 }

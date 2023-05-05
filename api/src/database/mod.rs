@@ -1,54 +1,77 @@
-use std::collections::{BTreeSet, HashMap};
-use std::sync::atomic::AtomicU32;
+use std::collections::BTreeSet;
 use std::sync::Arc;
 use std::time::Duration;
 
+use crate::config::DatabaseConfig;
 use chrono::{DateTime, Utc};
 use common::error::{ApiError, ApiResult};
 use common::model::response::MetaDataFileResponse;
+use serde::{Deserialize, Serialize};
+use sled::IVec;
 use tokio::sync::{Notify, RwLock};
+use tracing::error;
 
 /// code/file_name.ext
 pub type PathFile = String;
 
 pub type Expires = Arc<RwLock<BTreeSet<(DateTime<Utc>, PathFile)>>>;
 
-type Db = Arc<RwLock<HashMap<PathFile, MetaData>>>;
-
-#[derive(Default, Clone)]
-pub struct DataBase {
-  inner: Db,
+#[derive(Clone)]
+pub struct Database {
+  inner: sled::Db,
   expires: Expires,
   notify: Arc<Notify>,
 }
 
-impl DataBase {
-  pub async fn fetch(&self, path: &PathFile) -> Option<MetaDataFile> {
-    let guard = self.inner.read().await;
-    guard.get(path).map(MetaDataFile::from)
-  }
-
-  pub async fn fetch_count(&self, path: &PathFile) -> Option<MetaDataFile> {
-    let guard = self.inner.read().await;
-    guard.get(path).map(|m| {
-      let downloads = m
-        .downloads
-        .fetch_add(1, std::sync::atomic::Ordering::SeqCst)
-        + 1;
-      MetaDataFile {
-        create_at: m.create_at,
-        expire_time: m.expire_time,
-        auth: m.auth.clone(),
-        is_deleteable: m.is_deleteable,
-        max_download: m.max_download,
-        downloads,
-      }
+impl Database {
+  pub fn new(config: &DatabaseConfig) -> ApiResult<Self> {
+    let inner = sled::open(&config.path)?;
+    let mut tree = BTreeSet::new();
+    for v in inner.iter() {
+      let (key, val) = v?;
+      let path = std::str::from_utf8(&key)?.to_string();
+      let expire_time = MetaDataFile::try_from(val)?.expire_time;
+      tree.insert((expire_time, path));
+    }
+    Ok(Self {
+      inner,
+      expires: Arc::new(RwLock::new(tree)),
+      notify: Default::default(),
     })
   }
 
-  pub async fn exist(&self, path: &PathFile) -> bool {
-    let guard = self.inner.read().await;
-    guard.get(path).is_some()
+  pub fn fetch(&self, path: &PathFile) -> ApiResult<Option<MetaDataFile>> {
+    let result = self.inner.get(path)?;
+    result.map(MetaDataFile::try_from).transpose()
+  }
+
+  pub async fn fetch_count(&self, path: &PathFile) -> ApiResult<Option<MetaDataFile>> {
+    let value = self.inner.fetch_and_update(path, |meta| {
+      if let Some(value) = meta {
+        let mut meta = match MetaDataFile::try_from(value) {
+          Ok(m) => m,
+          Err(e) => {
+            error!("convert bytes to MetaDataFile failed: {e}");
+            return None;
+          }
+        };
+        meta.downloads += 1;
+        let value: IVec = meta.try_into().unwrap();
+        Some(value)
+      } else {
+        None
+      }
+    })?;
+    if let Some(value) = value {
+      Ok(Some(MetaDataFile::try_from(value)?))
+    } else {
+      Ok(None)
+    }
+  }
+
+  pub fn exist(&self, path: &PathFile) -> ApiResult<bool> {
+    let result = self.inner.contains_key(path)?;
+    Ok(result)
   }
 
   pub async fn store(&self, path: PathFile, meta: MetaDataFile) -> ApiResult {
@@ -61,36 +84,35 @@ impl DataBase {
       None => true,
       _ => false,
     };
-    self.inner.write().await.insert(path, meta.into());
+    let meta: IVec = meta.try_into()?;
+    self.inner.insert(path, meta)?;
     if notify {
       self.notify_gc();
     }
     Ok(())
   }
-  pub async fn delete(&self, path: PathFile) -> Option<MetaDataFile> {
+
+  pub async fn delete(&self, path: PathFile) -> ApiResult<Option<MetaDataFile>> {
     if let Some(meta) = self
       .inner
-      .write()
-      .await
-      .remove(&path)
-      .map(MetaDataFile::from)
+      .remove(&path)?
+      .map(MetaDataFile::try_from)
+      .transpose()?
     {
       self.expires.write().await.remove(&(meta.expire_time, path));
-      Some(meta)
+      Ok(Some(meta))
     } else {
-      None
+      Ok(None)
     }
   }
 
   pub async fn purge(&self) -> ApiResult<Option<Duration>> {
     let mut expires = self.expires.write().await;
-    let mut db = self.inner.write().await;
     let expires = &mut *expires;
-    let db = &mut *db;
     let now = Utc::now();
     while let Some((date, path)) = expires.iter().next().cloned() {
       if date < now {
-        db.remove(&path);
+        self.inner.remove(&path)?;
         expires.remove(&(date, path));
       } else {
         return Ok(Some((date - now).to_std().map_err(|e| {
@@ -110,7 +132,7 @@ impl DataBase {
   }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MetaDataFile {
   pub create_at: DateTime<Utc>,
   pub expire_time: DateTime<Utc>,
@@ -120,52 +142,45 @@ pub struct MetaDataFile {
   pub downloads: u32,
 }
 
-impl From<&MetaData> for MetaDataFile {
-  fn from(value: &MetaData) -> Self {
-    MetaDataFile {
-      create_at: value.create_at,
-      expire_time: value.expire_time,
-      auth: value.auth.clone(),
-      is_deleteable: value.is_deleteable,
-      max_download: value.max_download,
-      downloads: value.downloads.load(std::sync::atomic::Ordering::SeqCst),
-    }
+impl TryFrom<&[u8]> for MetaDataFile {
+  type Error = ApiError;
+
+  fn try_from(value: &[u8]) -> ApiResult<Self> {
+    let value = bincode::deserialize::<Self>(value)?;
+    Ok(value)
   }
 }
 
-impl From<MetaData> for MetaDataFile {
-  fn from(value: MetaData) -> Self {
-    MetaDataFile {
-      create_at: value.create_at,
-      expire_time: value.expire_time,
-      auth: value.auth,
-      is_deleteable: value.is_deleteable,
-      max_download: value.max_download,
-      downloads: value.downloads.load(std::sync::atomic::Ordering::SeqCst),
-    }
+impl TryFrom<&IVec> for MetaDataFile {
+  type Error = ApiError;
+
+  fn try_from(value: &IVec) -> ApiResult<Self> {
+    let value = bincode::deserialize::<Self>(value)?;
+    Ok(value)
   }
 }
 
-impl From<MetaDataFile> for MetaData {
-  fn from(value: MetaDataFile) -> Self {
-    MetaData {
-      create_at: value.create_at,
-      expire_time: value.expire_time,
-      auth: value.auth,
-      is_deleteable: value.is_deleteable,
-      max_download: value.max_download,
-      downloads: AtomicU32::new(value.downloads),
-    }
+impl TryFrom<IVec> for MetaDataFile {
+  type Error = ApiError;
+
+  fn try_from(value: IVec) -> ApiResult<Self> {
+    Self::try_from(&value)
   }
 }
 
-struct MetaData {
-  pub create_at: DateTime<Utc>,
-  pub expire_time: DateTime<Utc>,
-  pub is_deleteable: bool,
-  pub auth: Option<String>,
-  pub max_download: Option<u32>,
-  pub downloads: AtomicU32,
+impl TryFrom<&MetaDataFile> for IVec {
+  type Error = ApiError;
+  fn try_from(value: &MetaDataFile) -> ApiResult<IVec> {
+    let value = bincode::serialize(value)?;
+    Ok(IVec::from(value))
+  }
+}
+
+impl TryFrom<MetaDataFile> for IVec {
+  type Error = ApiError;
+  fn try_from(value: MetaDataFile) -> ApiResult<IVec> {
+    Self::try_from(&value)
+  }
 }
 
 impl From<&MetaDataFile> for MetaDataFileResponse {
