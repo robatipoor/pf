@@ -1,4 +1,4 @@
-use common::model::request::UploadParamQuery;
+use common::{assert_ok, model::request::UploadParamQuery};
 use test_context::test_context;
 
 use crate::helper::ApiTestContext;
@@ -14,6 +14,6 @@ pub async fn test_upload(ctx: &mut ApiTestContext) {
     .upload(filename, content_type, &query, file)
     .await
     .unwrap();
-  assert!(body.is_ok());
-  assert!(status.is_success());
+  assert_ok!(body);
+  assert!(status.is_success(), "status: {status}");
 }

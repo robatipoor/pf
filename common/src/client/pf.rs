@@ -1,5 +1,5 @@
 use crate::{
-  error::ApiResponseResult,
+  error::{ApiResponseResult, BodyResponseError},
   model::{
     request::UploadParamQuery,
     response::{MetaDataFileResponse, UploadResponse},
@@ -62,13 +62,17 @@ impl PasteFileClient {
     &self,
     path_file: &str,
     auth: Option<(String, String)>,
-  ) -> anyhow::Result<(StatusCode, Vec<u8>)> {
+  ) -> anyhow::Result<(StatusCode, ApiResponseResult<Vec<u8>>)> {
     let mut builder = self.client.get(format!("{}/{path_file}", self.addr));
     if let Some((user, pass)) = auth {
       builder = builder.basic_auth(user, Some(pass));
     }
     let resp = builder.send().await?;
     let status = resp.status();
+    if !status.is_success() {
+      let error = resp.json::<BodyResponseError>().await?;
+      return Ok((status, ApiResponseResult::Err(error)));
+    }
     let body = resp.bytes().await;
     let boundary = std::str::from_utf8(body.as_ref().unwrap())
       .unwrap()
@@ -80,7 +84,10 @@ impl PasteFileClient {
     let stream = futures_util::stream::once(async { body });
     let mut mp = Multipart::new(stream, boundary);
     let f = mp.next_field().await.unwrap().unwrap();
-    Ok((status, f.bytes().await.unwrap().to_vec()))
+    Ok((
+      status,
+      ApiResponseResult::Ok(f.bytes().await.unwrap().to_vec()),
+    ))
   }
 
   #[logfn(Info)]

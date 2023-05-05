@@ -1,4 +1,5 @@
 use crate::helper::ApiTestContext;
+use common::{assert_err, error::BodyResponseError};
 use fake::{Fake, Faker};
 use hyper::StatusCode;
 use test_context::test_context;
@@ -12,8 +13,8 @@ pub async fn test_delete_exist_file(ctx: &mut ApiTestContext) {
   let _ = resp.unwrap();
   ctx.delete(&file.path, None).await.unwrap();
   let (status, resp) = ctx.info(&file.path, None).await.unwrap();
-  assert!(status == StatusCode::NOT_FOUND);
-  assert!(matches!(resp,common::error::ApiResponseResult::Err(e) if e.error_type == "NOT_FOUND"));
+  assert_err!(resp, |e: &BodyResponseError| e.error_type == "NOT_FOUND");
+  assert_eq!(status, StatusCode::NOT_FOUND);
 }
 
 #[test_context(ApiTestContext)]
@@ -21,5 +22,5 @@ pub async fn test_delete_exist_file(ctx: &mut ApiTestContext) {
 pub async fn test_delete_not_exist_file(ctx: &mut ApiTestContext) {
   let path = format!("{}/{}.jpg", Faker.fake::<String>(), Faker.fake::<String>());
   let (status, _) = ctx.delete(&path, None).await.unwrap();
-  assert!(status.is_success());
+  assert!(status.is_success(), "status: {status}");
 }

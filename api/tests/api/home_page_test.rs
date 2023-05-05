@@ -6,6 +6,6 @@ use crate::helper::ApiTestContext;
 #[tokio::test]
 pub async fn test_home_page(ctx: &mut ApiTestContext) {
   let (status, body) = ctx.home_page().await.unwrap();
-  assert!(!body.is_empty());
-  assert!(status.is_success());
+  assert!(!body.is_empty(), "body: {body}");
+  assert!(status.is_success(), "status: {status}");
 }

@@ -11,6 +11,11 @@ async fn main() -> ApiResult {
   if let Err(e) = tokio::fs::create_dir_all(&config.fs.base_dir).await {
     warn!("failed create base dir: {e}");
   };
+  if let Some(db_path) = config.db.path.parent() {
+    if let Err(e) = tokio::fs::create_dir_all(db_path).await {
+      warn!("failed create db path: {e}");
+    };
+  }
   let server = ApiServer::build(config).await?;
   api::server::worker::spawn(State(server.state.clone()));
   let _ = server.start.await;
