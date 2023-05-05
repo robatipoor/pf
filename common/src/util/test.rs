@@ -1,5 +1,38 @@
 use std::{collections::HashMap, hash::Hash};
 
+#[macro_export]
+macro_rules! assert_ok {
+  ($result:expr) => {
+    assert!(
+      matches!($result, $crate::error::ApiResponseResult::Ok(_)),
+      "match failed: {:?}",
+      $result,
+    )
+  };
+}
+
+#[macro_export]
+macro_rules! assert_err {
+    ($result:expr $(, $closure:expr )?) => {
+        assert!(
+          matches!($result,$crate::error::ApiResponseResult::Err(ref _e) $( if $closure(_e) )?),
+          "match failed: {:?}",$result,
+        )
+    };
+}
+
+#[macro_export]
+macro_rules! unwrap {
+  ($result:expr) => {
+    match $result {
+      $crate::error::ApiResponseResult::Ok(resp) => resp,
+      $crate::error::ApiResponseResult::Err(e) => {
+        panic!("called `common::unwrap!()` on an `Err` value {e:?}")
+      }
+    }
+  };
+}
+
 pub fn eq<T>(a: &[T], b: &[T]) -> bool
 where
   T: Eq + Hash,
