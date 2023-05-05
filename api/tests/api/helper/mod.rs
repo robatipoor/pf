@@ -6,6 +6,7 @@ use api::server::{ApiServer, ApiState};
 use common::client::PasteFileClient;
 use common::config::tracing::INIT_SUBSCRIBER;
 use common::model::request::UploadParamQuery;
+use common::unwrap;
 use fake::{Fake, Faker};
 use once_cell::sync::Lazy;
 use test_context::AsyncTestContext;
@@ -19,10 +20,9 @@ pub struct ApiTestContext {
 impl AsyncTestContext for ApiTestContext {
   async fn setup() -> Self {
     Lazy::force(&INIT_SUBSCRIBER);
-    let workspace = Path::new("test-out").join(PathBuf::from(cuid2::create_id()));
-    let db_path = Path::new("test-out").join(PathBuf::from(cuid2::create_id()));
+    let workspace = Path::new("test-dump").join(PathBuf::from(cuid2::create_id()));
+    let db_path = Path::new("test-dump").join(PathBuf::from(cuid2::create_id()));
     tokio::fs::create_dir_all(&workspace).await.unwrap();
-    tokio::fs::create_dir_all(&db_path).await.unwrap();
     let mut config = CONFIG.clone();
     config.server.port = 0;
     config.fs.base_dir = workspace;
@@ -71,13 +71,13 @@ impl ApiTestContext {
       expire_time: exp,
       deleteable: del,
     };
-    let (status, resp) = self
+    let (_, resp) = self
       .client
       .upload(file_name.clone(), content_type, &query, content.clone())
       .await
       .unwrap();
-    assert!(status.is_success());
-    let path = url::Url::parse(&resp.unwrap().url).unwrap().path()[1..].to_string();
+    let resp = unwrap!(resp);
+    let path = url::Url::parse(&resp.url).unwrap().path()[1..].to_string();
     DummyFile {
       content,
       content_type: content_type.to_string(),

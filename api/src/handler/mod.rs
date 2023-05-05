@@ -31,6 +31,6 @@ pub async fn home_page() -> Html<&'static str> {
                 </form>
             </body>
         </html>
-        "#,
+    "#,
   )
 }

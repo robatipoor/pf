@@ -188,13 +188,6 @@ impl<T> ApiResponseResult<T> {
   pub fn is_err(&self) -> bool {
     matches!(*self, Self::Err(_))
   }
-
-  pub fn unwrap(self) -> T {
-    match self {
-      Self::Ok(t) => t,
-      Self::Err(e) => panic!("called `AppResult::unwrap()` on an `Err` value {:?}", &e),
-    }
-  }
 }
 
 pub trait ToApiResult<T> {
