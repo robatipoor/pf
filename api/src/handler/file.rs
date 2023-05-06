@@ -45,8 +45,7 @@ pub async fn download(
 ) -> ApiResult<Response<ServeFileSystemResponseBody>> {
   let auth = common::util::http::parse_basic_auth(req.headers())?;
   let file = service::file::fetch(&state, &code, &file_name, auth).await?;
-  let resp = file.oneshot(req).await.unwrap();
-  Ok(resp)
+  Ok(file.oneshot(req).await.unwrap())
 }
 
 pub async fn info(

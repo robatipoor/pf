@@ -30,6 +30,7 @@ pub async fn store(
     .unwrap_or(state.config.default_code_length);
   let path = loop {
     let path = generate_file_path(code_length, file_name);
+    // TODO exist and store go to same transaction
     if !state.db.exist(&path)? {
       let meta = MetaDataFile {
         create_at: now,
@@ -45,6 +46,8 @@ pub async fn store(
   };
   let file_path = state.config.fs.base_dir.join(&path);
   store_stream(&file_path, stream).await?;
+  // TODO revert
+  // TODO falsh db
   Ok((path, expire_time))
 }
 
@@ -95,11 +98,11 @@ pub async fn delete(
     if meta.is_deleteable {
       authenticate(auth, &meta.auth)?;
       let file_path = state.config.fs.base_dir.join(&path);
-      state.db.delete(path).await?;
       tokio::fs::remove_file(file_path).await?;
+      state.db.delete(path).await?;
     } else {
       return Err(ApiError::PermissionDenied(format!(
-        "it is not possible to delete {path}"
+        "{path} is not deleteable"
       )));
     }
   }
@@ -129,7 +132,7 @@ pub fn authenticate(auth: Option<String>, hash: &Option<String>) -> ApiResult<()
       Some(Ok(()))
     ) {
       return Err(ApiError::PermissionDenied(
-        "user and password invalid".to_string(),
+        "user and password is invalid".to_string(),
       ));
     }
   }
