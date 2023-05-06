@@ -8,6 +8,7 @@ use tokio::fs::File;
 use tokio::io::BufWriter;
 use tokio_util::io::StreamReader;
 use tower_http::services::ServeFile;
+use tracing::warn;
 
 use crate::database::{MetaDataFile, PathFile};
 use crate::server::ApiState;
@@ -28,26 +29,34 @@ pub async fn store(
   let code_length = query
     .code_length
     .unwrap_or(state.config.default_code_length);
+  let meta = MetaDataFile {
+    create_at: now,
+    expire_time,
+    is_deleteable: query.deleteable.unwrap_or(true),
+    max_download: query.max_download,
+    auth,
+    downloads: 0,
+  };
   let path = loop {
     let path = generate_file_path(code_length, file_name);
-    // TODO exist and store go to same transaction
-    if !state.db.exist(&path)? {
-      let meta = MetaDataFile {
-        create_at: now,
-        expire_time,
-        is_deleteable: query.deleteable.unwrap_or(true),
-        max_download: query.max_download,
-        auth,
-        downloads: 0,
-      };
-      state.db.store(path.clone(), meta).await?;
-      break path;
+    if state.db.exist(&path)? {
+      continue;
+    }
+    match state.db.store(path.clone(), meta.clone()).await {
+      Ok(_) => break path,
+      Err(ApiError::ResourceExists(e)) => {
+        warn!("{e}");
+        continue;
+      }
+      Err(e) => return Err(e),
     }
   };
   let file_path = state.config.fs.base_dir.join(&path);
-  store_stream(&file_path, stream).await?;
-  // TODO revert
-  // TODO falsh db
+  if let Err(e) = store_stream(&file_path, stream).await {
+    state.db.delete(path).await?;
+    return Err(e);
+  }
+  state.db.flush().await?;
   Ok((path, expire_time))
 }
 
@@ -100,6 +109,7 @@ pub async fn delete(
       let file_path = state.config.fs.base_dir.join(&path);
       tokio::fs::remove_file(file_path).await?;
       state.db.delete(path).await?;
+      state.db.flush().await?;
     } else {
       return Err(ApiError::PermissionDenied(format!(
         "{path} is not deleteable"

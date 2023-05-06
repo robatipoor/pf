@@ -3,6 +3,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use crate::config::DatabaseConfig;
+use anyhow::anyhow;
 use chrono::{DateTime, Utc};
 use common::error::{ApiError, ApiResult};
 use common::model::response::MetaDataFileResponse;
@@ -75,17 +76,36 @@ impl Database {
   }
 
   pub async fn store(&self, path: PathFile, meta: MetaDataFile) -> ApiResult {
+    let expire_time = meta.expire_time;
+    let meta: IVec = meta.try_into()?;
     let mut guard = self.expires.write().await;
     let first = guard.iter().next().map(|(d, _)| *d);
-    guard.insert((meta.expire_time, path.clone()));
+    let expire = (expire_time, path.clone());
+    guard.insert(expire.clone());
+    let result = self
+      .inner
+      .compare_and_swap(&path, Option::<IVec>::None, Some(meta));
+    match result {
+      Ok(Ok(_)) => (),
+      Err(e) => {
+        guard.remove(&expire);
+        return Err(e.into());
+      }
+      Ok(Err(e)) if e.current.is_some() => {
+        guard.remove(&expire);
+        return Err(ApiError::ResourceExists("path exists".to_string()));
+      }
+      _ => {
+        guard.remove(&expire);
+        return Err(ApiError::Unknown(anyhow!("unexpected error".to_string())));
+      }
+    }
     drop(guard);
     let notify = match first {
-      Some(e) if e > meta.expire_time => true,
+      Some(e) if e > expire_time => true,
       None => true,
       _ => false,
     };
-    let meta: IVec = meta.try_into()?;
-    self.inner.insert(path, meta)?;
     if notify {
       self.notify_gc();
     }
@@ -125,6 +145,11 @@ impl Database {
 
   fn notify_gc(&self) {
     self.notify.notify_one()
+  }
+
+  pub async fn flush(&self) -> ApiResult {
+    self.inner.flush_async().await?;
+    Ok(())
   }
 
   pub async fn waiting_for_notify(&self) {
