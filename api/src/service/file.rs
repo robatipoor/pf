@@ -8,7 +8,7 @@ use tokio::fs::File;
 use tokio::io::BufWriter;
 use tokio_util::io::StreamReader;
 use tower_http::services::ServeFile;
-use tracing::warn;
+use tracing::debug;
 
 use crate::database::{MetaDataFile, PathFile};
 use crate::server::ApiState;
@@ -45,7 +45,7 @@ pub async fn store(
     match state.db.store(path.clone(), meta.clone()).await {
       Ok(_) => break path,
       Err(ApiError::ResourceExists(e)) => {
-        warn!("{e}");
+        debug!("key already exist: {e}");
         continue;
       }
       Err(e) => return Err(e),

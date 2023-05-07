@@ -42,18 +42,21 @@ impl PasteFileClient {
     content_type: &str,
     query: &UploadParamQuery,
     file: Vec<u8>,
+    auth: Option<(String, String)>,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<UploadResponse>)> {
     let file_part = reqwest::multipart::Part::bytes(file)
       .file_name(file_name.clone())
       .mime_str(content_type)?;
     let form = reqwest::multipart::Form::new().part("file", file_part);
-    let resp = self
+    let mut builder = self
       .client
       .post(format!("{}/upload/{file_name}", self.addr))
       .multipart(form)
-      .query(query)
-      .send()
-      .await?;
+      .query(query);
+    if let Some((user, pass)) = auth {
+      builder = builder.basic_auth(user, Some(pass));
+    }
+    let resp = builder.send().await?;
     Ok((resp.status(), resp.json().await?))
   }
 

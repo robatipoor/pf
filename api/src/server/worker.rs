@@ -57,8 +57,8 @@ impl ApiTask for GarbageCollectorTask {
           self.state.db.waiting_for_notify().await;
         }
         Err(e) => {
-          self.state.db.waiting_for_notify().await;
           error!("failed gc task: {e}");
+          self.state.db.waiting_for_notify().await;
         }
       }
     }
