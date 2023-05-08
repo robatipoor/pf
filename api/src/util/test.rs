@@ -4,7 +4,7 @@ use std::{collections::HashMap, hash::Hash};
 macro_rules! assert_ok {
   ($result:expr) => {
     assert!(
-      matches!($result, sdk::error::ApiResponseResult::Ok(_)),
+      matches!($result, sdk::result::ApiResponseResult::Ok(_)),
       "match failed: {:?}",
       $result,
     )
@@ -15,7 +15,7 @@ macro_rules! assert_ok {
 macro_rules! assert_err {
     ($result:expr $(, $closure:expr )?) => {
         assert!(
-          matches!($result,sdk::error::ApiResponseResult::Err(ref _e) $( if $closure(_e) )?),
+          matches!($result,sdk::result::ApiResponseResult::Err(ref _e) $( if $closure(_e) )?),
           "match failed: {:?}",$result,
         )
     };
@@ -25,8 +25,8 @@ macro_rules! assert_err {
 macro_rules! unwrap {
   ($result:expr) => {
     match $result {
-      sdk::error::ApiResponseResult::Ok(resp) => resp,
-      sdk::error::ApiResponseResult::Err(e) => {
+      sdk::result::ApiResponseResult::Ok(resp) => resp,
+      sdk::result::ApiResponseResult::Err(e) => {
         panic!("called `util::unwrap!()` on an `Err` value {e:?}")
       }
     }

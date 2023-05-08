@@ -3,13 +3,13 @@ use std::path::{Path, PathBuf};
 
 use api::config::CONFIG;
 use api::server::{ApiServer, ApiState};
+use api::unwrap;
+use api::util::tracing::INIT_SUBSCRIBER;
 use fake::{Fake, Faker};
 use once_cell::sync::Lazy;
 use sdk::client::PasteFileClient;
 use sdk::model::request::UploadParamQuery;
 use test_context::AsyncTestContext;
-use util::tracing::INIT_SUBSCRIBER;
-use util::unwrap;
 
 pub struct ApiTestContext {
   client: PasteFileClient,

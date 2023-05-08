@@ -1,10 +1,9 @@
-use crate::model::response::MessageResponse;
 use axum::{
   http::StatusCode,
   response::{IntoResponse, Response},
   Json,
 };
-use serde::{Deserialize, Serialize};
+use sdk::error::BodyResponseError;
 
 pub type ApiResult<T = ()> = std::result::Result<T, ApiError>;
 
@@ -137,22 +136,6 @@ impl ApiError {
   }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
-#[serde(tag = "type", rename = "ServiceError")]
-pub struct BodyResponseError {
-  pub error_type: String,
-  pub error: String,
-}
-
-impl BodyResponseError {
-  pub fn new(error_type: &str, error_message: String) -> Self {
-    Self {
-      error_type: error_type.to_string(),
-      error: error_message,
-    }
-  }
-}
-
 impl IntoResponse for ApiError {
   fn into_response(self) -> Response {
     let (body, status_code) = self.response();
@@ -171,23 +154,6 @@ pub fn invalid_input_error(feild: &'static str, message: &'static str) -> ApiErr
     },
   );
   ApiError::InvalidInput(err)
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum ApiResponseResult<T = MessageResponse> {
-  Ok(T),
-  Err(BodyResponseError),
-}
-
-impl<T> ApiResponseResult<T> {
-  pub fn is_ok(&self) -> bool {
-    matches!(*self, Self::Ok(_))
-  }
-
-  pub fn is_err(&self) -> bool {
-    matches!(*self, Self::Err(_))
-  }
 }
 
 pub trait ToApiResult<T> {

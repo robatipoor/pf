@@ -1,9 +1,9 @@
 use crate::helper::ApiTestContext;
+use api::{assert_err, assert_ok};
 use fake::{Fake, Faker};
 use hyper::StatusCode;
 use sdk::error::BodyResponseError;
 use test_context::test_context;
-use util::{assert_err, assert_ok};
 
 #[test_context(ApiTestContext)]
 #[tokio::test]

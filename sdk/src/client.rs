@@ -1,16 +1,29 @@
 use crate::{
-  error::{ApiResponseResult, BodyResponseError},
+  error::BodyResponseError,
   model::{
     request::UploadParamQuery,
     response::{MetaDataFileResponse, UploadResponse},
   },
+  result::ApiResponseResult,
 };
 
-use super::{PasteFileClient, CLIENT};
 use log_derive::logfn;
 use multer::Multipart;
 use once_cell::sync::Lazy;
 use reqwest::StatusCode;
+
+pub static CLIENT: Lazy<reqwest::Client> = Lazy::new(|| {
+  let disable_redirect = reqwest::redirect::Policy::custom(|attempt| attempt.stop());
+  reqwest::Client::builder()
+    .redirect(disable_redirect)
+    .build()
+    .unwrap()
+});
+
+pub struct PasteFileClient {
+  pub client: &'static reqwest::Client,
+  pub addr: String,
+}
 
 impl PasteFileClient {
   pub fn new(addr: &str) -> Self {

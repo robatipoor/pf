@@ -1,7 +1,7 @@
+use crate::error::{ApiError, ApiResult, ToApiResult};
 use axum::extract::BodyStream;
 use chrono::{DateTime, Utc};
 use futures_util::TryStreamExt;
-use sdk::error::{ApiError, ApiResult, ToApiResult};
 use sdk::model::request::UploadParamQuery;
 use std::path::PathBuf;
 use tokio::fs::File;
@@ -138,7 +138,7 @@ pub async fn read_file(file_path: &PathBuf) -> ApiResult<ServeFile> {
 pub fn authenticate(auth: Option<String>, hash: &Option<String>) -> ApiResult<()> {
   if let Some(hash) = hash {
     if !matches!(
-      auth.map(|p| util::hash::argon_verify(p, hash)),
+      auth.map(|p| crate::util::hash::argon_verify(p, hash)),
       Some(Ok(()))
     ) {
       return Err(ApiError::PermissionDenied(
@@ -150,14 +150,14 @@ pub fn authenticate(auth: Option<String>, hash: &Option<String>) -> ApiResult<()
 }
 
 pub fn generate_file_path(code_length: usize, file_name: &str) -> String {
-  let code = util::string::generate_random_string(code_length);
+  let code = crate::util::string::generate_random_string(code_length);
   format!("{code}/{file_name}")
 }
 
 pub fn hash(auth: Option<String>) -> ApiResult<Option<String>> {
   auth
     .as_ref()
-    .map(util::hash::argon_hash)
+    .map(crate::util::hash::argon_hash)
     .transpose()
     .map_err(|e| ApiError::HashError(e.to_string()))
 }
