@@ -1,4 +1,11 @@
+use config::Environment;
 use std::path::PathBuf;
+
+pub fn get_env_source(prefix: &str) -> Environment {
+  config::Environment::with_prefix(prefix)
+    .prefix_separator("__")
+    .separator("__")
+}
 
 pub fn parse_config_path_from_arguments(args: &[String]) -> Option<PathBuf> {
   args

@@ -1,7 +1,7 @@
 use qrcodegen::QrCode;
 use qrcodegen::QrCodeEcc;
 
-use crate::error::ApiResult;
+use sdk::error::ApiResult;
 
 pub fn encode(text: &str) -> ApiResult<String> {
   // TODO fix error

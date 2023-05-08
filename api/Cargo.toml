@@ -8,7 +8,8 @@ name = "api"
 path = "src/bin/main.rs"
 
 [dependencies]
-common = { path = "../common" }
+sdk = { path = "../sdk" }
+util = { path = "../util" }
 axum = { workspace = true }
 axum-extra = { workspace = true }
 tower-http = { workspace = true }

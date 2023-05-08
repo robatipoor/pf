@@ -1,7 +1,9 @@
 [workspace]
 members = [
-  "common",
+  "sdk",
+  "util",
   "api",
+  # "app",
   # "cli",
   # "integration-tests"
 ]

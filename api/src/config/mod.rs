@@ -1,4 +1,3 @@
-use common::config::{arg::parse_config_path_from_arguments, get_env_source};
 use config::ConfigError;
 use once_cell::sync::Lazy;
 use serde::Deserialize;
@@ -6,6 +5,7 @@ use std::{
   net::{AddrParseError, SocketAddr},
   path::PathBuf,
 };
+use util::arg::{get_env_source, parse_config_path_from_arguments};
 
 pub static CONFIG: Lazy<AppConfig> = Lazy::new(|| AppConfig::read().unwrap());
 

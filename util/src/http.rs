@@ -1,6 +1,6 @@
 use hyper::HeaderMap;
 
-use crate::error::{invalid_input_error, ApiResult};
+use sdk::error::{invalid_input_error, ApiResult};
 
 pub fn parse_basic_auth(headers: &HeaderMap) -> ApiResult<Option<String>> {
   if let Some(value) = headers.get("Authorization") {

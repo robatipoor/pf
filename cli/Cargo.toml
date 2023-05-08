@@ -3,8 +3,13 @@ name = "cli"
 version = "0.1.0"
 edition.workspace = true
 
+[[bin]]
+name = "cli"
+path = "src/bin/main.rs"
+
 [dependencies]
-common = { path = "../common" }
+sdk = { path = "../sdk" }
+util = { path = "../util" }
 tokio = { workspace = true }
 chrono = { workspace = true }
 config = { workspace = true }

@@ -1,7 +1,7 @@
 pub mod file;
 
 use axum::{response::Html, Json};
-use common::model::response::MessageResponse;
+use sdk::model::response::MessageResponse;
 
 pub async fn health_check() -> Json<MessageResponse> {
   Json(MessageResponse {

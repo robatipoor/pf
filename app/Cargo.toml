@@ -2,7 +2,32 @@
 name = "app"
 version = "0.1.0"
 edition = "2021"
+edition.workspace = true
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "app"
+path = "src/bin/main.rs"
 
 [dependencies]
+sdk = { path = "../sdk" }
+util = { path = "../util" }
+tokio = { workspace = true }
+chrono = { workspace = true }
+config = { workspace = true }
+anyhow = { workspace = true }
+futures-util = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+strum_macros = { workspace = true }
+tracing = { workspace = true }
+url = { workspace = true }
+cuid = { workspace = true }
+validator = { workspace = true }
+thiserror = { workspace = true }
+fake = { workspace = true }
+rand = { workspace = true }
+regex = { workspace = true }
+once_cell = { workspace = true }
+reqwest = { workspace = true }
+async-trait = { workspace = true }
+test-context = { workspace = true }
