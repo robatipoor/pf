@@ -5,6 +5,7 @@ members = [
   # "app",
   # "cli",
   # "integration-tests"
+  "example"
 ]
 
 [workspace.package]
