@@ -1,4 +1,11 @@
+use std::path::Path;
+use std::path::PathBuf;
 use std::{collections::HashMap, hash::Hash};
+
+use crate::server::ApiState;
+use crate::{config::CONFIG, util::tracing::INIT_SUBSCRIBER};
+use once_cell::sync::Lazy;
+use test_context::AsyncTestContext;
 
 #[macro_export]
 macro_rules! assert_ok {
@@ -31,6 +38,35 @@ macro_rules! unwrap {
       }
     }
   };
+}
+
+pub struct StateTestContext {
+  pub state: ApiState,
+}
+
+#[async_trait::async_trait]
+impl AsyncTestContext for StateTestContext {
+  async fn setup() -> Self {
+    Lazy::force(&INIT_SUBSCRIBER);
+    let workspace = Path::new("test-dump").join(PathBuf::from(cuid2::create_id()));
+    let db_path = Path::new("test-dump").join(PathBuf::from(cuid2::create_id()));
+    tokio::fs::create_dir_all(&workspace).await.unwrap();
+    let mut config = CONFIG.clone();
+    config.fs.base_dir = workspace;
+    config.db.path = db_path;
+    let state = ApiState::new(config).unwrap();
+    crate::server::worker::spawn(axum::extract::State(state.clone()));
+    Self { state }
+  }
+
+  async fn teardown(self) {
+    tokio::fs::remove_dir_all(&self.state.config.db.path)
+      .await
+      .unwrap();
+    tokio::fs::remove_dir_all(&self.state.config.fs.base_dir)
+      .await
+      .unwrap();
+  }
 }
 
 pub fn eq<T>(a: &[T], b: &[T]) -> bool

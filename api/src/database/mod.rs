@@ -224,6 +224,24 @@ impl From<&MetaDataFile> for MetaDataFileResponse {
 
 #[cfg(test)]
 mod tests {
-  // use chrono::{DateTime, Utc};
-  // use fake::{Fake, Faker};
+  use super::*;
+  use crate::util::test::StateTestContext;
+  use fake::{Fake, Faker};
+  use test_context::test_context;
+
+  #[test_context(StateTestContext)]
+  #[tokio::test]
+  async fn store_file_test(ctx: &mut StateTestContext) {
+    let path: String = Faker.fake();
+    let meta = MetaDataFile {
+      create_at: Utc::now(),
+      expire_time: Utc::now(),
+      auth: None,
+      is_deleteable: true,
+      max_download: None,
+      downloads: 1,
+    };
+    ctx.state.db.store(path.clone(), meta).await.unwrap();
+    let result = ctx.state.db.fetch(&path).unwrap().unwrap();
+  }
 }

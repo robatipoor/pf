@@ -7,10 +7,10 @@ use std::{
   path::PathBuf,
 };
 
-pub static CONFIG: Lazy<AppConfig> = Lazy::new(|| AppConfig::read().unwrap());
+pub static CONFIG: Lazy<ApiConfig> = Lazy::new(|| ApiConfig::read().unwrap());
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct AppConfig {
+pub struct ApiConfig {
   pub server: ServerConfig,
   pub fs: FileSystemConfig,
   pub db: DatabaseConfig,
@@ -46,7 +46,7 @@ impl ServerConfig {
   }
 }
 
-impl AppConfig {
+impl ApiConfig {
   pub fn read() -> Result<Self, config::ConfigError> {
     let mut cfg = config::Config::builder();
     let env_src = get_env_source("PF");
@@ -73,7 +73,7 @@ mod tests {
 
   #[test]
   fn test_read_config() {
-    let config = AppConfig::read();
+    let config = ApiConfig::read();
     assert!(config.is_ok());
   }
 }
