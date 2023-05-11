@@ -231,7 +231,108 @@ mod tests {
 
   #[test_context(StateTestContext)]
   #[tokio::test]
-  async fn store_file_test(ctx: &mut StateTestContext) {
+  async fn store_file_and_fetch_test(ctx: &mut StateTestContext) {
+    let path: String = Faker.fake();
+    let meta = MetaDataFile {
+      create_at: Utc::now(),
+      expire_time: Utc::now() + chrono::Duration::seconds(10),
+      auth: None,
+      is_deleteable: true,
+      max_download: None,
+      downloads: 1,
+    };
+    ctx
+      .state
+      .db
+      .store(path.clone(), meta.clone())
+      .await
+      .unwrap();
+    let result = ctx.state.db.fetch(&path).unwrap().unwrap();
+    assert_eq!(result.create_at, meta.create_at);
+    assert_eq!(result.expire_time, meta.expire_time);
+    assert_eq!(result.auth, meta.auth);
+    assert_eq!(result.max_download, meta.max_download);
+    assert_eq!(result.downloads, meta.downloads);
+  }
+
+  #[test_context(StateTestContext)]
+  #[tokio::test]
+  async fn store_file_and_fetch_count_test(ctx: &mut StateTestContext) {
+    let path: String = Faker.fake();
+    let meta = MetaDataFile {
+      create_at: Utc::now(),
+      expire_time: Utc::now() + chrono::Duration::seconds(10),
+      auth: None,
+      is_deleteable: true,
+      max_download: None,
+      downloads: 0,
+    };
+    ctx
+      .state
+      .db
+      .store(path.clone(), meta.clone())
+      .await
+      .unwrap();
+    let result = ctx.state.db.fetch_count(&path).await.unwrap().unwrap();
+    assert_eq!(result.create_at, meta.create_at);
+    assert_eq!(result.expire_time, meta.expire_time);
+    assert_eq!(result.auth, meta.auth);
+    assert_eq!(result.max_download, meta.max_download);
+    assert_eq!(result.downloads, meta.downloads);
+  }
+
+  #[test_context(StateTestContext)]
+  #[tokio::test]
+  async fn store_file_and_double_fetch_count_test(ctx: &mut StateTestContext) {
+    let path: String = Faker.fake();
+    let meta = MetaDataFile {
+      create_at: Utc::now(),
+      expire_time: Utc::now() + chrono::Duration::seconds(10),
+      auth: None,
+      is_deleteable: true,
+      max_download: None,
+      downloads: 0,
+    };
+    ctx
+      .state
+      .db
+      .store(path.clone(), meta.clone())
+      .await
+      .unwrap();
+    ctx.state.db.fetch_count(&path).await.unwrap().unwrap();
+    let result = ctx.state.db.fetch_count(&path).await.unwrap().unwrap();
+    assert_eq!(result.create_at, meta.create_at);
+    assert_eq!(result.expire_time, meta.expire_time);
+    assert_eq!(result.auth, meta.auth);
+    assert_eq!(result.max_download, meta.max_download);
+    assert_eq!(result.downloads, meta.downloads + 1);
+  }
+
+  #[test_context(StateTestContext)]
+  #[tokio::test]
+  async fn store_file_and_check_it_existence_test(ctx: &mut StateTestContext) {
+    let path: String = Faker.fake();
+    let meta = MetaDataFile {
+      create_at: Utc::now(),
+      expire_time: Utc::now() + chrono::Duration::seconds(10),
+      auth: None,
+      is_deleteable: true,
+      max_download: None,
+      downloads: 0,
+    };
+    ctx
+      .state
+      .db
+      .store(path.clone(), meta.clone())
+      .await
+      .unwrap();
+    let result = ctx.state.db.exist(&path).unwrap();
+    assert!(result);
+  }
+
+  #[test_context(StateTestContext)]
+  #[tokio::test]
+  async fn store_file_and_purge_it_test(ctx: &mut StateTestContext) {
     let path: String = Faker.fake();
     let meta = MetaDataFile {
       create_at: Utc::now(),
@@ -239,9 +340,45 @@ mod tests {
       auth: None,
       is_deleteable: true,
       max_download: None,
-      downloads: 1,
+      downloads: 0,
     };
-    ctx.state.db.store(path.clone(), meta).await.unwrap();
-    let result = ctx.state.db.fetch(&path).unwrap().unwrap();
+    ctx
+      .state
+      .db
+      .store(path.clone(), meta.clone())
+      .await
+      .unwrap();
+    tokio::time::sleep(Duration::from_secs(1)).await;
+    let result = ctx.state.db.exist(&path).unwrap();
+    assert!(!result);
+  }
+
+  #[test_context(StateTestContext)]
+  #[tokio::test]
+  async fn store_file_and_successfully_delete_it_test(ctx: &mut StateTestContext) {
+    let path: String = Faker.fake();
+    let meta = MetaDataFile {
+      create_at: Utc::now(),
+      expire_time: Utc::now() + chrono::Duration::seconds(10),
+      auth: None,
+      is_deleteable: true,
+      max_download: None,
+      downloads: 0,
+    };
+    ctx
+      .state
+      .db
+      .store(path.clone(), meta.clone())
+      .await
+      .unwrap();
+    ctx.state.db.delete(path).await.unwrap().unwrap();
+  }
+
+  #[test_context(StateTestContext)]
+  #[tokio::test]
+  async fn delete_file_that_does_not_exist_test(ctx: &mut StateTestContext) {
+    let path: String = Faker.fake();
+    let result = ctx.state.db.delete(path).await.unwrap();
+    assert!(result.is_none())
   }
 }
