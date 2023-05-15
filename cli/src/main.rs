@@ -1,7 +1,6 @@
 use anyhow::anyhow;
-use clap::builder::TypedValueParser as _;
 use clap::{Parser, Subcommand};
-use sdk::{client::PasteFileClient, result::ApiResponseResult};
+use sdk::{client::PasteFileClient, model::request::UploadParamQuery, result::ApiResponseResult};
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
@@ -19,11 +18,15 @@ pub enum SubCommand {
     #[clap(short, long, value_parser = parse_key_val::<String, String>)]
     auth: Option<(String, String)>,
     #[clap(default_value_t = 4, short, long)]
-    code_length: u32,
+    code_length: usize,
     #[clap(default_value_t = 7200, short, long)]
-    expire_time: u32,
+    expire_time: u64,
+    #[clap(short, long)]
+    max_download: Option<u32>,
     #[clap(default_value_t = true, short, long)]
     deleteable: bool,
+    #[clap(short, long)]
+    file: PathBuf,
   },
   Delete {
     #[clap(short, long, value_parser = parse_key_val::<String, String>)]
@@ -36,15 +39,16 @@ pub enum SubCommand {
   Download {
     #[clap(short, long, value_parser = parse_key_val::<String, String>)]
     auth: Option<(String, String)>,
+    #[clap(short, long)]
+    path: PathBuf,
   },
 }
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
   let args = Args::parse();
-  let url = "";
-  let path = "";
-  let client = PasteFileClient::new(&args.url);
+  let url = url::Url::parse(&args.url)?;
+  let client = PasteFileClient::new(&format!("{}//{}", url.scheme(), url.host_str().unwrap()));
   match args.cmd {
     SubCommand::HealthCheck => {
       let (_, resp) = client.health_check().await?;
@@ -62,8 +66,25 @@ async fn main() -> anyhow::Result<()> {
       code_length,
       expire_time,
       deleteable,
+      max_download,
+      file,
     } => {
-      let (_, resp) = client.health_check().await?;
+      let file_name = file.file_name().unwrap().to_str().unwrap().to_string();
+      let content_type = mime_guess::from_path(&file)
+        .first()
+        .unwrap()
+        .essence_str()
+        .to_owned();
+      let file = tokio::fs::read(file).await?;
+      let query = UploadParamQuery {
+        max_download,
+        code_length: Some(code_length),
+        expire_time: Some(expire_time),
+        deleteable: Some(deleteable),
+      };
+      let (_, resp) = client
+        .upload(file_name, &content_type, &query, file, auth)
+        .await?;
       match resp {
         ApiResponseResult::Ok(resp) => {
           println!("{}", serde_json::to_string(&resp)?);
@@ -74,7 +95,7 @@ async fn main() -> anyhow::Result<()> {
       }
     }
     SubCommand::Delete { auth } => {
-      let (_, resp) = client.delete(path, auth).await?;
+      let (_, resp) = client.delete(url.path(), auth).await?;
 
       match resp {
         ApiResponseResult::Ok(resp) => {
@@ -86,7 +107,7 @@ async fn main() -> anyhow::Result<()> {
       }
     }
     SubCommand::Info { auth } => {
-      let (_, resp) = client.info(path, auth).await?;
+      let (_, resp) = client.info(url.path(), auth).await?;
       match resp {
         ApiResponseResult::Ok(resp) => {
           println!("{}", serde_json::to_string(&resp)?);
@@ -96,10 +117,11 @@ async fn main() -> anyhow::Result<()> {
         }
       }
     }
-    SubCommand::Download { auth } => {
-      let (_, resp) = client.health_check().await?;
+    SubCommand::Download { path, auth } => {
+      let (_, resp) = client.download(url.path(), auth).await?;
       match resp {
         ApiResponseResult::Ok(resp) => {
+          let file = tokio::fs::File::create(path).await?;
           println!("{}", serde_json::to_string(&resp)?);
         }
         ApiResponseResult::Err(err) => {
@@ -112,7 +134,7 @@ async fn main() -> anyhow::Result<()> {
   Ok(())
 }
 
-use std::error::Error;
+use std::{error::Error, path::PathBuf};
 
 fn parse_key_val<T, U>(s: &str) -> Result<(T, U), Box<dyn Error + Send + Sync + 'static>>
 where
