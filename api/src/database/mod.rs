@@ -231,7 +231,7 @@ mod tests {
 
   #[test_context(StateTestContext)]
   #[tokio::test]
-  async fn store_file_and_fetch_test(ctx: &mut StateTestContext) {
+  async fn test_store_file_and_fetch(ctx: &mut StateTestContext) {
     let path: String = Faker.fake();
     let meta = MetaDataFile {
       create_at: Utc::now(),
@@ -257,7 +257,7 @@ mod tests {
 
   #[test_context(StateTestContext)]
   #[tokio::test]
-  async fn store_file_and_fetch_count_test(ctx: &mut StateTestContext) {
+  async fn test_store_file_and_fetch_count(ctx: &mut StateTestContext) {
     let path: String = Faker.fake();
     let meta = MetaDataFile {
       create_at: Utc::now(),
@@ -283,7 +283,7 @@ mod tests {
 
   #[test_context(StateTestContext)]
   #[tokio::test]
-  async fn store_file_and_double_fetch_count_test(ctx: &mut StateTestContext) {
+  async fn test_store_file_and_double_fetch_count(ctx: &mut StateTestContext) {
     let path: String = Faker.fake();
     let meta = MetaDataFile {
       create_at: Utc::now(),
@@ -310,7 +310,7 @@ mod tests {
 
   #[test_context(StateTestContext)]
   #[tokio::test]
-  async fn store_file_and_check_it_existence_test(ctx: &mut StateTestContext) {
+  async fn test_store_file_and_check_it_existence(ctx: &mut StateTestContext) {
     let path: String = Faker.fake();
     let meta = MetaDataFile {
       create_at: Utc::now(),
@@ -332,7 +332,7 @@ mod tests {
 
   #[test_context(StateTestContext)]
   #[tokio::test]
-  async fn store_file_and_purge_it_test(ctx: &mut StateTestContext) {
+  async fn test_store_file_and_purge_it(ctx: &mut StateTestContext) {
     let path: String = Faker.fake();
     let meta = MetaDataFile {
       create_at: Utc::now(),
@@ -355,7 +355,7 @@ mod tests {
 
   #[test_context(StateTestContext)]
   #[tokio::test]
-  async fn store_file_and_successfully_delete_it_test(ctx: &mut StateTestContext) {
+  async fn test_store_file_and_successfully_delete_it(ctx: &mut StateTestContext) {
     let path: String = Faker.fake();
     let meta = MetaDataFile {
       create_at: Utc::now(),
@@ -376,7 +376,7 @@ mod tests {
 
   #[test_context(StateTestContext)]
   #[tokio::test]
-  async fn delete_file_that_does_not_exist_test(ctx: &mut StateTestContext) {
+  async fn test_delete_file_that_does_not_exist(ctx: &mut StateTestContext) {
     let path: String = Faker.fake();
     let result = ctx.state.db.delete(path).await.unwrap();
     assert!(result.is_none())

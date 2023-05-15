@@ -8,7 +8,6 @@ use axum::{
 pub fn get_router(state: ApiState) -> Router {
   Router::new()
     .route("/healthz", get(handler::health_check))
-    .route("/web", get(handler::home_page))
     .route("/upload/:filename", post(handler::file::upload))
     .route("/info/:code/:filename", get(handler::file::info))
     .route("/:code/:filename", get(handler::file::download))
