@@ -1,6 +1,9 @@
 use anyhow::anyhow;
 use clap::{Parser, Subcommand};
 use sdk::{client::PasteFileClient, model::request::UploadParamQuery, result::ApiResponseResult};
+use std::{error::Error, path::PathBuf};
+use tokio::io::AsyncWriteExt;
+
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
@@ -96,7 +99,6 @@ async fn main() -> anyhow::Result<()> {
     }
     SubCommand::Delete { auth } => {
       let (_, resp) = client.delete(url.path(), auth).await?;
-
       match resp {
         ApiResponseResult::Ok(resp) => {
           println!("{}", serde_json::to_string(&resp)?);
@@ -121,8 +123,16 @@ async fn main() -> anyhow::Result<()> {
       let (_, resp) = client.download(url.path(), auth).await?;
       match resp {
         ApiResponseResult::Ok(resp) => {
-          let file = tokio::fs::File::create(path).await?;
-          println!("{}", serde_json::to_string(&resp)?);
+          let file_name = PathBuf::from(url.path())
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_string();
+          let _ = tokio::fs::create_dir_all(&path).await;
+          let mut file = tokio::fs::File::create(path.join(file_name)).await?;
+          file.write_all(&resp).await?;
+          println!("Ok");
         }
         ApiResponseResult::Err(err) => {
           return Err(anyhow!("{}", serde_json::to_string(&err)?));
@@ -130,11 +140,8 @@ async fn main() -> anyhow::Result<()> {
       }
     }
   }
-
   Ok(())
 }
-
-use std::{error::Error, path::PathBuf};
 
 fn parse_key_val<T, U>(s: &str) -> Result<(T, U), Box<dyn Error + Send + Sync + 'static>>
 where
