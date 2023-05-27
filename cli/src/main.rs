@@ -168,152 +168,154 @@ fn base_url(url: &url::Url) -> String {
   )
 }
 
-use wiremock::matchers::{method, path};
-use wiremock::{Mock, MockServer, ResponseTemplate};
+#[cfg(test)]
+mod tests {
 
-pub struct CliTestContext {
-  pub server: MockServer,
-}
+  use assert_cmd::Command;
+  use sdk::model::response::MessageResponse;
+  use wiremock::matchers::{method, path};
+  use wiremock::{Mock, MockServer, ResponseTemplate};
 
-impl CliTestContext {
-  async fn new() -> Self {
-    let server = MockServer::start().await;
-
-    Self { server }
+  pub struct CliTestContext {
+    pub server: MockServer,
   }
 
-  async fn mock_ping_api(&self) {
-    let success_ping = success_ping_response();
-    Mock::given(method("GET"))
-      .and(path("/healthz"))
-      .respond_with(success_ping)
-      .mount(&self.server)
-      .await;
+  impl CliTestContext {
+    async fn new() -> Self {
+      let server = MockServer::start().await;
+      Self { server }
+    }
+    async fn mock_ping_api(&self) {
+      let success_ping = success_ping_response();
+      Mock::given(method("GET"))
+        .and(path("/healthz"))
+        .respond_with(success_ping)
+        .mount(&self.server)
+        .await;
+    }
+    async fn mock_delete_api(&self) {
+      let resp = success_delete_response();
+      Mock::given(method("DELETE"))
+        .and(path("/code/file"))
+        .respond_with(resp)
+        .mount(&self.server)
+        .await;
+    }
+    async fn mock_upload_api(&self) {
+      let resp = success_delete_response();
+      Mock::given(method("POST"))
+        .and(path("/code/file"))
+        .respond_with(resp)
+        .mount(&self.server)
+        .await;
+    }
+    async fn mock_download_api(&self) {
+      let resp = success_delete_response();
+      Mock::given(method("GET"))
+        .and(path("/code/file"))
+        .respond_with(resp)
+        .mount(&self.server)
+        .await;
+    }
+    async fn mock_info_api(&self) {
+      let resp = success_delete_response();
+      Mock::given(method("GET"))
+        .and(path("/code/file"))
+        .respond_with(resp)
+        .mount(&self.server)
+        .await;
+    }
   }
 
-  async fn mock_delete_api(&self) {
-    let resp = success_delete_response();
-    Mock::given(method("DELETE"))
-      .and(path("/code/file"))
-      .respond_with(resp)
-      .mount(&self.server)
-      .await;
+  #[tokio::test]
+  async fn test_upload_command() {
+    let ctx = CliTestContext::new().await;
+    ctx.mock_delete_api().await;
+    let out = Command::cargo_bin("cli")
+      .unwrap()
+      .args([
+        "--url",
+        &format!("{}/code/file", &ctx.server.uri()),
+        "upload",
+      ])
+      .assert()
+      .success()
+      .to_string();
   }
 
-  async fn mock_upload_api(&self) {
-    let resp = success_delete_response();
-    Mock::given(method("DELETE"))
-      .and(path("/code/file"))
-      .respond_with(resp)
-      .mount(&self.server)
-      .await;
+  #[tokio::test]
+  async fn test_info_command() {
+    let ctx = CliTestContext::new().await;
+    ctx.mock_info_api().await;
+    let out = Command::cargo_bin("cli")
+      .unwrap()
+      .args([
+        "--url",
+        &format!("{}/code/file", &ctx.server.uri()),
+        "upload",
+      ])
+      .assert()
+      .success()
+      .to_string();
   }
-  async fn mock_download_api(&self) {
-    let resp = success_delete_response();
-    Mock::given(method("DELETE"))
-      .and(path("/code/file"))
-      .respond_with(resp)
-      .mount(&self.server)
-      .await;
+
+  #[tokio::test]
+  async fn test_download_command() {
+    let ctx = CliTestContext::new().await;
+    ctx.mock_download_api().await;
+    let out = Command::cargo_bin("cli")
+      .unwrap()
+      .args([
+        "--url",
+        &format!("{}/code/file", &ctx.server.uri()),
+        "upload",
+      ])
+      .assert()
+      .success()
+      .to_string();
   }
-  async fn mock_info_api(&self) {
-    let resp = success_delete_response();
-    Mock::given(method("DELETE"))
-      .and(path("/code/file"))
-      .respond_with(resp)
-      .mount(&self.server)
-      .await;
+
+  #[tokio::test]
+  async fn test_ping_command() {
+    let ctx = CliTestContext::new().await;
+    ctx.mock_ping_api().await;
+    let out = Command::cargo_bin("cli")
+      .unwrap()
+      .args(["--url", &ctx.server.uri(), "ping"])
+      .assert()
+      .success()
+      .to_string();
   }
-}
 
-#[tokio::test]
-async fn test_ping_command() {
-  let ctx = CliTestContext::new().await;
-  ctx.mock_ping_api().await;
-  let out = Command::cargo_bin("cli")
-    .unwrap()
-    .args(["--url", &ctx.server.uri(), "ping"])
-    .assert()
-    .success()
-    .to_string();
-}
+  #[tokio::test]
+  async fn test_delete_command() {
+    let ctx = CliTestContext::new().await;
+    ctx.mock_delete_api().await;
+    let out = Command::cargo_bin("cli")
+      .unwrap()
+      .args([
+        "--url",
+        &format!("{}/code/file", &ctx.server.uri()),
+        "delete",
+      ])
+      .assert()
+      .success()
+      .to_string();
+  }
 
-#[tokio::test]
-async fn test_delete_command() {
-  let ctx = CliTestContext::new().await;
-  ctx.mock_delete_api().await;
-  let out = Command::cargo_bin("cli")
-    .unwrap()
-    .args([
-      "--url",
-      &format!("{}/code/file", &ctx.server.uri()),
-      "delete",
-    ])
-    .assert()
-    .success()
-    .to_string();
-}
+  fn success_ping_response() -> ResponseTemplate {
+    let msg = MessageResponse {
+      message: "OK".to_string(),
+    };
+    let body = serde_json::to_string(&msg).unwrap();
+    ResponseTemplate::new(200).set_body_raw(body.as_bytes(), "application/json")
+  }
 
-#[tokio::test]
-async fn test_upload_command() {
-  let ctx = CliTestContext::new().await;
-  ctx.mock_delete_api().await;
-  let out = Command::cargo_bin("cli")
-    .unwrap()
-    .args([
-      "--url",
-      &format!("{}/code/file", &ctx.server.uri()),
-      "upload",
-    ])
-    .assert()
-    .success()
-    .to_string();
-}
-
-#[tokio::test]
-async fn test_info_command() {
-  let ctx = CliTestContext::new().await;
-  ctx.mock_delete_api().await;
-  let out = Command::cargo_bin("cli")
-    .unwrap()
-    .args([
-      "--url",
-      &format!("{}/code/file", &ctx.server.uri()),
-      "upload",
-    ])
-    .assert()
-    .success()
-    .to_string();
-}
-
-#[tokio::test]
-async fn test_download_command() {
-  let ctx = CliTestContext::new().await;
-  ctx.mock_delete_api().await;
-  let out = Command::cargo_bin("cli")
-    .unwrap()
-    .args([
-      "--url",
-      &format!("{}/code/file", &ctx.server.uri()),
-      "upload",
-    ])
-    .assert()
-    .success()
-    .to_string();
-}
-
-fn success_ping_response() -> ResponseTemplate {
-  let msg = MessageResponse {
-    message: "OK".to_string(),
-  };
-  let body = serde_json::to_string(&msg).unwrap();
-  ResponseTemplate::new(200).set_body_raw(body.as_bytes(), "application/json")
-}
-
-fn success_delete_response() -> ResponseTemplate {
-  let msg = MessageResponse {
-    message: "OK".to_string(),
-  };
-  let body = serde_json::to_string(&msg).unwrap();
-  ResponseTemplate::new(200).set_body_raw(body.as_bytes(), "application/json")
+  fn success_delete_response() -> ResponseTemplate {
+    let msg = MessageResponse {
+      message: "OK".to_string(),
+    };
+    let body = serde_json::to_string(&msg).unwrap();
+    ResponseTemplate::new(200).set_body_raw(body.as_bytes(), "application/json")
+  }
 }
