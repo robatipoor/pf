@@ -16,7 +16,7 @@ struct Args {
 
 #[derive(Subcommand, Debug)]
 pub enum SubCommand {
-  HealthCheck,
+  Ping,
   Upload {
     #[clap(short, long, value_parser = parse_key_val::<String, String>)]
     auth: Option<(String, String)>,
@@ -51,9 +51,9 @@ pub enum SubCommand {
 async fn main() -> anyhow::Result<()> {
   let args = Args::parse();
   let url = url::Url::parse(&args.url)?;
-  let client = PasteFileClient::new(&format!("{}//{}", url.scheme(), url.host_str().unwrap()));
+  let client = PasteFileClient::new(&base_url(&url));
   match args.cmd {
-    SubCommand::HealthCheck => {
+    SubCommand::Ping => {
       let (_, resp) = client.health_check().await?;
       match resp {
         ApiResponseResult::Ok(resp) => {
@@ -154,4 +154,13 @@ where
     .find(':')
     .ok_or_else(|| format!("invalid username:password: no `:` found in `{s}`"))?;
   Ok((s[..pos].parse()?, s[pos + 1..].parse()?))
+}
+
+fn base_url(url: &url::Url) -> String {
+  format!(
+    "{}://{}:{}",
+    url.scheme(),
+    url.host_str().unwrap(),
+    url.port().unwrap()
+  )
 }
