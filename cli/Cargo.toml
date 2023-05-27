@@ -13,7 +13,7 @@ clap = {workspace = true}
 config = {workspace = true}
 fake = {workspace = true}
 futures-util = {workspace = true}
-httpmock = {workspace = true}
+wiremock = {workspace = true}
 indicatif = {workspace = true}
 mime_guess = {workspace = true}
 once_cell = {workspace = true}

@@ -39,7 +39,7 @@ config = {version = "0.13.3", default-features = false, features = ["toml"]}
 cuid2 = "0.1.0"
 fake = {version = "2.6.1", features = ['derive', 'uuid', 'chrono']}
 futures-util = "0.3.28"
-httpmock = {version = "0.6.7"}
+wiremock = {version = "0.5"}
 hyper = "0.14.26"
 indicatif = "0.17.3"
 log = "0.4.17"
