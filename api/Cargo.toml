@@ -1,42 +1,42 @@
 [package]
+edition.workspace = true
 name = "api"
 version = "0.1.0"
-edition.workspace = true
 
 [[bin]]
 name = "api"
 path = "src/bin/main.rs"
 
 [dependencies]
-sdk = { path = "../sdk" }
-axum = { workspace = true }
-axum-extra = { workspace = true }
-tower-http = { workspace = true }
-sled = { workspace = true }
-tower = { workspace = true }
-hyper = { workspace = true }
-tokio = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
-bincode = { workspace = true }
-chrono = { workspace = true }
-config = { workspace = true }
-reqwest = { workspace = true }
-fake = { workspace = true }
-rand = { workspace = true }
-anyhow = { workspace = true }
-thiserror = { workspace = true }
-url = { workspace = true }
-futures-util = { workspace = true }
-once_cell = { workspace = true }
-strum_macros = { workspace = true }
-tracing = { workspace = true }
-tracing-subscriber = { workspace = true }
-validator = { workspace = true }
-cuid2 = { workspace = true }
-tokio-util = { workspace = true }
-argon2 = { workspace = true }
-qrcodegen = { workspace = true }
-async-trait = { workspace = true }
-test-context = { workspace = true }
-build_html = { workspace = true }
+anyhow = {workspace = true}
+argon2 = {workspace = true}
+async-trait = {workspace = true}
+axum = {workspace = true}
+axum-extra = {workspace = true}
+bincode = {workspace = true}
+build_html = {workspace = true}
+chrono = {workspace = true}
+config = {workspace = true}
+cuid2 = {workspace = true}
+fake = {workspace = true}
+futures-util = {workspace = true}
+hyper = {workspace = true}
+once_cell = {workspace = true}
+qrcodegen = {workspace = true}
+rand = {workspace = true}
+reqwest = {workspace = true}
+sdk = {path = "../sdk"}
+serde = {workspace = true}
+serde_json = {workspace = true}
+sled = {workspace = true}
+strum_macros = {workspace = true}
+test-context = {workspace = true}
+thiserror = {workspace = true}
+tokio = {workspace = true}
+tokio-util = {workspace = true}
+tower = {workspace = true}
+tower-http = {workspace = true}
+tracing = {workspace = true}
+tracing-subscriber = {workspace = true}
+url = {workspace = true}
+validator = {workspace = true}
