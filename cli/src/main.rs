@@ -171,7 +171,7 @@ mod tests {
   use assert_cmd::Command;
   use chrono::Utc;
   use fake::{Fake, Faker};
-  use sdk::model::response::{MessageResponse, UploadResponse};
+  use sdk::model::response::{MessageResponse, MetaDataFileResponse, UploadResponse};
   use test_context::AsyncTestContext;
   use tokio::io::AsyncWriteExt;
   use wiremock::matchers::{method, path};
@@ -206,14 +206,24 @@ mod tests {
         .mount(&self.server)
         .await;
     }
-    async fn mock_delete_api(&self) {
+    async fn mock_delete_api(&self, file_name: &str) {
       let resp = success_delete_response();
       Mock::given(method("DELETE"))
-        .and(path("/code/file"))
+        .and(path(&format!("/code/{file_name}")))
         .respond_with(resp)
         .mount(&self.server)
         .await;
     }
+
+    async fn mock_info_api(&self, file_name: &str) {
+      let resp = success_info_response();
+      Mock::given(method("GET"))
+        .and(path(&format!("/info/code/{file_name}")))
+        .respond_with(resp)
+        .mount(&self.server)
+        .await;
+    }
+
     async fn mock_upload_api(&self, file_name: &str) {
       let resp = success_upload_response();
       Mock::given(method("POST"))
@@ -256,7 +266,7 @@ mod tests {
   #[tokio::test]
   async fn test_upload_command(ctx: &mut CliTestContext) {
     ctx.mock_upload_api(&ctx.upload_file).await;
-    let out = Command::cargo_bin("cli")
+    let _out = Command::cargo_bin("cli")
       .unwrap()
       .args([
         "--url",
@@ -270,44 +280,53 @@ mod tests {
       .to_string();
   }
 
-  // #[tokio::test]
-  // async fn test_info_command() {
-  //   let ctx = CliTestContext::new().await;
-  //   ctx.mock_info_api().await;
-  //   let out = Command::cargo_bin("cli")
-  //     .unwrap()
-  //     .args(["--url", &format!("{}/code/file", &ctx.server.uri()), "info"])
-  //     .assert()
-  //     .success()
-  //     .to_string();
-  // }
-
-  // #[tokio::test]
-  // async fn test_download_command() {
-  //   let ctx = CliTestContext::new().await;
-  //   ctx.mock_download_api().await;
-  //   let out = Command::cargo_bin("cli")
-  //     .unwrap()
-  //     .args([
-  //       "--url",
-  //       &format!("{}/code/file", &ctx.server.uri()),
-  //       "download",
-  //       "--path",
-  //     ])
-  //     .assert()
-  //     .success()
-  //     .to_string();
-  // }
-
+  #[test_context::test_context(CliTestContext)]
   #[tokio::test]
-  async fn test_delete_command() {
-    let ctx = CliTestContext::new().await;
-    ctx.mock_delete_api().await;
-    let out = Command::cargo_bin("cli")
+  async fn test_info_command(ctx: &mut CliTestContext) {
+    let file_name: String = Faker.fake();
+    ctx.mock_info_api(&file_name).await;
+    let _out = Command::cargo_bin("cli")
       .unwrap()
       .args([
         "--url",
-        &format!("{}/code/file", &ctx.server.uri()),
+        &format!("{}/code/{file_name}", &ctx.server.uri()),
+        "info",
+      ])
+      .assert()
+      .success()
+      .to_string();
+  }
+
+  #[test_context::test_context(CliTestContext)]
+  #[tokio::test]
+  async fn test_download_command(ctx: &mut CliTestContext) {
+    let file_name: String = Faker.fake();
+    ctx.mock_download_api(&file_name).await;
+    let _out = Command::cargo_bin("cli")
+      .unwrap()
+      .args([
+        "--url",
+        &format!("{}/code/{file_name}", &ctx.server.uri()),
+        "download",
+        "--path",
+        &ctx.download_dir,
+      ])
+      .assert()
+      .success()
+      .to_string();
+    // TOOD try read file
+  }
+
+  #[test_context::test_context(CliTestContext)]
+  #[tokio::test]
+  async fn test_delete_command(ctx: &mut CliTestContext) {
+    let file_name: String = Faker.fake();
+    ctx.mock_delete_api(&file_name).await;
+    let _out = Command::cargo_bin("cli")
+      .unwrap()
+      .args([
+        "--url",
+        &format!("{}/code/{file_name}", &ctx.server.uri()),
         "delete",
       ])
       .assert()
@@ -315,11 +334,11 @@ mod tests {
       .to_string();
   }
 
+  #[test_context::test_context(CliTestContext)]
   #[tokio::test]
-  async fn test_ping_command() {
-    let ctx = CliTestContext::new().await;
+  async fn test_ping_command(ctx: &mut CliTestContext) {
     ctx.mock_ping_api().await;
-    let out = Command::cargo_bin("cli")
+    let _out = Command::cargo_bin("cli")
       .unwrap()
       .args(["--url", &ctx.server.uri(), "ping"])
       .assert()
@@ -343,6 +362,18 @@ mod tests {
     ResponseTemplate::new(200).set_body_raw(body.as_bytes(), "application/json")
   }
 
+  fn success_info_response() -> ResponseTemplate {
+    let msg = MetaDataFileResponse {
+      create_at: Utc::now(),
+      expire_time: Utc::now(),
+      is_deleteable: true,
+      max_download: None,
+      downloads: 1,
+    };
+    let body = serde_json::to_string(&msg).unwrap();
+    ResponseTemplate::new(200).set_body_raw(body.as_bytes(), "application/json")
+  }
+
   fn success_upload_response() -> ResponseTemplate {
     let msg = UploadResponse {
       expire_time: Utc::now(),
@@ -358,7 +389,7 @@ mod tests {
 --12345
 Content-Disposition: form-data; name="file_name"
 
-some text that you wrote in your html form ...
+some text ...
 --12345"#;
     ResponseTemplate::new(200).set_body_raw(body.as_bytes(), "multipart/form-data; boundary=12345")
   }
