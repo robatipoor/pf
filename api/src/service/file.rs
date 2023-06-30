@@ -32,7 +32,7 @@ pub async fn store(
   let meta = MetaDataFile {
     create_at: now,
     expire_time,
-    is_deleteable: query.deleteable.unwrap_or(true),
+    is_deletable: query.deletable.unwrap_or(true),
     max_download: query.max_download,
     auth,
     downloads: 0,
@@ -104,7 +104,7 @@ pub async fn delete(
 ) -> ApiResult<()> {
   let path = format!("{code}/{file_name}");
   if let Some(meta) = state.db.fetch(&path)? {
-    if meta.is_deleteable {
+    if meta.is_deletable {
       authenticate(auth, &meta.auth)?;
       let file_path = state.config.fs.base_dir.join(&path);
       tokio::fs::remove_file(file_path).await?;
@@ -112,7 +112,7 @@ pub async fn delete(
       state.db.flush().await?;
     } else {
       return Err(ApiError::PermissionDenied(format!(
-        "{path} is not deleteable"
+        "{path} is not deletable"
       )));
     }
   }

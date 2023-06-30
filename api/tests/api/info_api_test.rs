@@ -11,7 +11,7 @@ pub async fn test_info(ctx: &mut ApiTestContext) {
   let (status, resp) = ctx.info(&file.path, None).await.unwrap();
   let resp = unwrap!(resp);
   assert!(status.is_success(), "status: {status}");
-  assert!(resp.is_deleteable);
+  assert!(resp.is_deletable);
 }
 
 #[test_context(ApiTestContext)]

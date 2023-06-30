@@ -1,13 +1,11 @@
 #!/bin/bash
 
-diff=$(cargo fmt -- --check)
+cargo fmt -- --check
 result=$?
 
 if [[ ${result} -ne 0 ]] ; then
     cat <<\EOF
-There are some code style issues, run `cargo fmt` first.
+There are some code style issues, run `cargo fmt && git add .` first.
 EOF
     exit 1
 fi
-
-exit 0

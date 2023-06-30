@@ -164,7 +164,7 @@ pub struct MetaDataFile {
   pub create_at: DateTime<Utc>,
   pub expire_time: DateTime<Utc>,
   pub auth: Option<String>,
-  pub is_deleteable: bool,
+  pub is_deletable: bool,
   pub max_download: Option<u32>,
   pub downloads: u32,
 }
@@ -215,7 +215,7 @@ impl From<&MetaDataFile> for MetaDataFileResponse {
     MetaDataFileResponse {
       create_at: value.create_at,
       expire_time: value.expire_time,
-      is_deleteable: value.is_deleteable,
+      is_deletable: value.is_deletable,
       max_download: value.max_download,
       downloads: value.downloads,
     }
@@ -237,7 +237,7 @@ mod tests {
       create_at: Utc::now(),
       expire_time: Utc::now() + chrono::Duration::seconds(10),
       auth: None,
-      is_deleteable: true,
+      is_deletable: true,
       max_download: None,
       downloads: 1,
     };
@@ -263,7 +263,7 @@ mod tests {
       create_at: Utc::now(),
       expire_time: Utc::now() + chrono::Duration::seconds(10),
       auth: None,
-      is_deleteable: true,
+      is_deletable: true,
       max_download: None,
       downloads: 0,
     };
@@ -289,7 +289,7 @@ mod tests {
       create_at: Utc::now(),
       expire_time: Utc::now() + chrono::Duration::seconds(10),
       auth: None,
-      is_deleteable: true,
+      is_deletable: true,
       max_download: None,
       downloads: 0,
     };
@@ -316,7 +316,7 @@ mod tests {
       create_at: Utc::now(),
       expire_time: Utc::now() + chrono::Duration::seconds(10),
       auth: None,
-      is_deleteable: true,
+      is_deletable: true,
       max_download: None,
       downloads: 0,
     };
@@ -338,7 +338,7 @@ mod tests {
       create_at: Utc::now(),
       expire_time: Utc::now(),
       auth: None,
-      is_deleteable: true,
+      is_deletable: true,
       max_download: None,
       downloads: 0,
     };
@@ -361,7 +361,7 @@ mod tests {
       create_at: Utc::now(),
       expire_time: Utc::now() + chrono::Duration::seconds(10),
       auth: None,
-      is_deleteable: true,
+      is_deletable: true,
       max_download: None,
       downloads: 0,
     };

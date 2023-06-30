@@ -143,10 +143,10 @@ impl IntoResponse for ApiError {
   }
 }
 
-pub fn invalid_input_error(feild: &'static str, message: &'static str) -> ApiError {
+pub fn invalid_input_error(field: &'static str, message: &'static str) -> ApiError {
   let mut err = validator::ValidationErrors::new();
   err.add(
-    feild,
+    field,
     validator::ValidationError {
       code: std::borrow::Cow::from("1"),
       message: Some(std::borrow::Cow::Borrowed(message)),

@@ -71,7 +71,7 @@ impl ApiTestContext {
       max_download: max,
       code_length: len,
       expire_time: exp,
-      deleteable: del,
+      deletable: del,
     };
     let (_, resp) = self
       .client

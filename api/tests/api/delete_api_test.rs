@@ -28,7 +28,7 @@ pub async fn test_delete_not_exist_file(ctx: &mut ApiTestContext) {
 
 #[test_context(ApiTestContext)]
 #[tokio::test]
-pub async fn test_delete_file_is_not_deleteable(ctx: &mut ApiTestContext) {
+pub async fn test_delete_file_is_not_deletable(ctx: &mut ApiTestContext) {
   let file = ctx
     .upload_dummy_file(None, None, None, Some(false), None)
     .await;

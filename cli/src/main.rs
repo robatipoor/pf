@@ -27,7 +27,7 @@ pub enum SubCommand {
     #[clap(short, long)]
     max_download: Option<u32>,
     #[clap(default_value_t = true, short, long)]
-    deleteable: bool,
+    deletable: bool,
     #[clap(short, long)]
     file: PathBuf,
   },
@@ -68,7 +68,7 @@ async fn main() -> anyhow::Result<()> {
       auth,
       code_length,
       expire_time,
-      deleteable,
+      deletable,
       max_download,
       file,
     } => {
@@ -83,7 +83,7 @@ async fn main() -> anyhow::Result<()> {
         max_download,
         code_length: Some(code_length),
         expire_time: Some(expire_time),
-        deleteable: Some(deleteable),
+        deletable: Some(deletable),
       };
       let (_, resp) = client
         .upload(file_name, &content_type, &query, file, auth)
@@ -314,7 +314,7 @@ mod tests {
       .assert()
       .success()
       .to_string();
-    // TOOD try read file
+    // TODO try read file
   }
 
   #[test_context::test_context(CliTestContext)]
@@ -366,7 +366,7 @@ mod tests {
     let msg = MetaDataFileResponse {
       create_at: Utc::now(),
       expire_time: Utc::now(),
-      is_deleteable: true,
+      is_deletable: true,
       max_download: None,
       downloads: 1,
     };
