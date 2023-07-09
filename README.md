@@ -1,4 +1,4 @@
-### PLEASE DONT USE THIS (still in early development)
+### Please don't use this (still in early development).
 # paste file 
 ![License](https://img.shields.io/github/license/robatipoor/pf)
 ![Lines of code](https://img.shields.io/tokei/lines/github/robatipoor/pf)

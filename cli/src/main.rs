@@ -168,14 +168,34 @@ fn base_url(url: &url::Url) -> String {
 #[cfg(test)]
 mod tests {
 
+  use std::process::Stdio;
+
   use assert_cmd::Command;
   use chrono::Utc;
   use fake::{Fake, Faker};
+  use once_cell::sync::Lazy;
+  use project_root::get_project_root;
   use sdk::model::response::{MessageResponse, MetaDataFileResponse, UploadResponse};
   use test_context::AsyncTestContext;
   use tokio::io::AsyncWriteExt;
+  use tracing::info;
   use wiremock::matchers::{method, path};
   use wiremock::{Mock, MockServer, ResponseTemplate};
+
+  static SETUP: Lazy<()> = Lazy::new(|| {
+    tracing_subscriber::fmt().init();
+    let root_dir = get_project_root().unwrap();
+    std::process::Command::new("cargo")
+      .arg("build")
+      .arg("-q")
+      .current_dir(&root_dir)
+      .stdout(Stdio::piped())
+      .spawn()
+      .unwrap()
+      .wait()
+      .unwrap();
+    info!("Success build project");
+  });
 
   pub struct CliTestContext {
     pub server: MockServer,
@@ -185,6 +205,7 @@ mod tests {
 
   impl CliTestContext {
     async fn new() -> Self {
+      Lazy::force(&SETUP);
       let server = MockServer::start().await;
       let file_content: String = Faker.fake();
       let upload_file = format!("{}.txt", Faker.fake::<String>());

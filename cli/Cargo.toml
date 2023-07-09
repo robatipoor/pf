@@ -29,4 +29,6 @@ thiserror = {workspace = true}
 tokio = {workspace = true}
 tracing = {workspace = true}
 url = {workspace = true}
+project-root = {workspace = true}
+tracing-subscriber = {workspace = true}
 validator = {workspace = true}
