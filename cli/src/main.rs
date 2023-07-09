@@ -120,7 +120,7 @@ async fn main() -> anyhow::Result<()> {
       }
     }
     SubCommand::Download { path, auth } => {
-      let (_, resp) = client.download(url.path(), auth).await?;
+      let (_, resp) = client.download(&url.path()[1..], auth).await?;
       match resp {
         ApiResponseResult::Ok(resp) => {
           let file_name = PathBuf::from(url.path())
@@ -253,10 +253,10 @@ mod tests {
         .mount(&self.server)
         .await;
     }
-    async fn mock_download_api(&self, file_name: &str) {
+    async fn mock_download_api(&self, p: &str) {
       let resp = success_download_response();
       Mock::given(method("GET"))
-        .and(path(format!("/code/{file_name}")))
+        .and(path(p))
         .respond_with(resp)
         .mount(&self.server)
         .await;
@@ -304,13 +304,14 @@ mod tests {
   #[test_context::test_context(CliTestContext)]
   #[tokio::test]
   async fn test_info_command(ctx: &mut CliTestContext) {
+    let code: String = Faker.fake();
     let file_name: String = Faker.fake();
     ctx.mock_info_api(&file_name).await;
     let _out = Command::cargo_bin("cli")
       .unwrap()
       .args([
         "--url",
-        &format!("{}/code/{file_name}", &ctx.server.uri()),
+        &format!("{}/{code}/{file_name}", &ctx.server.uri()),
         "info",
       ])
       .assert()
@@ -321,13 +322,15 @@ mod tests {
   #[test_context::test_context(CliTestContext)]
   #[tokio::test]
   async fn test_download_command(ctx: &mut CliTestContext) {
-    let file_name: String = Faker.fake();
-    ctx.mock_download_api(&file_name).await;
+    let code: String = Faker.fake();
+    let file_name = "file.txt";
+    let path = format!("{code}/{file_name}");
+    ctx.mock_download_api(&path).await;
     let _out = Command::cargo_bin("cli")
       .unwrap()
       .args([
         "--url",
-        &format!("{}/code/{file_name}", &ctx.server.uri()),
+        &format!("{}/{path}", &ctx.server.uri()),
         "download",
         "--path",
         &ctx.download_dir,
