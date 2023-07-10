@@ -90,12 +90,10 @@ impl PasteFileClient {
       return Ok((status, ApiResponseResult::Err(error)));
     }
     let body = resp.bytes().await;
-    let boundary = std::str::from_utf8(body.as_ref().unwrap())
-      .unwrap()
-      .to_string()
-      .lines()
-      .next()
-      .unwrap()[2..]
+    let boundary = std::str::from_utf8(body.as_ref().unwrap());
+    // TODO FIXME multer::parse_boundary(ct);
+    let boundary = boundary.unwrap().to_string().lines().next().unwrap()[2..]
+      .trim()
       .to_string();
     let stream = futures_util::stream::once(async { body });
     let mut mp = Multipart::new(stream, boundary);

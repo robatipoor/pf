@@ -409,12 +409,7 @@ mod tests {
   }
 
   fn success_download_response() -> ResponseTemplate {
-    let body = r#"
---12345
-Content-Disposition: form-data; name="file_name"
-
-some text ...
---12345"#;
+    let body = "--12345\r\nContent-Disposition: form-data; name=\"my_text_field\"\r\n\r\nabcd\r\n--12345--\r\n";
     ResponseTemplate::new(200).set_body_raw(body.as_bytes(), "multipart/form-data; boundary=12345")
   }
 }
