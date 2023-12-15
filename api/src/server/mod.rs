@@ -6,7 +6,6 @@ use crate::error::ApiResult;
 use crate::router::get_router;
 use std::sync::Arc;
 
-
 #[derive(Clone)]
 pub struct ApiState {
   pub config: Arc<ApiConfig>,
@@ -44,4 +43,3 @@ impl ApiServer {
     Ok(())
   }
 }
-
