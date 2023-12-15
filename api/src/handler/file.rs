@@ -1,16 +1,16 @@
 use axum::{
   body::Body,
-  extract::{multipart::Field, Multipart, Path, Query, State},
+  extract::{Multipart, Path, Query, State},
   http::{header::HeaderMap, Request},
   response::Response,
   Json,
 };
-use futures_util::{Stream, TryStreamExt};
+
 use sdk::model::{
   request::UploadParamQuery,
   response::{MessageResponse, MetaDataFileResponse, UploadResponse},
 };
-use tokio_util::{bytes::Bytes, io::StreamReader};
+
 use tower::ServiceExt;
 use tower_http::services::fs::ServeFileSystemResponseBody;
 use validator::Validate;
@@ -18,7 +18,7 @@ use validator::Validate;
 use crate::{
   error::ApiResult,
   server::ApiState,
-  service::{self, file},
+  service::{self},
 };
 
 pub async fn upload(

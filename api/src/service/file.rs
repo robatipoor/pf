@@ -121,7 +121,7 @@ pub async fn delete(
 
 pub async fn store_stream(file_path: &PathBuf, mut multipart: Multipart) -> ApiResult<()> {
   while let Ok(Some(field)) = multipart.next_field().await {
-    let file_name = if let Some(file_name) = field.file_name() {
+    let _file_name = if let Some(file_name) = field.file_name() {
       file_name.to_owned()
     } else {
       continue;
