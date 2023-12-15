@@ -1,7 +1,5 @@
-name: spell check
-on:
-  push:
-    branches: ["main","develop"]
+name: spell checker
+on: [pull_request]
 
 env:
   CARGO_TERM_COLOR: always
@@ -9,9 +7,11 @@ env:
 
 jobs:
   typos:
-    name: Spell check
+    name: typos
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Actions Repository
         uses: actions/checkout@v3
+  
+      - name: Check spelling
+        uses: crate-ci/typos@master

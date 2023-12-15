@@ -4,13 +4,8 @@ use crate::config::ApiConfig;
 use crate::database::Database;
 use crate::error::ApiResult;
 use crate::router::get_router;
-use axum::routing::IntoMakeService;
-use axum::routing::Router;
-use axum::Server;
-use hyper::server::conn::AddrIncoming;
-use std::net::TcpListener;
 use std::sync::Arc;
-use tracing::info;
+
 
 #[derive(Clone)]
 pub struct ApiState {
@@ -30,21 +25,23 @@ impl ApiState {
 
 pub struct ApiServer {
   pub state: ApiState,
-  pub start: axum::Server<AddrIncoming, IntoMakeService<Router>>,
+  tcp: tokio::net::TcpListener,
 }
+
 impl ApiServer {
-  pub async fn build(mut config: ApiConfig) -> ApiResult<Self> {
-    let socket_addr = config.server.get_socket_addr()?;
-    let tcp = TcpListener::bind(socket_addr)?;
+  pub async fn new(mut config: ApiConfig) -> ApiResult<Self> {
+    let tcp = tokio::net::TcpListener::bind(config.server.get_socket_addr()?).await?;
     let addr = tcp.local_addr()?;
-    info!("Listening to: {addr}");
+    tracing::info!("The server is listening on: {addr}");
     config.server.port = addr.port();
     let state = ApiState::new(config)?;
-    let router = get_router(state.clone());
-    let axum_server = Server::from_tcp(tcp)?.serve(router.into_make_service());
-    Ok(Self {
-      state,
-      start: axum_server,
-    })
+    Ok(Self { state, tcp })
+  }
+
+  pub async fn run(self) -> ApiResult<()> {
+    let router = get_router(self.state);
+    axum::serve(self.tcp, router).await?;
+    Ok(())
   }
 }
+

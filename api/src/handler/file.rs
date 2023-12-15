@@ -1,31 +1,38 @@
 use axum::{
   body::Body,
-  extract::{BodyStream, Path, Query, State},
+  extract::{multipart::Field, Multipart, Path, Query, State},
   http::{header::HeaderMap, Request},
   response::Response,
   Json,
 };
+use futures_util::{Stream, TryStreamExt};
 use sdk::model::{
   request::UploadParamQuery,
   response::{MessageResponse, MetaDataFileResponse, UploadResponse},
 };
+use tokio_util::{bytes::Bytes, io::StreamReader};
 use tower::ServiceExt;
 use tower_http::services::fs::ServeFileSystemResponseBody;
 use validator::Validate;
 
-use crate::{error::ApiResult, server::ApiState, service};
+use crate::{
+  error::ApiResult,
+  server::ApiState,
+  service::{self, file},
+};
 
 pub async fn upload(
   State(state): State<ApiState>,
   Path(file_name): Path<String>,
   Query(query): Query<UploadParamQuery>,
   headers: HeaderMap,
-  body: BodyStream,
+  multipart: Multipart,
 ) -> ApiResult<Json<UploadResponse>> {
   crate::util::file_name::validate(&file_name)?;
   query.validate()?;
   let auth = crate::util::http::parse_basic_auth(&headers)?;
-  let (path, expire_time) = service::file::store(&state, &file_name, &query, auth, body).await?;
+  let (path, expire_time) =
+    service::file::store(&state, &file_name, &query, auth, multipart).await?;
   let url = format!("{}/{path}", state.config.domain);
   let qrcode = crate::util::qrcode::encode(&url)?;
   Ok(Json(UploadResponse {

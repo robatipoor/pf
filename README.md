@@ -1,16 +1,15 @@
 ### Please don't use this (still in early development).
 # paste file 
 ![License](https://img.shields.io/github/license/robatipoor/pf)
-![Lines of code](https://img.shields.io/tokei/lines/github/robatipoor/pf)
-[![Format check](https://github.com/robatipoor/pf/actions/workflows/format.yml/badge.svg)](https://github.com/robatipoor/pf/actions/workflows/format.yml)
-[![Build Check](https://github.com/robatipoor/pf/actions/workflows/check.yml/badge.svg)](https://github.com/robatipoor/pf/actions/workflows/check.yml)
+[![Lines Of Code](https://tokei.rs/b1/github/robatipoor/pf?category=code)](https://github.com/robatipoor/pf)
+[![Format check](https://github.com/robatipoor/pf/actions/workflows/code-formater.yml/badge.svg)](https://github.com/robatipoor/pf/actions/workflows/code-formater.yml)
+[![Build Check](https://github.com/robatipoor/pf/actions/workflows/build-checker.yml/badge.svg)](https://github.com/robatipoor/pf/actions/workflows/build-checker.yml)
 [![Test](https://github.com/robatipoor/pf/actions/workflows/test.yml/badge.svg)](https://github.com/robatipoor/pf/actions/workflows/test.yml)
-[![Clippy Check](https://github.com/robatipoor/pf/actions/workflows/clippy.yml/badge.svg)](https://github.com/robatipoor/pf/actions/workflows/clippy.yml)
-[![Docker Image](https://github.com/robatipoor/pf/actions/workflows/build.yml/badge.svg)](https://github.com/robatipoor/pf/actions/workflows/build.yml)
-[![Test Coverage](https://github.com/robatipoor/pf/actions/workflows/coverage.yml/badge.svg)](https://github.com/robatipoor/pf/actions/workflows/coverage.yml)
+[![Clippy Check](https://github.com/robatipoor/pf/actions/workflows/code-linter.yml/badge.svg)](https://github.com/robatipoor/pf/actions/workflows/code-linter.yml)
+[![Docker Image](https://github.com/robatipoor/pf/actions/workflows/image-builder.yml/badge.svg)](https://github.com/robatipoor/pf/actions/workflows/image-builder.yml)
+[![Test Coverage](https://github.com/robatipoor/pf/actions/workflows/test-coverage.yml/badge.svg)](https://github.com/robatipoor/pf/actions/workflows/test-coverage.yml)
 [![Codecov](https://codecov.io/gh/robatipoor/pf/branch/main/graph/badge.svg?token=BIMUKRJPE7)](https://codecov.io/gh/robatipoor/pf)
-[![Dependency status](https://deps.rs/repo/github/robatipoor/pf/status.svg)](https://deps.rs/repo/github/robatipoor/pf)
-
+![Dependency status](https://deps.rs/repo/github/robatipoor/pf/status.svg)](https://deps.rs/repo/github/robatipoor/pf)
 
 **install**
 

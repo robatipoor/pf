@@ -9,12 +9,12 @@ jobs:
     name: coverage
     runs-on: ubuntu-latest
     env:
-      API_PROFILE: test
+      APP_PROFILE: test
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install stable toolchain
+      - name: Install nightly toolchain
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
@@ -26,16 +26,21 @@ jobs:
         with:
           path: |
             ~/.cargo/bin/cargo-tarpaulin
-          key: ${{ runner.os }}-sqlx-${{ env.SQLX_VERSION }}-${{ env.SQLX_FEATURES }}
+          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
 
       - name: Install tarpaulin
+        if: ${{ steps.cache-tarpaulin.outputs.cache-hit != 'true' }}
+        continue-on-error: true
         uses: actions-rs/cargo@v1
-        if: steps.cache-sqlx.outputs.cache-hit == false
         with:
           command: install
           args: >
             cargo-tarpaulin
       
+      - name: Migrate database
+        run: |
+          ./scripts/init_db.sh
+
       - name: Checkout repository
         uses: actions/checkout@v3
 

@@ -10,8 +10,8 @@ async fn main() -> ApiResult {
   if let Err(e) = tokio::fs::create_dir_all(&config.fs.base_dir).await {
     warn!("failed create base dir: {e}");
   };
-  let server = ApiServer::build(config).await?;
+  let server = ApiServer::new(config).await?;
   api::server::worker::spawn(State(server.state.clone()));
-  let _ = server.start.await;
+  let _ = server.run().await;
   Ok(())
 }

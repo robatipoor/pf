@@ -1,7 +1,6 @@
 use crate::helper::ApiTestContext;
 use api::{assert_err, assert_ok};
 use fake::{Fake, Faker};
-use hyper::StatusCode;
 use sdk::error::BodyResponseError;
 use test_context::test_context;
 
@@ -15,7 +14,7 @@ pub async fn test_delete_exist_file(ctx: &mut ApiTestContext) {
   ctx.delete(&file.path, None).await.unwrap();
   let (status, resp) = ctx.info(&file.path, None).await.unwrap();
   assert_err!(resp, |e: &BodyResponseError| e.error_type == "NOT_FOUND");
-  assert_eq!(status, StatusCode::NOT_FOUND);
+  assert_eq!(status, reqwest::StatusCode::NOT_FOUND);
 }
 
 #[test_context(ApiTestContext)]

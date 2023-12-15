@@ -1,5 +1,5 @@
 use crate::error::{ApiError, ApiResult, ToApiResult};
-use axum::extract::BodyStream;
+use axum::extract::Multipart;
 use chrono::{DateTime, Utc};
 use futures_util::TryStreamExt;
 use sdk::model::request::UploadParamQuery;
@@ -18,7 +18,7 @@ pub async fn store(
   file_name: &str,
   query: &UploadParamQuery,
   auth: Option<String>,
-  stream: BodyStream,
+  multipart: Multipart,
 ) -> ApiResult<(PathFile, DateTime<Utc>)> {
   let auth = hash(auth)?;
   let secs = query
@@ -52,7 +52,7 @@ pub async fn store(
     }
   };
   let file_path = state.config.fs.base_dir.join(&path);
-  if let Err(e) = store_stream(&file_path, stream).await {
+  if let Err(e) = store_stream(&file_path, multipart).await {
     state.db.delete(path).await?;
     return Err(e);
   }
@@ -119,15 +119,24 @@ pub async fn delete(
   Ok(())
 }
 
-pub async fn store_stream(file_path: &PathBuf, stream: BodyStream) -> ApiResult<()> {
-  let stream = stream.map_err(|err| std::io::Error::new(std::io::ErrorKind::Other, err));
-  let stream = StreamReader::new(stream);
-  futures_util::pin_mut!(stream);
-  if let Some(p) = file_path.parent() {
-    tokio::fs::create_dir_all(p).await?;
+pub async fn store_stream(file_path: &PathBuf, mut multipart: Multipart) -> ApiResult<()> {
+  while let Ok(Some(field)) = multipart.next_field().await {
+    let file_name = if let Some(file_name) = field.file_name() {
+      file_name.to_owned()
+    } else {
+      continue;
+    };
+    let body_with_io_error =
+      field.map_err(|err| std::io::Error::new(std::io::ErrorKind::Other, err));
+    let body_reader = StreamReader::new(body_with_io_error);
+    futures_util::pin_mut!(body_reader);
+    if let Some(p) = file_path.parent() {
+      tokio::fs::create_dir_all(p).await?;
+    }
+    let mut file = BufWriter::new(File::create(file_path).await?);
+    tokio::io::copy(&mut body_reader, &mut file).await?;
   }
-  let mut file = BufWriter::new(File::create(file_path).await?);
-  tokio::io::copy(&mut stream, &mut file).await?;
+
   Ok(())
 }
 

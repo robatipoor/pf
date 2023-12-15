@@ -1,7 +1,7 @@
-name: build check
+name: build checker
 on:
   push:
-    branches: ["main","develop"]
+    branches: ["main","dev"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -9,10 +9,8 @@ env:
 
 jobs:
   check:
-    name: Cargo check
+    name: cargo check
     runs-on: ubuntu-latest
-    env:
-      SQLX_OFFLINE: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3

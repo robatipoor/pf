@@ -10,7 +10,7 @@ env:
 
 jobs:
   build:
-    name: Build Image
+    name: build image
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -35,7 +35,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/pf:latest
+          tags: ghcr.io/${{ github.repository_owner }}/rustfulapi:latest
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}

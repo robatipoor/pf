@@ -1,7 +1,7 @@
 name: test
 on:
   push:
-    branches: ["main","develop"]
+    branches: ["main","dev"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -9,10 +9,10 @@ env:
 
 jobs:
   test:
-    name: Cargo test
+    name: cargo test
     runs-on: ubuntu-latest
     env:
-      API_PROFILE: test
+      APP_PROFILE: test
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -37,7 +37,36 @@ jobs:
           toolchain: stable
           override: true
 
+      - name: Migrate database
+        run: |
+          ./scripts/init_db.sh
+
       - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
           command: test
+
+      # - name: Test Success
+      #   uses: rjstone/discord-webhook-notify@v1
+      #   if: success()
+      #   with:
+      #     severity: info
+      #     details: Test Succeeded!
+      #     webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+
+      # - name: Test Failure
+      #   uses: rjstone/discord-webhook-notify@v1
+      #   if: failure()
+      #   with:
+      #     severity: error
+      #     details: Test Failed!
+      #     webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+
+      # - name: Test Cancelled
+      #   uses: rjstone/discord-webhook-notify@v1
+      #   if: cancelled()
+      #   with:
+      #     severity: warn
+      #     details: Test Cancelled!
+      #     webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+
