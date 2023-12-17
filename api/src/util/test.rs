@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::{collections::HashMap, hash::Hash};
 
 use crate::server::ApiState;
-use crate::{config::CONFIG, util::tracing::INIT_SUBSCRIBER};
+use crate::{configure::CONFIG, util::tracing::INIT_SUBSCRIBER};
 use once_cell::sync::Lazy;
 use test_context::AsyncTestContext;
 

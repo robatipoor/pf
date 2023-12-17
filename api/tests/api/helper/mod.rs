@@ -1,7 +1,7 @@
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
 
-use api::config::CONFIG;
+use api::configure::CONFIG;
 use api::server::{ApiServer, ApiState};
 use api::unwrap;
 use api::util::tracing::INIT_SUBSCRIBER;

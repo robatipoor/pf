@@ -388,11 +388,11 @@ mod tests {
 
   fn success_info_response() -> ResponseTemplate {
     let msg = MetaDataFileResponse {
-      create_at: Utc::now(),
-      expire_time: Utc::now(),
+      created_at: Utc::now(),
+      expiration_date: Utc::now(),
       is_deletable: true,
       max_download: None,
-      downloads: 1,
+      count_downloads: 1,
     };
     let body = serde_json::to_string(&msg).unwrap();
     ResponseTemplate::new(200).set_body_raw(body.as_bytes(), "application/json")

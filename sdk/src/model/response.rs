@@ -15,9 +15,9 @@ pub struct UploadResponse {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MetaDataFileResponse {
-  pub create_at: DateTime<Utc>,
-  pub expire_time: DateTime<Utc>,
+  pub created_at: DateTime<Utc>,
+  pub expiration_date: DateTime<Utc>,
   pub is_deletable: bool,
   pub max_download: Option<u32>,
-  pub downloads: u32,
+  pub count_downloads: u32,
 }

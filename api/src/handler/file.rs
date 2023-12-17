@@ -33,7 +33,7 @@ pub async fn upload(
   let auth = crate::util::http::parse_basic_auth(&headers)?;
   let (path, expire_time) =
     service::file::store(&state, &file_name, &query, auth, multipart).await?;
-  let url = format!("{}/{path}", state.config.domain);
+  let url = path.url(&state.config.domain);
   let qrcode = crate::util::qrcode::encode(&url)?;
   Ok(Json(UploadResponse {
     url,

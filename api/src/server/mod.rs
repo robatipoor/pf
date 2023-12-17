@@ -1,6 +1,6 @@
 pub mod worker;
 
-use crate::config::ApiConfig;
+use crate::configure::ApiConfig;
 use crate::database::Database;
 use crate::error::ApiResult;
 use crate::router::get_router;

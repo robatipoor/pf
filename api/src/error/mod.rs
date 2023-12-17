@@ -45,6 +45,8 @@ pub enum ApiError {
   DatabaseError(#[from] sled::Error),
   #[error(transparent)]
   Utf8Error(#[from] std::str::Utf8Error),
+  #[error("lock error {0}")]
+  LockError(String),
   #[error(transparent)]
   Unknown(#[from] anyhow::Error),
 }
@@ -125,6 +127,11 @@ impl ApiError {
       ),
       Unknown(err) => (
         "UNKNOWN_ERROR",
+        err.to_string(),
+        StatusCode::INTERNAL_SERVER_ERROR,
+      ),
+      LockError(err) => (
+        "LOCK_ERROR",
         err.to_string(),
         StatusCode::INTERNAL_SERVER_ERROR,
       ),

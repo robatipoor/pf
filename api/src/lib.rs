@@ -1,4 +1,4 @@
-pub mod config;
+pub mod configure;
 pub mod database;
 pub mod error;
 pub mod handler;

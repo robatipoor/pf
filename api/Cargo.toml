@@ -11,6 +11,7 @@ path = "src/bin/main.rs"
 anyhow = {workspace = true}
 argon2 = {workspace = true}
 async-trait = {workspace = true}
+clap = {workspace = true}
 axum = {workspace = true}
 axum-extra = {workspace = true}
 bincode = {workspace = true}
@@ -29,7 +30,7 @@ sdk = {path = "../sdk"}
 serde = {workspace = true}
 serde_json = {workspace = true}
 sled = {workspace = true}
-strum_macros = {workspace = true}
+strum = {workspace = true}
 test-context = {workspace = true}
 thiserror = {workspace = true}
 tokio = {workspace = true}

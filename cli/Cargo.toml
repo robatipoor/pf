@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+sdk = {path = "../sdk"}
 anyhow = {workspace = true}
 assert_cmd = {workspace = true}
 async-stream = {workspace = true}
@@ -20,10 +21,9 @@ once_cell = {workspace = true}
 rand = {workspace = true}
 regex = {workspace = true}
 reqwest = {workspace = true}
-sdk = {path = "../sdk"}
 serde = {workspace = true}
 serde_json = {workspace = true}
-strum_macros = {workspace = true}
+strum = {workspace = true}
 test-context = {workspace = true}
 thiserror = {workspace = true}
 tokio = {workspace = true}

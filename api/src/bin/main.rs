@@ -5,7 +5,7 @@ use tracing::warn;
 
 #[tokio::main]
 async fn main() -> ApiResult {
-  let config = api::config::ApiConfig::read()?;
+  let config = api::configure::ApiConfig::read()?;
   Lazy::force(&INIT_SUBSCRIBER);
   if let Err(e) = tokio::fs::create_dir_all(&config.fs.base_dir).await {
     warn!("failed create base dir: {e}");

@@ -4,6 +4,7 @@ default_code_length = 3
 default_expire_time = 7200
 
 [server]
+schema = "http"
 addr = "127.0.0.1"
 port = 8080
 
