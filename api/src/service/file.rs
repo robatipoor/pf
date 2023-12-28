@@ -49,7 +49,7 @@ pub async fn store(
     match state.db.store(path.clone(), meta.clone()).await {
       Ok(_) => break path,
       Err(ApiError::ResourceExists(e)) => {
-        debug!("key already exist: {e}");
+        debug!("Key already exist: {e}");
         continue;
       }
       Err(e) => return Err(e),

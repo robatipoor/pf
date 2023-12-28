@@ -11,13 +11,13 @@ pub type ApiResult<T = ()> = std::result::Result<T, ApiError>;
 pub enum ApiError {
   #[error(transparent)]
   InvalidInput(#[from] validator::ValidationErrors),
-  #[error("bad request {0}")]
+  #[error("bad request: {0}")]
   BadRequest(String),
-  #[error("resource not found {0}")]
+  #[error("resource not found: {0}")]
   NotFound(String),
   #[error("{0}")]
   PermissionDenied(String),
-  #[error("resource not available {0}")]
+  #[error("resource not available: {0}")]
   NotAvailable(String),
   #[error("resource {0} exists already")]
   ResourceExists(String),
@@ -45,8 +45,10 @@ pub enum ApiError {
   DatabaseError(#[from] sled::Error),
   #[error(transparent)]
   Utf8Error(#[from] std::str::Utf8Error),
-  #[error("lock error {0}")]
+  #[error("lock error: {0}")]
   LockError(String),
+  #[error("duration out of range error: {0}")]
+  DurationOutOfRangeError(#[from] chrono::OutOfRangeError),
   #[error(transparent)]
   Unknown(#[from] anyhow::Error),
 }
@@ -132,6 +134,11 @@ impl ApiError {
       ),
       LockError(err) => (
         "LOCK_ERROR",
+        err.to_string(),
+        StatusCode::INTERNAL_SERVER_ERROR,
+      ),
+      DurationOutOfRangeError(err) => (
+        "DURATION_OUT_OF_RANGE",
         err.to_string(),
         StatusCode::INTERNAL_SERVER_ERROR,
       ),

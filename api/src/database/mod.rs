@@ -154,9 +154,7 @@ impl Database {
         self.inner.remove(&IVec::try_from(&path)?)?;
         expires.remove(&(expire_date, path));
       } else {
-        return Ok(Some((expire_date - now).to_std().map_err(|err| {
-          ApiError::Unknown(anyhow::anyhow!("Convert duration failed: {err}"))
-        })?));
+        return Ok(Some((expire_date - now).to_std()?));
       }
     }
     Ok(None)
