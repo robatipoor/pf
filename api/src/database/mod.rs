@@ -84,7 +84,7 @@ impl Database {
 
   pub async fn store(&self, path: FilePath, meta: MetaDataFile) -> ApiResult {
     let expire_time = meta.expiration_date;
-    let meta: IVec = meta.try_into()?;
+    let meta = IVec::try_from(&meta)?;
     let key = IVec::try_from(&path)?;
     let result = self
       .inner
@@ -115,8 +115,9 @@ impl Database {
         return Err(ApiError::ResourceExists("File path exists".to_string()));
       }
       Err(err) => {
-        return Err(ApiError::DatabaseError(sled::Error::Unsupported(
-          err.to_string(),
+        tracing::error!("Compare and swap error: {err}");
+        return Err(ApiError::DatabaseError(sled::Error::ReportableBug(
+          "Storing the file in the database faild".to_string(),
         )));
       }
     };
@@ -136,7 +137,7 @@ impl Database {
           guard.remove(&(meta.expiration_date, path));
         }
         Err(err) => {
-          return Err(ApiError::LockError(err.to_string()));
+          tracing::error!("Get expires lock unsuccessfully: {err}");
         }
       }
       Ok(Some(meta))
@@ -146,15 +147,22 @@ impl Database {
   }
 
   pub async fn purge(&self) -> ApiResult<Option<Duration>> {
-    let mut expires = self.expires.write().unwrap();
-    let expires = &mut *expires;
     let now = Utc::now();
-    while let Some((expire_date, path)) = expires.iter().next().cloned() {
-      if expire_date < now {
-        self.inner.remove(&IVec::try_from(&path)?)?;
-        expires.remove(&(expire_date, path));
-      } else {
-        return Ok(Some((expire_date - now).to_std()?));
+    match self.expires.write() {
+      Ok(mut guard) => {
+        let expires = &mut *guard;
+        while let Some((expire_date, path)) = expires.iter().next().cloned() {
+          if expire_date < now {
+            self.inner.remove(&IVec::try_from(&path)?)?;
+            expires.remove(&(expire_date, path));
+          } else {
+            return Ok(Some((expire_date - now).to_std()?));
+          }
+        }
+      }
+      Err(err) => {
+        tracing::error!("Get expires lock unsuccessfully: {err}");
+        return Err(ApiError::LockError(err.to_string()));
       }
     }
     Ok(None)

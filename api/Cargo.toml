@@ -8,6 +8,7 @@ name = "api"
 path = "src/bin/main.rs"
 
 [dependencies]
+sdk = {path = "../sdk"}
 anyhow = {workspace = true}
 argon2 = {workspace = true}
 async-trait = {workspace = true}
@@ -26,7 +27,6 @@ once_cell = {workspace = true}
 qrcodegen = {workspace = true}
 rand = {workspace = true}
 reqwest = {workspace = true}
-sdk = {path = "../sdk"}
 serde = {workspace = true}
 serde_json = {workspace = true}
 sled = {workspace = true}
