@@ -117,7 +117,7 @@ impl Database {
       Err(err) => {
         tracing::error!("Compare and swap error: {err}");
         return Err(ApiError::DatabaseError(sled::Error::ReportableBug(
-          "Storing the file in the database faild".to_string(),
+          "Storing the meta data file in the database faild.".to_string(),
         )));
       }
     };
@@ -205,7 +205,7 @@ pub struct MetaDataFile {
   pub created_at: DateTime<Utc>,
   pub expiration_date: DateTime<Utc>,
   pub auth: Option<String>,
-  pub is_deletable: bool,
+  pub delete_manually: bool,
   pub max_download: Option<u32>,
   pub count_downloads: u32,
 }
@@ -288,7 +288,7 @@ impl From<&MetaDataFile> for MetaDataFileResponse {
     MetaDataFileResponse {
       created_at: value.created_at,
       expiration_date: value.expiration_date,
-      is_deletable: value.is_deletable,
+      delete_manually: value.delete_manually,
       max_download: value.max_download,
       count_downloads: value.count_downloads,
     }
@@ -310,7 +310,7 @@ mod tests {
       created_at: Utc::now(),
       expiration_date: Utc::now() + chrono::Duration::seconds(10),
       auth: None,
-      is_deletable: true,
+      delete_manually: true,
       max_download: None,
       count_downloads: 1,
     };
@@ -336,7 +336,7 @@ mod tests {
       created_at: Utc::now(),
       expiration_date: Utc::now() + chrono::Duration::seconds(10),
       auth: None,
-      is_deletable: true,
+      delete_manually: true,
       max_download: None,
       count_downloads: 0,
     };
@@ -362,7 +362,7 @@ mod tests {
       created_at: Utc::now(),
       expiration_date: Utc::now() + chrono::Duration::seconds(10),
       auth: None,
-      is_deletable: true,
+      delete_manually: true,
       max_download: None,
       count_downloads: 0,
     };
@@ -389,7 +389,7 @@ mod tests {
       created_at: Utc::now(),
       expiration_date: Utc::now() + chrono::Duration::seconds(10),
       auth: None,
-      is_deletable: true,
+      delete_manually: true,
       max_download: None,
       count_downloads: 0,
     };
@@ -411,7 +411,7 @@ mod tests {
       created_at: Utc::now(),
       expiration_date: Utc::now(),
       auth: None,
-      is_deletable: true,
+      delete_manually: true,
       max_download: None,
       count_downloads: 0,
     };
@@ -434,7 +434,7 @@ mod tests {
       created_at: Utc::now(),
       expiration_date: Utc::now() + chrono::Duration::seconds(10),
       auth: None,
-      is_deletable: true,
+      delete_manually: true,
       max_download: None,
       count_downloads: 0,
     };

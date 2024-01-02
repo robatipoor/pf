@@ -17,7 +17,7 @@ pub struct UploadResponse {
 pub struct MetaDataFileResponse {
   pub created_at: DateTime<Utc>,
   pub expiration_date: DateTime<Utc>,
-  pub is_deletable: bool,
+  pub delete_manually: bool,
   pub max_download: Option<u32>,
   pub count_downloads: u32,
 }

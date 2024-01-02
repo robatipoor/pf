@@ -9,5 +9,5 @@ pub struct UploadParamQuery {
   pub code_length: Option<usize>,
   #[validate(range(min = 1, max = 1000000))]
   pub expire_time: Option<u64>,
-  pub deletable: Option<bool>,
+  pub delete_manually: Option<bool>,
 }

@@ -15,24 +15,23 @@ use crate::server::ApiState;
 
 pub async fn store(
   state: &ApiState,
-  file_name: &str,
   query: &UploadParamQuery,
   auth: Option<String>,
   multipart: Multipart,
 ) -> ApiResult<(FilePath, DateTime<Utc>)> {
   let auth = hash(auth)?;
-  let secs = query
+  let expire_secs = query
     .expire_time
-    .unwrap_or(state.config.default_expire_time) as i64;
+    .unwrap_or(state.config.default_expire_secs) as i64;
   let now = Utc::now();
-  let expiration_date = calc_expiration_date(now, secs);
+  let expiration_date = calc_expiration_date(now, expire_secs);
   let code_length = query
     .code_length
     .unwrap_or(state.config.default_code_length);
   let meta = MetaDataFile {
     created_at: now,
     expiration_date,
-    is_deletable: query.deletable.unwrap_or(true),
+    delete_manually: query.delete_manually.unwrap_or(true),
     max_download: query.max_download,
     auth,
     count_downloads: 0,
@@ -41,7 +40,7 @@ pub async fn store(
     let code = crate::util::string::generate_random_string(code_length);
     let path = FilePath {
       code,
-      file_name: file_name.to_string(),
+      file_name: "TODO".to_string(),
     };
     if state.db.exist(&path)? {
       continue;
@@ -117,7 +116,7 @@ pub async fn delete(
     file_name: file_name.to_string(),
   };
   if let Some(meta) = state.db.fetch(&path)? {
-    if meta.is_deletable {
+    if meta.delete_manually {
       authenticate(auth, &meta.auth)?;
       let file_path = path.fs_path(&state.config.fs.base_dir);
       tokio::fs::remove_file(file_path).await?;

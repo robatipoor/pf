@@ -18,7 +18,7 @@ pub struct ApiConfig {
   pub domain: String,
   pub max_upload_size: usize,
   pub default_code_length: usize,
-  pub default_expire_time: u64,
+  pub default_expire_secs: u64,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -28,7 +28,7 @@ pub struct ServerConfig {
   pub port: u16,
 }
 
-#[derive(Debug, Deserialize, Clone,strum::Display)]
+#[derive(Debug, Deserialize, Clone, strum::Display)]
 pub enum UrlSchema {
   #[serde(rename = "http")]
   #[strum(serialize = "http")]
@@ -50,7 +50,7 @@ pub struct FileSystemConfig {
 
 impl ServerConfig {
   pub fn get_http_addr(&self) -> String {
-    format!("{}://{}:{}", self.schema,self.addr, self.port)
+    format!("{}://{}:{}", self.schema, self.addr, self.port)
   }
 
   pub fn get_socket_addr(&self) -> Result<SocketAddr, AddrParseError> {
