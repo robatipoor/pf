@@ -1,4 +1,5 @@
 use crate::error::{ApiError, ApiResult, ToApiResult};
+use axum::extract::multipart::Field;
 use axum::extract::Multipart;
 use chrono::{DateTime, Utc};
 use futures_util::TryStreamExt;
@@ -17,7 +18,7 @@ pub async fn store(
   state: &ApiState,
   query: &UploadParamQuery,
   auth: Option<String>,
-  multipart: Multipart,
+  mut multipart: Multipart,
 ) -> ApiResult<(FilePath, DateTime<Utc>)> {
   let auth = hash(auth)?;
   let expire_secs = query
@@ -36,31 +37,52 @@ pub async fn store(
     auth,
     count_downloads: 0,
   };
-  let path = loop {
-    let code = crate::util::string::generate_random_string(code_length);
-    let path = FilePath {
-      code,
-      file_name: "TODO".to_string(),
-    };
-    if state.db.exist(&path)? {
+  while let Ok(Some(field)) = multipart.next_field().await {
+    let file_name = if let Some(file_name) = field.file_name() {
+      crate::util::file_name::validate(file_name)?;
+      file_name.to_owned()
+    } else {
       continue;
-    }
-    match state.db.store(path.clone(), meta.clone()).await {
-      Ok(_) => break path,
-      Err(ApiError::ResourceExists(e)) => {
-        debug!("Key already exist: {e}");
+    };
+    let path = loop {
+      let code = crate::util::string::generate_random_string(code_length);
+      let path = FilePath {
+        code,
+        file_name: file_name.clone(),
+      };
+      if state.db.exist(&path)? {
         continue;
       }
-      Err(e) => return Err(e),
+      match state.db.store(path.clone(), meta.clone()).await {
+        Ok(_) => break path,
+        Err(ApiError::ResourceExists(e)) => {
+          debug!("Key already exist: {e}");
+          continue;
+        }
+        Err(e) => return Err(e),
+      }
+    };
+    let file_path = path.fs_path(&state.config.fs.base_dir);
+    if let Err(e) = store_stream(&file_path, field).await {
+      state.db.delete(path).await?;
+      return Err(e);
     }
-  };
-  let file_path = path.fs_path(&state.config.fs.base_dir);
-  if let Err(e) = store_stream(&file_path, multipart).await {
-    state.db.delete(path).await?;
-    return Err(e);
+    state.db.flush().await?;
+    return Ok((path, expiration_date));
   }
-  state.db.flush().await?;
-  Ok((path, expiration_date))
+  Err(ApiError::BadRequest("multpart is empty".to_string()))
+}
+
+pub async fn store_stream(file_path: &PathBuf, field: Field<'_>) -> ApiResult<()> {
+  let body_with_io_error = field.map_err(|err| std::io::Error::new(std::io::ErrorKind::Other, err));
+  let body_reader = StreamReader::new(body_with_io_error);
+  futures_util::pin_mut!(body_reader);
+  if let Some(p) = file_path.parent() {
+    tokio::fs::create_dir_all(p).await?;
+  }
+  let mut file = BufWriter::new(File::create(file_path).await?);
+  tokio::io::copy(&mut body_reader, &mut file).await?;
+  Ok(())
 }
 
 pub async fn info(
@@ -129,27 +151,6 @@ pub async fn delete(
       )));
     }
   }
-  Ok(())
-}
-
-pub async fn store_stream(file_path: &PathBuf, mut multipart: Multipart) -> ApiResult<()> {
-  while let Ok(Some(field)) = multipart.next_field().await {
-    let _file_name = if let Some(file_name) = field.file_name() {
-      file_name.to_owned()
-    } else {
-      continue;
-    };
-    let body_with_io_error =
-      field.map_err(|err| std::io::Error::new(std::io::ErrorKind::Other, err));
-    let body_reader = StreamReader::new(body_with_io_error);
-    futures_util::pin_mut!(body_reader);
-    if let Some(p) = file_path.parent() {
-      tokio::fs::create_dir_all(p).await?;
-    }
-    let mut file = BufWriter::new(File::create(file_path).await?);
-    tokio::io::copy(&mut body_reader, &mut file).await?;
-  }
-
   Ok(())
 }
 
