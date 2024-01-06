@@ -27,11 +27,9 @@ pub async fn upload(
   headers: HeaderMap,
   multipart: Multipart,
 ) -> ApiResult<Json<UploadResponse>> {
-  // crate::util::file_name::validate(&file_name)?;
   query.validate()?;
   let auth = crate::util::http::parse_basic_auth(&headers)?;
-  let (path, expire_time) =
-    service::file::store(&state, &query, auth, multipart).await?;
+  let (path, expire_time) = service::file::store(&state, &query, auth, multipart).await?;
   let url = path.url(&state.config.domain);
   let qrcode = crate::util::qrcode::encode(&url)?;
   Ok(Json(UploadResponse {
