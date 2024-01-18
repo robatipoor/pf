@@ -28,8 +28,8 @@ pub async fn upload(
   multipart: Multipart,
 ) -> ApiResult<Json<UploadResponse>> {
   query.validate()?;
-  let auth = crate::util::http::parse_basic_auth(&headers)?;
-  let (path, expire_time) = service::file::store(&state, &query, auth, multipart).await?;
+  let secret = crate::util::http::parse_basic_auth(&headers)?;
+  let (path, expire_time) = service::file::store(&state, &query, secret, multipart).await?;
   let url = path.url(&state.config.domain);
   let qrcode = crate::util::qrcode::encode(&url)?;
   Ok(Json(UploadResponse {
@@ -44,8 +44,8 @@ pub async fn download(
   Path((code, file_name)): Path<(String, String)>,
   req: Request<Body>,
 ) -> ApiResult<Response<ServeFileSystemResponseBody>> {
-  let auth = crate::util::http::parse_basic_auth(req.headers())?;
-  let file = service::file::fetch(&state, &code, &file_name, auth).await?;
+  let secret = crate::util::http::parse_basic_auth(req.headers())?;
+  let file = service::file::fetch(&state, &code, &file_name, secret).await?;
   Ok(file.oneshot(req).await.unwrap())
 }
 
@@ -54,8 +54,8 @@ pub async fn info(
   Path((code, file_name)): Path<(String, String)>,
   headers: HeaderMap,
 ) -> ApiResult<Json<MetaDataFileResponse>> {
-  let auth = crate::util::http::parse_basic_auth(&headers)?;
-  let meta = service::file::info(&state, &code, &file_name, auth).await?;
+  let secret = crate::util::http::parse_basic_auth(&headers)?;
+  let meta = service::file::info(&state, &code, &file_name, secret).await?;
   Ok(Json(MetaDataFileResponse::from(&meta)))
 }
 
@@ -64,8 +64,8 @@ pub async fn delete(
   Path((code, file_name)): Path<(String, String)>,
   headers: HeaderMap,
 ) -> ApiResult<Json<MessageResponse>> {
-  let auth = crate::util::http::parse_basic_auth(&headers)?;
-  service::file::delete(&state, &code, &file_name, auth).await?;
+  let secret = crate::util::http::parse_basic_auth(&headers)?;
+  service::file::delete(&state, &code, &file_name, secret).await?;
   Ok(Json(MessageResponse {
     message: "OK".to_string(),
   }))

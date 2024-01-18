@@ -1,4 +1,6 @@
 use crate::error::{ApiError, ApiResult, ToApiResult};
+use crate::util::secret::Secret;
+use anyhow::anyhow;
 use axum::extract::multipart::Field;
 use axum::extract::Multipart;
 use chrono::{DateTime, Utc};
@@ -17,10 +19,10 @@ use crate::server::ApiState;
 pub async fn store(
   state: &ApiState,
   query: &UploadParamQuery,
-  auth: Option<String>,
+  secret: Option<Secret>,
   mut multipart: Multipart,
 ) -> ApiResult<(FilePath, DateTime<Utc>)> {
-  let auth = hash(auth)?;
+  let auth = secret.map(|s| s.hash()).transpose()?;
   let expire_secs = query
     .expire_time
     .unwrap_or(state.config.default_expire_secs) as i64;
@@ -89,7 +91,7 @@ pub async fn info(
   state: &ApiState,
   code: &str,
   file_name: &str,
-  auth: Option<String>,
+  auth: Option<Secret>,
 ) -> ApiResult<MetaDataFile> {
   let path = FilePath {
     code: code.to_string(),
@@ -110,7 +112,7 @@ pub async fn fetch(
   state: &ApiState,
   code: &str,
   file_name: &str,
-  auth: Option<String>,
+  secret: Option<Secret>,
 ) -> ApiResult<ServeFile> {
   let path = FilePath {
     code: code.to_string(),
@@ -123,7 +125,7 @@ pub async fn fetch(
       return Err(ApiError::NotFound(format!("{} not found", path.url_path())));
     }
   }
-  authenticate(auth, &meta.auth)?;
+  authenticate(secret, &meta.auth)?;
   read_file(&state.config.fs.base_dir.join(&path.url_path())).await
 }
 
@@ -131,7 +133,7 @@ pub async fn delete(
   state: &ApiState,
   code: &str,
   file_name: &str,
-  auth: Option<String>,
+  secret: Option<Secret>,
 ) -> ApiResult<()> {
   let path = FilePath {
     code: code.to_string(),
@@ -139,7 +141,7 @@ pub async fn delete(
   };
   if let Some(meta) = state.db.fetch(&path)? {
     if meta.delete_manually {
-      authenticate(auth, &meta.auth)?;
+      authenticate(secret, &meta.auth)?;
       let file_path = path.fs_path(&state.config.fs.base_dir);
       tokio::fs::remove_file(file_path).await?;
       state.db.delete(path).await?;
@@ -158,18 +160,24 @@ pub async fn read_file(file_path: &PathBuf) -> ApiResult<ServeFile> {
   Ok(ServeFile::new(file_path))
 }
 
-pub fn authenticate(auth: Option<String>, hash: &Option<String>) -> ApiResult<()> {
+pub fn authenticate(secret: Option<Secret>, hash: &Option<String>) -> ApiResult<()> {
   if let Some(hash) = hash {
-    if !matches!(
-      auth.map(|p| crate::util::hash::argon_verify(p, hash)),
-      Some(Ok(()))
-    ) {
-      return Err(ApiError::PermissionDenied(
-        "user and password is invalid".to_string(),
-      ));
+    match secret.map(|s| s.check(hash)) {
+      Some(Ok(_)) => return Ok(()),
+      Some(Err(e)) if e == argon2::password_hash::Error::Password => Err(
+        ApiError::PermissionDenied("Secret token is invalid".to_string()),
+      ),
+      Some(Err(e)) => Err(ApiError::Unknown(anyhow!(
+        "Unexpected error happened: {}",
+        e
+      ))),
+      None => Err(ApiError::PermissionDenied(
+        "Authorization header should be set".to_string(),
+      )),
     }
+  } else {
+    Ok(())
   }
-  Ok(())
 }
 
 pub fn hash(auth: Option<String>) -> ApiResult<Option<String>> {
