@@ -109,7 +109,7 @@ async fn main() -> anyhow::Result<()> {
       }
     }
     SubCommand::Info { auth } => {
-      let (_, resp) = client.info(url.path(), auth).await?;
+      let (_, resp) = client.info(&url.path()[1..], auth).await?;
       match resp {
         ApiResponseResult::Ok(resp) => {
           println!("{}", serde_json::to_string(&resp)?);
@@ -239,7 +239,7 @@ mod tests {
     async fn mock_info_api(&self, code: &str, file_name: &str) {
       let resp = success_info_response();
       Mock::given(method("GET"))
-        .and(path(&format!("/{code}/{file_name}")))
+        .and(path(&format!("/info/{code}/{file_name}")))
         .respond_with(resp)
         .mount(&self.server)
         .await;
@@ -315,13 +315,13 @@ mod tests {
   #[tokio::test]
   async fn test_download_command(ctx: &mut CliTestContext) {
     let code: String = Faker.fake();
-    let file_path = "file.txt";
-    ctx.mock_download_api(&code, &file_path).await;
+    let file_name = "file.txt";
+    ctx.mock_download_api(&code, &file_name).await;
     let _out = Command::cargo_bin("cli")
       .unwrap()
       .args([
         "--url",
-        &format!("{}/{code}/{file_path}", &ctx.server.uri()),
+        &format!("{}/{code}/{file_name}", &ctx.server.uri()),
         "download",
         "--path",
         &ctx.download_dir,
