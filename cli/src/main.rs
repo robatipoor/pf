@@ -227,48 +227,40 @@ mod tests {
         .mount(&self.server)
         .await;
     }
-    async fn mock_delete_api(&self, file_name: &str) {
+    async fn mock_delete_api(&self, code: &str, file_name: &str) {
       let resp = success_delete_response();
       Mock::given(method("DELETE"))
-        .and(path(&format!("/code/{file_name}")))
+        .and(path(&format!("/{code}/{file_name}")))
         .respond_with(resp)
         .mount(&self.server)
         .await;
     }
 
-    async fn mock_info_api(&self, file_name: &str) {
+    async fn mock_info_api(&self, code: &str, file_name: &str) {
       let resp = success_info_response();
       Mock::given(method("GET"))
-        .and(path(&format!("/info/code/{file_name}")))
+        .and(path(&format!("/{code}/{file_name}")))
         .respond_with(resp)
         .mount(&self.server)
         .await;
     }
 
-    async fn mock_upload_api(&self, file_name: &str) {
+    async fn mock_upload_api(&self) {
       let resp = success_upload_response();
       Mock::given(method("POST"))
-        .and(path(format!("/upload/{file_name}")))
+        .and(path(format!("/upload")))
         .respond_with(resp)
         .mount(&self.server)
         .await;
     }
-    async fn mock_download_api(&self, p: &str) {
+    async fn mock_download_api(&self, code: &str, file_name: &str) {
       let resp = success_download_response();
       Mock::given(method("GET"))
-        .and(path(p))
+        .and(path(&format!("/{code}/{file_name}")))
         .respond_with(resp)
         .mount(&self.server)
         .await;
     }
-    // async fn mock_info_api(&self, file_name: &str) {
-    //   let resp = success_info_response();
-    //   Mock::given(method("GET"))
-    //     .and(path(format!("/code/{file_name}")))
-    //     .respond_with(resp)
-    //     .mount(&self.server)
-    //     .await;
-    // }
   }
 
   #[async_trait::async_trait]
@@ -286,7 +278,7 @@ mod tests {
   #[test_context::test_context(CliTestContext)]
   #[tokio::test]
   async fn test_upload_command(ctx: &mut CliTestContext) {
-    ctx.mock_upload_api(&ctx.upload_file).await;
+    ctx.mock_upload_api().await;
     let _out = Command::cargo_bin("cli")
       .unwrap()
       .args([
@@ -306,7 +298,7 @@ mod tests {
   async fn test_info_command(ctx: &mut CliTestContext) {
     let code: String = Faker.fake();
     let file_name: String = Faker.fake();
-    ctx.mock_info_api(&file_name).await;
+    ctx.mock_info_api(&code, &file_name).await;
     let _out = Command::cargo_bin("cli")
       .unwrap()
       .args([
@@ -323,14 +315,13 @@ mod tests {
   #[tokio::test]
   async fn test_download_command(ctx: &mut CliTestContext) {
     let code: String = Faker.fake();
-    let file_name = "file.txt";
-    let path = format!("{code}/{file_name}");
-    ctx.mock_download_api(&path).await;
+    let file_path = "file.txt";
+    ctx.mock_download_api(&code, &file_path).await;
     let _out = Command::cargo_bin("cli")
       .unwrap()
       .args([
         "--url",
-        &format!("{}/{path}", &ctx.server.uri()),
+        &format!("{}/{code}/{file_path}", &ctx.server.uri()),
         "download",
         "--path",
         &ctx.download_dir,
@@ -344,13 +335,14 @@ mod tests {
   #[test_context::test_context(CliTestContext)]
   #[tokio::test]
   async fn test_delete_command(ctx: &mut CliTestContext) {
+    let code: String = Faker.fake();
     let file_name: String = Faker.fake();
-    ctx.mock_delete_api(&file_name).await;
+    ctx.mock_delete_api(&code, &file_name).await;
     let _out = Command::cargo_bin("cli")
       .unwrap()
       .args([
         "--url",
-        &format!("{}/code/{file_name}", &ctx.server.uri()),
+        &format!("{}/{code}/{file_name}", &ctx.server.uri()),
         "delete",
       ])
       .assert()
