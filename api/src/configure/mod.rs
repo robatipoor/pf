@@ -1,6 +1,5 @@
 use crate::util::arg::get_env_source;
-use clap::Parser;
-use config::ConfigError;
+use config::Environment;
 use once_cell::sync::Lazy;
 use serde::Deserialize;
 use std::{
@@ -8,7 +7,8 @@ use std::{
   path::PathBuf,
 };
 
-pub static CONFIG: Lazy<ApiConfig> = Lazy::new(|| ApiConfig::read().unwrap());
+pub static CONFIG: Lazy<ApiConfig> =
+  Lazy::new(|| ApiConfig::read(None, get_env_source("PF")).unwrap());
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct ApiConfig {
@@ -59,29 +59,34 @@ impl ServerConfig {
 }
 
 impl ApiConfig {
-  pub fn read() -> Result<Self, config::ConfigError> {
-    let mut cfg = config::Config::builder();
-    let env_src = get_env_source("PF");
-    if let Some(path) = Args::parse().config {
-      cfg = cfg.add_source(config::File::from(path)).add_source(env_src);
-    } else {
-      let base_config = std::env::current_dir()
-        .map_err(|e| ConfigError::Message(e.to_string()))?
-        .join("settings")
-        .join("base.toml");
-      cfg = cfg
-        .add_source(config::File::from(base_config))
-        .add_source(env_src);
-    }
-    cfg.build()?.try_deserialize()
+  pub fn read(
+    arg_file_src: Option<PathBuf>,
+    env_src: Environment,
+  ) -> Result<Self, config::ConfigError> {
+    config::Config::builder()
+      .add_source(config::File::from(
+        get_basic_settings_path(arg_file_src)
+          .map_err(|e| config::ConfigError::Message(e.to_string()))?,
+      ))
+      .add_source(env_src)
+      .build()?
+      .try_deserialize()
   }
 }
 
-#[derive(clap::Parser, Debug)]
+fn get_basic_settings_path(arg_path: Option<PathBuf>) -> std::io::Result<PathBuf> {
+  if let Some(path) = arg_path {
+    Ok(path)
+  } else {
+    Ok(std::env::current_dir()?.join("settings").join("base.toml"))
+  }
+}
+
+#[derive(clap::Parser, Debug, Default)]
 #[command(author, version, about, long_about = None)]
-struct Args {
+pub struct Args {
   #[arg(short, long)]
-  config: Option<PathBuf>,
+  pub config: Option<PathBuf>,
 }
 
 #[cfg(test)]
@@ -91,7 +96,7 @@ mod tests {
 
   #[test]
   fn test_read_config() {
-    let config = ApiConfig::read();
-    assert!(config.is_ok());
+    let env_ns = "TEST_PF";
+    ApiConfig::read(None, get_env_source(env_ns)).unwrap();
   }
 }

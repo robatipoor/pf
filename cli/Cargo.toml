@@ -4,31 +4,31 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-sdk = {path = "../sdk"}
-anyhow = {workspace = true}
-assert_cmd = {workspace = true}
-async-stream = {workspace = true}
-async-trait = {workspace = true}
-chrono = {workspace = true}
-clap = {workspace = true}
-config = {workspace = true}
-fake = {workspace = true}
-futures-util = {workspace = true}
-wiremock = {workspace = true}
-indicatif = {workspace = true}
-mime_guess = {workspace = true}
-once_cell = {workspace = true}
-rand = {workspace = true}
-regex = {workspace = true}
-reqwest = {workspace = true}
-serde = {workspace = true}
-serde_json = {workspace = true}
-strum = {workspace = true}
-test-context = {workspace = true}
-thiserror = {workspace = true}
-tokio = {workspace = true}
-tracing = {workspace = true}
-url = {workspace = true}
-project-root = {workspace = true}
-tracing-subscriber = {workspace = true}
-validator = {workspace = true}
+sdk = { path = "../sdk" }
+anyhow = { workspace = true }
+assert_cmd = { workspace = true }
+async-stream = { workspace = true }
+async-trait = { workspace = true }
+chrono = { workspace = true }
+clap = { workspace = true }
+config = { workspace = true }
+fake = { workspace = true }
+futures-util = { workspace = true }
+wiremock = { workspace = true }
+indicatif = { workspace = true }
+mime_guess = { workspace = true }
+once_cell = { workspace = true }
+rand = { workspace = true }
+regex = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+strum = { workspace = true }
+test-context = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+url = { workspace = true }
+project-root = { workspace = true }
+tracing-subscriber = { workspace = true }
+garde = { workspace = true }

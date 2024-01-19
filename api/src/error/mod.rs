@@ -10,17 +10,17 @@ pub type ApiResult<T = ()> = std::result::Result<T, ApiError>;
 #[derive(Debug, thiserror::Error)]
 pub enum ApiError {
   #[error(transparent)]
-  InvalidInput(#[from] validator::ValidationErrors),
+  InvalidInputError(#[from] garde::Report),
   #[error("bad request: {0}")]
-  BadRequest(String),
+  BadRequestError(String),
   #[error("resource not found: {0}")]
-  NotFound(String),
+  NotFoundError(String),
   #[error("{0}")]
-  PermissionDenied(String),
+  PermissionDeniedError(String),
   #[error("resource not available: {0}")]
-  NotAvailable(String),
+  NotAvailableError(String),
   #[error("resource {0} exists already")]
-  ResourceExists(String),
+  ResourceExistsError(String),
   #[error(transparent)]
   ConfigError(#[from] config::ConfigError),
   #[error(transparent)]
@@ -50,23 +50,23 @@ pub enum ApiError {
   #[error("duration out of range error: {0}")]
   DurationOutOfRangeError(#[from] chrono::OutOfRangeError),
   #[error(transparent)]
-  Unknown(#[from] anyhow::Error),
+  UnknownError(#[from] anyhow::Error),
 }
 
 impl ApiError {
   pub fn response(&self) -> (BodyResponseError, StatusCode) {
     use ApiError::*;
     let (error_type, error_message, status_code) = match self {
-      InvalidInput(err) => (
+      InvalidInputError(err) => (
         "INVALID_INPUT",
         err.to_string(),
         StatusCode::UNPROCESSABLE_ENTITY,
       ),
-      BadRequest(err) => ("BAD_REQUEST", err.to_string(), StatusCode::BAD_REQUEST),
-      PermissionDenied(err) => ("PERMISSION_DENIED", err.to_string(), StatusCode::FORBIDDEN),
-      NotAvailable(err) => ("NOT_AVAILABLE", err.to_string(), StatusCode::NOT_FOUND),
-      NotFound(err) => ("NOT_FOUND", err.to_string(), StatusCode::NOT_FOUND),
-      ResourceExists(err) => ("RESOURCE_EXISTS", err.to_string(), StatusCode::CONFLICT),
+      BadRequestError(err) => ("BAD_REQUEST", err.to_string(), StatusCode::BAD_REQUEST),
+      PermissionDeniedError(err) => ("PERMISSION_DENIED", err.to_string(), StatusCode::FORBIDDEN),
+      NotAvailableError(err) => ("NOT_AVAILABLE", err.to_string(), StatusCode::NOT_FOUND),
+      NotFoundError(err) => ("NOT_FOUND", err.to_string(), StatusCode::NOT_FOUND),
+      ResourceExistsError(err) => ("RESOURCE_EXISTS", err.to_string(), StatusCode::CONFLICT),
       ConfigError(err) => (
         "CONFIG_ERROR",
         err.to_string(),
@@ -127,7 +127,7 @@ impl ApiError {
         err.to_string(),
         StatusCode::INTERNAL_SERVER_ERROR,
       ),
-      Unknown(err) => (
+      UnknownError(err) => (
         "UNKNOWN_ERROR",
         err.to_string(),
         StatusCode::INTERNAL_SERVER_ERROR,
@@ -158,16 +158,9 @@ impl IntoResponse for ApiError {
 }
 
 pub fn invalid_input_error(field: &'static str, message: &'static str) -> ApiError {
-  let mut err = validator::ValidationErrors::new();
-  err.add(
-    field,
-    validator::ValidationError {
-      code: std::borrow::Cow::from("1"),
-      message: Some(std::borrow::Cow::Borrowed(message)),
-      params: std::collections::HashMap::new(),
-    },
-  );
-  ApiError::InvalidInput(err)
+  let mut report = garde::Report::new();
+  report.append(garde::Path::new(field), garde::Error::new(message));
+  ApiError::InvalidInputError(report)
 }
 
 pub trait ToApiResult<T> {
@@ -176,6 +169,6 @@ pub trait ToApiResult<T> {
 
 impl<T> ToApiResult<T> for Option<T> {
   fn to_result(self) -> ApiResult<T> {
-    self.ok_or_else(|| ApiError::NotFound(format!("{} not found", std::any::type_name::<T>())))
+    self.ok_or_else(|| ApiError::NotFoundError(format!("{} not found", std::any::type_name::<T>())))
   }
 }

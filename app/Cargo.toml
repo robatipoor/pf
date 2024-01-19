@@ -8,25 +8,24 @@ name = "app"
 path = "src/bin/main.rs"
 
 [dependencies]
-anyhow = {workspace = true}
-async-trait = {workspace = true}
-chrono = {workspace = true}
-config = {workspace = true}
-cuid = {workspace = true}
-fake = {workspace = true}
-futures-util = {workspace = true}
-once_cell = {workspace = true}
-rand = {workspace = true}
-regex = {workspace = true}
-reqwest = {workspace = true}
-sdk = {path = "../sdk"}
-serde = {workspace = true}
-serde_json = {workspace = true}
-strum_macros = {workspace = true}
-test-context = {workspace = true}
-thiserror = {workspace = true}
-tokio = {workspace = true}
-tracing = {workspace = true}
-url = {workspace = true}
-util = {path = "../util"}
-validator = {workspace = true}
+sdk = { path = "../sdk" }
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+chrono = { workspace = true }
+config = { workspace = true }
+cuid = { workspace = true }
+fake = { workspace = true }
+futures-util = { workspace = true }
+once_cell = { workspace = true }
+rand = { workspace = true }
+regex = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+strum_macros = { workspace = true }
+test-context = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+url = { workspace = true }
+garde = { workspace = true }

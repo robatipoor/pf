@@ -8,7 +8,7 @@ use api::util::tracing::INIT_SUBSCRIBER;
 use fake::{Fake, Faker};
 use once_cell::sync::Lazy;
 use sdk::client::PasteFileClient;
-use sdk::model::request::UploadParamQuery;
+use sdk::model::request::UploadQueryParam;
 use test_context::AsyncTestContext;
 
 pub struct ApiTestContext {
@@ -32,10 +32,7 @@ impl AsyncTestContext for ApiTestContext {
     let client = PasteFileClient::new(&server.state.config.server.get_http_addr());
     api::server::worker::spawn(axum::extract::State(state.clone()));
     tokio::spawn(server.run());
-    Self {
-      state: state,
-      client,
-    }
+    Self { state, client }
   }
 
   async fn teardown(self) {
@@ -68,7 +65,7 @@ impl ApiTestContext {
     let file_name: String = format!("{}.txt", Faker.fake::<String>());
     let content_type = "text/plain";
     let content = Faker.fake::<String>().as_bytes().to_vec();
-    let query = UploadParamQuery {
+    let query = UploadQueryParam {
       max_download: max,
       code_length: len,
       expire_time: exp,

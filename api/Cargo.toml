@@ -8,36 +8,36 @@ name = "api"
 path = "src/bin/main.rs"
 
 [dependencies]
-sdk = {path = "../sdk"}
-anyhow = {workspace = true}
-argon2 = {workspace = true}
-async-trait = {workspace = true}
-clap = {workspace = true}
-axum = {workspace = true}
-axum-extra = {workspace = true}
-bincode = {workspace = true}
-build_html = {workspace = true}
-chrono = {workspace = true}
-config = {workspace = true}
-cuid2 = {workspace = true}
-fake = {workspace = true}
-futures-util = {workspace = true}
-hyper = {workspace = true}
-once_cell = {workspace = true}
-qrcodegen = {workspace = true}
-rand = {workspace = true}
-reqwest = {workspace = true}
-serde = {workspace = true}
-serde_json = {workspace = true}
-sled = {workspace = true}
-strum = {workspace = true}
-test-context = {workspace = true}
-thiserror = {workspace = true}
-tokio = {workspace = true}
-tokio-util = {workspace = true}
-tower = {workspace = true}
-tower-http = {workspace = true}
-tracing = {workspace = true}
-tracing-subscriber = {workspace = true}
-url = {workspace = true}
-validator = {workspace = true}
+sdk = { path = "../sdk" }
+anyhow = { workspace = true }
+argon2 = { workspace = true }
+async-trait = { workspace = true }
+clap = { workspace = true }
+axum = { workspace = true }
+axum-extra = { workspace = true }
+bincode = { workspace = true }
+build_html = { workspace = true }
+chrono = { workspace = true }
+config = { workspace = true }
+cuid2 = { workspace = true }
+fake = { workspace = true }
+futures-util = { workspace = true }
+hyper = { workspace = true }
+once_cell = { workspace = true }
+qrcodegen = { workspace = true }
+rand = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sled = { workspace = true }
+strum = { workspace = true }
+test-context = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tokio-util = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+url = { workspace = true }
+garde = { workspace = true }

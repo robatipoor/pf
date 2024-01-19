@@ -1,7 +1,7 @@
 use crate::{
   error::BodyResponseError,
   model::{
-    request::UploadParamQuery,
+    request::UploadQueryParam,
     response::{MetaDataFileResponse, UploadResponse},
   },
   result::ApiResponseResult,
@@ -53,17 +53,17 @@ impl PasteFileClient {
     &self,
     file_name: String,
     content_type: &str,
-    query: &UploadParamQuery,
+    query: &UploadQueryParam,
     file: Vec<u8>,
     auth: Option<(String, String)>,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<UploadResponse>)> {
     let file_part = reqwest::multipart::Part::bytes(file)
-      .file_name(file_name.clone())
+      .file_name(file_name)
       .mime_str(content_type)?;
     let form = reqwest::multipart::Form::new().part("file", file_part);
     let mut builder = self
       .client
-      .post(format!("{}/upload/{file_name}", self.addr))
+      .post(format!("{}/upload", self.addr))
       .multipart(form)
       .query(query);
     if let Some((user, pass)) = auth {

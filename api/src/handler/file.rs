@@ -7,13 +7,13 @@ use axum::{
 };
 
 use sdk::model::{
-  request::UploadParamQuery,
+  request::UploadQueryParam,
   response::{MessageResponse, MetaDataFileResponse, UploadResponse},
 };
 
+use garde::Validate;
 use tower::ServiceExt;
 use tower_http::services::fs::ServeFileSystemResponseBody;
-use validator::Validate;
 
 use crate::{
   error::ApiResult,
@@ -23,11 +23,11 @@ use crate::{
 
 pub async fn upload(
   State(state): State<ApiState>,
-  Query(query): Query<UploadParamQuery>,
+  Query(query): Query<UploadQueryParam>,
   headers: HeaderMap,
   multipart: Multipart,
 ) -> ApiResult<Json<UploadResponse>> {
-  query.validate()?;
+  query.validate(&())?;
   let secret = crate::util::http::parse_basic_auth(&headers)?;
   let (path, expire_time) = service::file::store(&state, &query, secret, multipart).await?;
   let url = path.url(&state.config.domain);

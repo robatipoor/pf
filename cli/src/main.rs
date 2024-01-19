@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 use clap::{Parser, Subcommand};
-use sdk::{client::PasteFileClient, model::request::UploadParamQuery, result::ApiResponseResult};
+use sdk::{client::PasteFileClient, model::request::UploadQueryParam, result::ApiResponseResult};
 use std::{error::Error, path::PathBuf};
 use tokio::io::AsyncWriteExt;
 
@@ -79,7 +79,7 @@ async fn main() -> anyhow::Result<()> {
         .essence_str()
         .to_owned();
       let file = tokio::fs::read(file).await?;
-      let query = UploadParamQuery {
+      let query = UploadQueryParam {
         max_download,
         code_length: Some(code_length),
         expire_time: Some(expire_time),

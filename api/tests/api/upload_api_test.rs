@@ -1,5 +1,5 @@
 use api::{assert_err, assert_ok};
-use sdk::{error::BodyResponseError, model::request::UploadParamQuery};
+use sdk::{error::BodyResponseError, model::request::UploadQueryParam};
 use test_context::test_context;
 
 use crate::helper::ApiTestContext;
@@ -10,7 +10,7 @@ pub async fn test_success_upload(ctx: &mut ApiTestContext) {
   let filename = String::from("hello.txt");
   let content_type = "text/plain";
   let file = "hello".as_bytes().to_vec();
-  let query: UploadParamQuery = Default::default();
+  let query: UploadQueryParam = Default::default();
   let (status, resp) = ctx
     .upload(filename, content_type, &query, file, None)
     .await
@@ -25,7 +25,7 @@ pub async fn test_upload_with_invalid_len_param_query(ctx: &mut ApiTestContext) 
   let filename = String::from("hello.txt");
   let content_type = "text/plain";
   let file = "hello".as_bytes().to_vec();
-  let query = UploadParamQuery {
+  let query = UploadQueryParam {
     code_length: Some(2),
     ..Default::default()
   };

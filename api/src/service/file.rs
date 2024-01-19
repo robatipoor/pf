@@ -5,7 +5,7 @@ use axum::extract::multipart::Field;
 use axum::extract::Multipart;
 use chrono::{DateTime, Utc};
 use futures_util::TryStreamExt;
-use sdk::model::request::UploadParamQuery;
+use sdk::model::request::UploadQueryParam;
 use std::path::PathBuf;
 use tokio::fs::File;
 use tokio::io::BufWriter;
@@ -18,7 +18,7 @@ use crate::server::ApiState;
 
 pub async fn store(
   state: &ApiState,
-  query: &UploadParamQuery,
+  query: &UploadQueryParam,
   secret: Option<Secret>,
   mut multipart: Multipart,
 ) -> ApiResult<(FilePath, DateTime<Utc>)> {
@@ -57,7 +57,7 @@ pub async fn store(
       }
       match state.db.store(path.clone(), meta.clone()).await {
         Ok(_) => break path,
-        Err(ApiError::ResourceExists(e)) => {
+        Err(ApiError::ResourceExistsError(e)) => {
           debug!("Key already exist: {e}");
           continue;
         }
@@ -72,7 +72,7 @@ pub async fn store(
     state.db.flush().await?;
     return Ok((path, expiration_date));
   }
-  Err(ApiError::BadRequest(
+  Err(ApiError::BadRequestError(
     "multipart/form-data empty body".to_string(),
   ))
 }
@@ -103,7 +103,10 @@ pub async fn info(
   if let Some(max) = meta.max_download {
     if meta.count_downloads >= max {
       state.db.delete(path.clone()).await?;
-      return Err(ApiError::NotFound(format!("{} not found", path.url_path())));
+      return Err(ApiError::NotFoundError(format!(
+        "{} not found",
+        path.url_path()
+      )));
     }
   }
   authorize_user(secret, &meta.secret)?;
@@ -124,7 +127,10 @@ pub async fn fetch(
   if let Some(max) = meta.max_download {
     if meta.count_downloads >= max {
       state.db.delete(path.clone()).await?;
-      return Err(ApiError::NotFound(format!("{} not found", path.url_path())));
+      return Err(ApiError::NotFoundError(format!(
+        "{} not found",
+        path.url_path()
+      )));
     }
   }
   authorize_user(secret, &meta.secret)?;
@@ -149,7 +155,7 @@ pub async fn delete(
       state.db.delete(path).await?;
       state.db.flush().await?;
     } else {
-      return Err(ApiError::PermissionDenied(format!(
+      return Err(ApiError::PermissionDeniedError(format!(
         "{} is not deletable",
         path.url_path()
       )));
@@ -167,12 +173,12 @@ pub fn authorize_user(secret: Option<Secret>, secret_hash: &Option<SecretHash>) 
     match secret.map(|s| s.verify(hash)) {
       Some(Ok(_)) => return Ok(()),
       Some(Err(e)) if e == argon2::password_hash::Error::Password => Err(
-        ApiError::PermissionDenied("Secret token is invalid".to_string()),
+        ApiError::PermissionDeniedError("Secret token is invalid".to_string()),
       ),
-      Some(Err(e)) => Err(ApiError::Unknown(anyhow!(
+      Some(Err(e)) => Err(ApiError::UnknownError(anyhow!(
         "An Unexpected error occurred: {e}",
       ))),
-      None => Err(ApiError::PermissionDenied(
+      None => Err(ApiError::PermissionDeniedError(
         "Authorization header required.".to_string(),
       )),
     }

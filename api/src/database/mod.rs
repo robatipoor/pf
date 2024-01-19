@@ -113,7 +113,7 @@ impl Database {
         }
       }
       Err(err) if err.current.is_some() => {
-        return Err(ApiError::ResourceExists("File path exists".to_string()));
+        return Err(ApiError::ResourceExistsError("File path exists".to_string()));
       }
       Err(err) => {
         tracing::error!("Compare and swap error: {err}");
