@@ -1,6 +1,6 @@
 use hyper::HeaderMap;
 
-use crate::error::{invalid_input_error, ApiError, ApiResult};
+use crate::error::{invalid_input_error, ApiResult};
 
 use super::secret::Secret;
 

@@ -1,5 +1,5 @@
 use crate::error::{ApiError, ApiResult, ToApiResult};
-use crate::util::secret::Secret;
+use crate::util::secret::{Secret, SecretHash};
 use anyhow::anyhow;
 use axum::extract::multipart::Field;
 use axum::extract::Multipart;
@@ -22,7 +22,7 @@ pub async fn store(
   secret: Option<Secret>,
   mut multipart: Multipart,
 ) -> ApiResult<(FilePath, DateTime<Utc>)> {
-  let auth = secret.map(|s| s.hash()).transpose()?;
+  let secret = secret.map(|s| s.hash()).transpose()?;
   let expire_secs = query
     .expire_time
     .unwrap_or(state.config.default_expire_secs) as i64;
@@ -36,7 +36,7 @@ pub async fn store(
     expiration_date,
     delete_manually: query.delete_manually.unwrap_or(true),
     max_download: query.max_download,
-    auth,
+    secret,
     count_downloads: 0,
   };
   while let Ok(Some(field)) = multipart.next_field().await {
@@ -72,7 +72,9 @@ pub async fn store(
     state.db.flush().await?;
     return Ok((path, expiration_date));
   }
-  Err(ApiError::BadRequest("multpart is empty".to_string()))
+  Err(ApiError::BadRequest(
+    "multipart/form-data empty body".to_string(),
+  ))
 }
 
 pub async fn store_stream(file_path: &PathBuf, field: Field<'_>) -> ApiResult<()> {
@@ -91,7 +93,7 @@ pub async fn info(
   state: &ApiState,
   code: &str,
   file_name: &str,
-  auth: Option<Secret>,
+  secret: Option<Secret>,
 ) -> ApiResult<MetaDataFile> {
   let path = FilePath {
     code: code.to_string(),
@@ -104,7 +106,7 @@ pub async fn info(
       return Err(ApiError::NotFound(format!("{} not found", path.url_path())));
     }
   }
-  authenticate(auth, &meta.auth)?;
+  authorize_user(secret, &meta.secret)?;
   Ok(meta)
 }
 
@@ -125,7 +127,7 @@ pub async fn fetch(
       return Err(ApiError::NotFound(format!("{} not found", path.url_path())));
     }
   }
-  authenticate(secret, &meta.auth)?;
+  authorize_user(secret, &meta.secret)?;
   read_file(&state.config.fs.base_dir.join(&path.url_path())).await
 }
 
@@ -141,7 +143,7 @@ pub async fn delete(
   };
   if let Some(meta) = state.db.fetch(&path)? {
     if meta.delete_manually {
-      authenticate(secret, &meta.auth)?;
+      authorize_user(secret, &meta.secret)?;
       let file_path = path.fs_path(&state.config.fs.base_dir);
       tokio::fs::remove_file(file_path).await?;
       state.db.delete(path).await?;
@@ -160,32 +162,23 @@ pub async fn read_file(file_path: &PathBuf) -> ApiResult<ServeFile> {
   Ok(ServeFile::new(file_path))
 }
 
-pub fn authenticate(secret: Option<Secret>, hash: &Option<String>) -> ApiResult<()> {
-  if let Some(hash) = hash {
-    match secret.map(|s| s.check(hash)) {
+pub fn authorize_user(secret: Option<Secret>, secret_hash: &Option<SecretHash>) -> ApiResult<()> {
+  if let Some(hash) = secret_hash {
+    match secret.map(|s| s.verify(hash)) {
       Some(Ok(_)) => return Ok(()),
       Some(Err(e)) if e == argon2::password_hash::Error::Password => Err(
         ApiError::PermissionDenied("Secret token is invalid".to_string()),
       ),
       Some(Err(e)) => Err(ApiError::Unknown(anyhow!(
-        "Unexpected error happened: {}",
-        e
+        "An Unexpected error occurred: {e}",
       ))),
       None => Err(ApiError::PermissionDenied(
-        "Authorization header should be set".to_string(),
+        "Authorization header required.".to_string(),
       )),
     }
   } else {
     Ok(())
   }
-}
-
-pub fn hash(auth: Option<String>) -> ApiResult<Option<String>> {
-  auth
-    .as_ref()
-    .map(crate::util::hash::argon_hash)
-    .transpose()
-    .map_err(|e| ApiError::HashError(e.to_string()))
 }
 
 pub fn calc_expiration_date(now: DateTime<Utc>, secs: i64) -> DateTime<Utc> {

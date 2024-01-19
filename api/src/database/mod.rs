@@ -2,6 +2,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use std::{collections::BTreeSet, path::PathBuf};
 
+use crate::util::secret::SecretHash;
 use crate::{
   configure::DatabaseConfig,
   error::{ApiError, ApiResult},
@@ -204,7 +205,7 @@ impl FilePath {
 pub struct MetaDataFile {
   pub created_at: DateTime<Utc>,
   pub expiration_date: DateTime<Utc>,
-  pub auth: Option<String>,
+  pub secret: Option<SecretHash>,
   pub delete_manually: bool,
   pub max_download: Option<u32>,
   pub count_downloads: u32,
@@ -309,7 +310,7 @@ mod tests {
     let meta = MetaDataFile {
       created_at: Utc::now(),
       expiration_date: Utc::now() + chrono::Duration::seconds(10),
-      auth: None,
+      secret: None,
       delete_manually: true,
       max_download: None,
       count_downloads: 1,
@@ -323,7 +324,7 @@ mod tests {
     let result = ctx.state.db.fetch(&path).unwrap().unwrap();
     assert_eq!(result.created_at, meta.created_at);
     assert_eq!(result.expiration_date, meta.expiration_date);
-    assert_eq!(result.auth, meta.auth);
+    assert_eq!(result.secret, meta.secret);
     assert_eq!(result.max_download, meta.max_download);
     assert_eq!(result.count_downloads, meta.count_downloads);
   }
@@ -335,7 +336,7 @@ mod tests {
     let meta = MetaDataFile {
       created_at: Utc::now(),
       expiration_date: Utc::now() + chrono::Duration::seconds(10),
-      auth: None,
+      secret: None,
       delete_manually: true,
       max_download: None,
       count_downloads: 0,
@@ -349,7 +350,7 @@ mod tests {
     let result = ctx.state.db.fetch_count(&path).await.unwrap().unwrap();
     assert_eq!(result.created_at, meta.created_at);
     assert_eq!(result.expiration_date, meta.expiration_date);
-    assert_eq!(result.auth, meta.auth);
+    assert_eq!(result.secret, meta.secret);
     assert_eq!(result.max_download, meta.max_download);
     assert_eq!(result.count_downloads, meta.count_downloads);
   }
@@ -361,7 +362,7 @@ mod tests {
     let meta = MetaDataFile {
       created_at: Utc::now(),
       expiration_date: Utc::now() + chrono::Duration::seconds(10),
-      auth: None,
+      secret: None,
       delete_manually: true,
       max_download: None,
       count_downloads: 0,
@@ -376,7 +377,7 @@ mod tests {
     let result = ctx.state.db.fetch_count(&path).await.unwrap().unwrap();
     assert_eq!(result.created_at, meta.created_at);
     assert_eq!(result.expiration_date, meta.expiration_date);
-    assert_eq!(result.auth, meta.auth);
+    assert_eq!(result.secret, meta.secret);
     assert_eq!(result.max_download, meta.max_download);
     assert_eq!(result.count_downloads, meta.count_downloads + 1);
   }
@@ -388,7 +389,7 @@ mod tests {
     let meta = MetaDataFile {
       created_at: Utc::now(),
       expiration_date: Utc::now() + chrono::Duration::seconds(10),
-      auth: None,
+      secret: None,
       delete_manually: true,
       max_download: None,
       count_downloads: 0,
@@ -410,7 +411,7 @@ mod tests {
     let meta = MetaDataFile {
       created_at: Utc::now(),
       expiration_date: Utc::now(),
-      auth: None,
+      secret: None,
       delete_manually: true,
       max_download: None,
       count_downloads: 0,
@@ -433,7 +434,7 @@ mod tests {
     let meta = MetaDataFile {
       created_at: Utc::now(),
       expiration_date: Utc::now() + chrono::Duration::seconds(10),
-      auth: None,
+      secret: None,
       delete_manually: true,
       max_download: None,
       count_downloads: 0,
