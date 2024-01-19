@@ -1,3 +1,4 @@
+use crate::configure::ApiConfig;
 use crate::error::{ApiError, ApiResult, ToApiResult};
 use crate::util::secret::{Secret, SecretHash};
 use anyhow::anyhow;
@@ -119,22 +120,26 @@ pub async fn fetch(
   file_name: &str,
   secret: Option<Secret>,
 ) -> ApiResult<ServeFile> {
-  let path = FilePath {
+  let file_path = FilePath {
     code: code.to_string(),
     file_name: file_name.to_string(),
   };
-  let meta = state.db.fetch_count(&path).await?.to_result()?;
-  if let Some(max) = meta.max_download {
-    if meta.count_downloads >= max {
-      state.db.delete(path.clone()).await?;
+  let meta_data = state.db.fetch(&file_path)?.to_result()?;
+  authorize_user(secret, &meta_data.secret)?;
+  if let Some(max) = meta_data.max_download {
+    if meta_data.count_downloads >= max {
+      state.db.delete(file_path.clone()).await?;
       return Err(ApiError::NotFoundError(format!(
         "{} not found",
-        path.url_path()
+        file_path.url_path()
       )));
+    } else {
+      let mut updated_meta_data = meta_data.clone();
+      updated_meta_data.count_downloads += 1;
+      state.db.update(&file_path, meta_data, updated_meta_data)?;
     }
   }
-  authorize_user(secret, &meta.secret)?;
-  read_file(&state.config.fs.base_dir.join(&path.url_path())).await
+  Ok(read_file(&state.config, &file_path))
 }
 
 pub async fn delete(
@@ -164,8 +169,8 @@ pub async fn delete(
   Ok(())
 }
 
-pub async fn read_file(file_path: &PathBuf) -> ApiResult<ServeFile> {
-  Ok(ServeFile::new(file_path))
+pub fn read_file(config: &ApiConfig, file_path: &FilePath) -> ServeFile {
+  ServeFile::new(&file_path.fs_path(&config.fs.base_dir))
 }
 
 pub fn authorize_user(secret: Option<Secret>, secret_hash: &Option<SecretHash>) -> ApiResult<()> {

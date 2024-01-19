@@ -8,7 +8,6 @@ use crate::{
 };
 
 use log_derive::logfn;
-use multer::Multipart;
 use once_cell::sync::Lazy;
 use reqwest::StatusCode;
 
@@ -89,19 +88,7 @@ impl PasteFileClient {
       let error = resp.json::<BodyResponseError>().await?;
       return Ok((status, ApiResponseResult::Err(error)));
     }
-    let body = resp.bytes().await;
-    let boundary = std::str::from_utf8(body.as_ref().unwrap());
-    // TODO FIXME multer::parse_boundary(ct);
-    let boundary = boundary.unwrap().to_string().lines().next().unwrap()[2..]
-      .trim()
-      .to_string();
-    let stream = futures_util::stream::once(async { body });
-    let mut mp = Multipart::new(stream, boundary);
-    let f = mp.next_field().await.unwrap().unwrap();
-    Ok((
-      status,
-      ApiResponseResult::Ok(f.bytes().await.unwrap().to_vec()),
-    ))
+    Ok((status, ApiResponseResult::Ok(resp.bytes().await?.to_vec())))
   }
 
   #[logfn(Info)]

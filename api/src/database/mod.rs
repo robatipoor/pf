@@ -48,35 +48,25 @@ impl Database {
       .transpose()
   }
 
-  pub async fn fetch_count(&self, file_path: &FilePath) -> ApiResult<Option<MetaDataFile>> {
-    let mut output = None;
-    self
+  pub fn update(&self, file_path: &FilePath, old: MetaDataFile, new: MetaDataFile) -> ApiResult {
+    let old = IVec::try_from(old)?;
+    let new = IVec::try_from(new)?;
+    let file_path = IVec::try_from(file_path)?;
+    let result = self
       .inner
-      .fetch_and_update(IVec::try_from(file_path)?, |value| {
-        value
-          .map(|val| {
-            MetaDataFile::try_from(val)
-              .map(|mut meta| {
-                meta.count_downloads += 1;
-                let val = IVec::try_from(&meta);
-                output = Some(meta);
-                val
-                  .map_err(|err| {
-                    tracing::error!("Covnert MetaDataFile to IVec unsuccessfully: {err}");
-                    err
-                  })
-                  .ok()
-              })
-              .map_err(|err| {
-                tracing::error!("Covnert IVec to MetaDataFile unsuccessfully: {err}");
-                err
-              })
-              .ok()
-          })
-          .flatten()
-          .flatten()
-      })?;
-    Ok(output)
+      .compare_and_swap(&file_path, Some(old), Some(new))?;
+    match result {
+      Ok(_) => Ok(()),
+      Err(err) if err.current.is_some() => Err(ApiError::BadRequestError(
+        "Update meta data failed".to_string(),
+      )),
+      Err(err) => {
+        tracing::error!("Compare and swap error: {err}");
+        Err(ApiError::DatabaseError(sled::Error::ReportableBug(
+          "Storing the meta data file in the database faild.".to_string(),
+        )))
+      }
+    }
   }
 
   pub fn exist(&self, path: &FilePath) -> ApiResult<bool> {
@@ -95,11 +85,11 @@ impl Database {
         let expire = (expire_time, path);
         match self.expires.write() {
           Ok(mut guard) => {
-            let is_gc_notify = guard
-              .iter()
-              .next()
-              .filter(|(exp, _)| *exp < Utc::now())
-              .is_some();
+            let is_gc_notify = if let Some((first_expire, _)) = guard.iter().next() {
+              *first_expire > expire_time
+            } else {
+              true
+            };
             guard.insert(expire.clone());
             drop(guard);
             if is_gc_notify {
@@ -113,7 +103,9 @@ impl Database {
         }
       }
       Err(err) if err.current.is_some() => {
-        return Err(ApiError::ResourceExistsError("File path exists".to_string()));
+        return Err(ApiError::ResourceExistsError(
+          "File path exists".to_string(),
+        ));
       }
       Err(err) => {
         tracing::error!("Compare and swap error: {err}");
@@ -138,7 +130,7 @@ impl Database {
           guard.remove(&(meta.expiration_date, path));
         }
         Err(err) => {
-          tracing::error!("Get expires lock unsuccessfully: {err}");
+          tracing::error!("Failed to acquire expires lock: {err}");
         }
       }
       Ok(Some(meta))
@@ -148,21 +140,20 @@ impl Database {
   }
 
   pub async fn purge(&self) -> ApiResult<Option<Duration>> {
-    let now = Utc::now();
     match self.expires.write() {
       Ok(mut guard) => {
         let expires = &mut *guard;
         while let Some((expire_date, path)) = expires.iter().next().cloned() {
-          if expire_date < now {
+          if expire_date < Utc::now() {
             self.inner.remove(&IVec::try_from(&path)?)?;
             expires.remove(&(expire_date, path));
           } else {
-            return Ok(Some((expire_date - now).to_std()?));
+            return Ok(Some((expire_date - Utc::now()).to_std()?));
           }
         }
       }
       Err(err) => {
-        tracing::error!("Get expires lock unsuccessfully: {err}");
+        tracing::error!("Failed to acquire expires lock: {err}");
         return Err(ApiError::LockError(err.to_string()));
       }
     }
@@ -331,7 +322,7 @@ mod tests {
 
   #[test_context(StateTestContext)]
   #[tokio::test]
-  async fn test_store_file_and_fetch_count(ctx: &mut StateTestContext) {
+  async fn test_store_and_update_file(ctx: &mut StateTestContext) {
     let path: FilePath = Faker.fake();
     let meta = MetaDataFile {
       created_at: Utc::now(),
@@ -347,34 +338,14 @@ mod tests {
       .store(path.clone(), meta.clone())
       .await
       .unwrap();
-    let result = ctx.state.db.fetch_count(&path).await.unwrap().unwrap();
-    assert_eq!(result.created_at, meta.created_at);
-    assert_eq!(result.expiration_date, meta.expiration_date);
-    assert_eq!(result.secret, meta.secret);
-    assert_eq!(result.max_download, meta.max_download);
-    assert_eq!(result.count_downloads, meta.count_downloads);
-  }
-
-  #[test_context(StateTestContext)]
-  #[tokio::test]
-  async fn test_store_file_and_double_fetch_count(ctx: &mut StateTestContext) {
-    let path: FilePath = Faker.fake();
-    let meta = MetaDataFile {
-      created_at: Utc::now(),
-      expiration_date: Utc::now() + chrono::Duration::seconds(10),
-      secret: None,
-      delete_manually: true,
-      max_download: None,
-      count_downloads: 0,
-    };
+    let mut updated_meta = meta.clone();
+    updated_meta.count_downloads += 1;
     ctx
       .state
       .db
-      .store(path.clone(), meta.clone())
-      .await
+      .update(&path, meta.clone(), updated_meta)
       .unwrap();
-    ctx.state.db.fetch_count(&path).await.unwrap().unwrap();
-    let result = ctx.state.db.fetch_count(&path).await.unwrap().unwrap();
+    let result = ctx.state.db.fetch(&path).unwrap().unwrap();
     assert_eq!(result.created_at, meta.created_at);
     assert_eq!(result.expiration_date, meta.expiration_date);
     assert_eq!(result.secret, meta.secret);
