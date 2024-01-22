@@ -36,10 +36,6 @@ jobs:
           command: install
           args: >
             cargo-tarpaulin
-      
-      - name: Migrate database
-        run: |
-          ./scripts/init_db.sh
 
       - name: Checkout repository
         uses: actions/checkout@v3

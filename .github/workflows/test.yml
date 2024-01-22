@@ -37,10 +37,6 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Migrate database
-        run: |
-          ./scripts/init_db.sh
-
       - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
