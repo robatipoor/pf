@@ -17,6 +17,8 @@ keywords = ["paste", "file", "transfer"]
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/robatipoor/pf"
+categories = ["web"]
+include = ["src/**/*", "Cargo.*", "LICENSE", "README.md", "CHANGELOG.md"]
 version = "0.1.0"
 
 [profile.release]

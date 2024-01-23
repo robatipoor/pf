@@ -170,16 +170,16 @@ pub async fn delete(
 }
 
 pub fn read_file(config: &ApiConfig, file_path: &FilePath) -> ServeFile {
-  ServeFile::new(&file_path.fs_path(&config.fs.base_dir))
+  ServeFile::new(file_path.fs_path(&config.fs.base_dir))
 }
 
 pub fn authorize_user(secret: Option<Secret>, secret_hash: &Option<SecretHash>) -> ApiResult<()> {
   if let Some(hash) = secret_hash {
     match secret.map(|s| s.verify(hash)) {
-      Some(Ok(_)) => return Ok(()),
-      Some(Err(e)) if e == argon2::password_hash::Error::Password => Err(
-        ApiError::PermissionDeniedError("Secret token is invalid".to_string()),
-      ),
+      Some(Ok(_)) => Ok(()),
+      Some(Err(argon2::password_hash::Error::Password)) => Err(ApiError::PermissionDeniedError(
+        "Secret token is invalid".to_string(),
+      )),
       Some(Err(e)) => Err(ApiError::UnknownError(anyhow!(
         "An Unexpected error occurred: {e}",
       ))),

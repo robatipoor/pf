@@ -235,7 +235,6 @@ mod tests {
         .mount(&self.server)
         .await;
     }
-
     async fn mock_info_api(&self, code: &str, file_name: &str) {
       let resp = success_info_response();
       Mock::given(method("GET"))
@@ -244,7 +243,6 @@ mod tests {
         .mount(&self.server)
         .await;
     }
-
     async fn mock_upload_api(&self) {
       let resp = success_upload_response();
       Mock::given(method("POST"))

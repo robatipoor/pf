@@ -1,3 +1,4 @@
+use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
 use std::{collections::BTreeSet, path::PathBuf};
@@ -187,7 +188,7 @@ impl FilePath {
   pub fn url_path(&self) -> String {
     format!("{}/{}", self.code, self.file_name)
   }
-  pub fn fs_path(&self, base_dir: &PathBuf) -> PathBuf {
+  pub fn fs_path(&self, base_dir: &Path) -> PathBuf {
     base_dir.join(format!("{}/{}", self.code, self.file_name))
   }
 }

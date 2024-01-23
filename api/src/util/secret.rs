@@ -18,6 +18,6 @@ impl Secret {
   pub fn hash(&self) -> ApiResult<SecretHash> {
     crate::util::hash::argon_hash(&self.0)
       .map_err(|e| ApiError::HashError(e.to_string()))
-      .map(|hash| SecretHash(hash))
+      .map( SecretHash)
   }
 }
