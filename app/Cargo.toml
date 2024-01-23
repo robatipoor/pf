@@ -3,17 +3,12 @@ name = "app"
 version = "0.1.0"
 edition = "2021"
 
-[[bin]]
-name = "app"
-path = "src/bin/main.rs"
-
 [dependencies]
 sdk = { path = "../sdk" }
 anyhow = { workspace = true }
 async-trait = { workspace = true }
 chrono = { workspace = true }
 config = { workspace = true }
-cuid = { workspace = true }
 fake = { workspace = true }
 futures-util = { workspace = true }
 once_cell = { workspace = true }
@@ -22,10 +17,14 @@ regex = { workspace = true }
 reqwest = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-strum_macros = { workspace = true }
 test-context = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
 url = { workspace = true }
 garde = { workspace = true }
+yew = { workspace = true }
+yew-router = { workspace = true }
+yew-hooks = { workspace = true }
+wasm-bindgen = { workspace = true }
+wasm-logger = { workspace = true }

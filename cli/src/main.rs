@@ -51,7 +51,7 @@ pub enum SubCommand {
 async fn main() -> anyhow::Result<()> {
   let args = Args::parse();
   let url = url::Url::parse(&args.url)?;
-  let client = PasteFileClient::new(&base_url(&url));
+  let client = PasteFileClient::new(base_url(&url));
   match args.cmd {
     SubCommand::Ping => {
       let (_, resp) = client.health_check().await?;

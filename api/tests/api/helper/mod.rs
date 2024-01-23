@@ -29,7 +29,7 @@ impl AsyncTestContext for ApiTestContext {
     config.db.path = db_path;
     let server = ApiServer::new(config).await.unwrap();
     let state = server.state.clone();
-    let client = PasteFileClient::new(&server.state.config.server.get_http_addr());
+    let client = PasteFileClient::new(server.state.config.server.get_http_addr());
     api::server::worker::spawn(axum::extract::State(state.clone()));
     tokio::spawn(server.run());
     Self { state, client }

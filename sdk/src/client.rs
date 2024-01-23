@@ -20,16 +20,20 @@ pub static CLIENT: Lazy<reqwest::Client> = Lazy::new(|| {
 });
 
 pub struct PasteFileClient {
-  pub client: &'static reqwest::Client,
+  pub client: reqwest::Client,
   pub addr: String,
 }
 
 impl PasteFileClient {
-  pub fn new(addr: &str) -> Self {
+  pub fn new(addr: String) -> Self {
     Self {
-      client: Lazy::force(&CLIENT),
-      addr: addr.to_string(),
+      client: CLIENT.clone(),
+      addr,
     }
+  }
+
+  pub fn new_client(addr: String, client: reqwest::Client) -> Self {
+    Self { client, addr }
   }
 
   #[logfn(Info)]
