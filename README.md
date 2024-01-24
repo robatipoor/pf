@@ -1,4 +1,5 @@
-#📥 📤 PasteFile
+# PasteFile 🗃️📂 📥
+
 ![License](https://img.shields.io/github/license/robatipoor/pf)
 [![Lines Of Code](https://tokei.rs/b1/github/robatipoor/pf?category=code)](https://github.com/robatipoor/pf)
 [![Format check](https://github.com/robatipoor/pf/actions/workflows/code-formater.yml/badge.svg)](https://github.com/robatipoor/pf/actions/workflows/code-formater.yml)
@@ -8,7 +9,6 @@
 [![Docker Image](https://github.com/robatipoor/pf/actions/workflows/image-builder.yml/badge.svg)](https://github.com/robatipoor/pf/actions/workflows/image-builder.yml)
 [![Test Coverage](https://github.com/robatipoor/pf/actions/workflows/test-coverage.yml/badge.svg)](https://github.com/robatipoor/pf/actions/workflows/test-coverage.yml)
 [![Codecov](https://codecov.io/gh/robatipoor/pf/branch/main/graph/badge.svg?token=BIMUKRJPE7)](https://codecov.io/gh/robatipoor/pf)
-![Dependency status](https://deps.rs/repo/github/robatipoor/pf/status.svg)](https://deps.rs/repo/github/robatipoor/pf)
 
 **Run Backend Service**
 
