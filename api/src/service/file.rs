@@ -25,7 +25,7 @@ pub async fn store(
 ) -> ApiResult<(FilePath, DateTime<Utc>)> {
   let secret = secret.map(|s| s.hash()).transpose()?;
   let expire_secs = query
-    .expire_time
+    .expire_secs
     .unwrap_or(state.config.default_expire_secs) as i64;
   let now = Utc::now();
   let expiration_date = calc_expiration_date(now, expire_secs);

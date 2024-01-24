@@ -68,7 +68,7 @@ impl ApiTestContext {
     let query = UploadQueryParam {
       max_download: max,
       code_length: len,
-      expire_time: exp,
+      expire_secs: exp,
       delete_manually: del,
     };
     let (_, resp) = self

@@ -23,7 +23,7 @@ pub enum SubCommand {
     #[clap(default_value_t = 4, short, long)]
     code_length: usize,
     #[clap(default_value_t = 7200, short, long)]
-    expire_time: u64,
+    expire_secs: u64,
     #[clap(short, long)]
     max_download: Option<u32>,
     #[clap(default_value_t = true, short, long)]
@@ -67,7 +67,7 @@ async fn main() -> anyhow::Result<()> {
     SubCommand::Upload {
       auth,
       code_length,
-      expire_time,
+      expire_secs,
       delete_manually,
       max_download,
       file,
@@ -82,7 +82,7 @@ async fn main() -> anyhow::Result<()> {
       let query = UploadQueryParam {
         max_download,
         code_length: Some(code_length),
-        expire_time: Some(expire_time),
+        expire_secs: Some(expire_secs),
         delete_manually: Some(delete_manually),
       };
       let (_, resp) = client

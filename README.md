@@ -1,5 +1,4 @@
-### Please don't use this (still in early development).
-# paste file 
+# PastFile
 ![License](https://img.shields.io/github/license/robatipoor/pf)
 [![Lines Of Code](https://tokei.rs/b1/github/robatipoor/pf?category=code)](https://github.com/robatipoor/pf)
 [![Format check](https://github.com/robatipoor/pf/actions/workflows/code-formater.yml/badge.svg)](https://github.com/robatipoor/pf/actions/workflows/code-formater.yml)
@@ -11,43 +10,31 @@
 [![Codecov](https://codecov.io/gh/robatipoor/pf/branch/main/graph/badge.svg?token=BIMUKRJPE7)](https://codecov.io/gh/robatipoor/pf)
 ![Dependency status](https://deps.rs/repo/github/robatipoor/pf/status.svg)](https://deps.rs/repo/github/robatipoor/pf)
 
-**install**
+**Run Backend Service**
 
 ```sh
-cargo install pf
+# clone project
+$ git clone https://github/robatipoor/pf
+# build backend binary
+$ cargo build --bin api --release
+# run backend on address 127.0.0.1:8080
+$ ./target/release/api -c api/settings/base.toml
 ```
 
-**Build and install**
+**Usage**
 
 ```sh
-# dependencies git, rustc, cargo, gnu make, binutils, upx
-# build and install pf 
-git clone https://github.com/robatipoor/pf \
-&& cd pf \
-&& make 
+$ curl -F "file=@file.txt" 127.0.0.1:8080/upload?expire_secs=100
+$ curl -F "file=@file.txt" 127.0.0.1:8080/upload?delete_manually=true
+$ curl -F "file=@file.txt" 127.0.0.1:8080/upload?code_length=10
+$ curl -F "file=@file.txt" 127.0.0.1:8080/upload?max_download=5
 ```
 
-
-**how to use command**
-
-```sh
-# post string
-echo 'Hello !' | pf
-# post file
-pf some-file.txt
-# get file 
-pf https://paste.rs/some
-# delete file
-pf -d https://paste.rs/some
-# read log file
-pf --log
-```
-
-**how to use crate**
+**Sdk**
 ```rust
-extern crate pf;
+extern crate pf_sdk;
 
-use pf::PastFile;
+use pf_sdk::PastFile;
 
 fn main() {
     let link = PastFile::create("Some Text ...").unwrap();
