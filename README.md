@@ -1,4 +1,4 @@
-# PastFile
+#📥 📤 PasteFile
 ![License](https://img.shields.io/github/license/robatipoor/pf)
 [![Lines Of Code](https://tokei.rs/b1/github/robatipoor/pf?category=code)](https://github.com/robatipoor/pf)
 [![Format check](https://github.com/robatipoor/pf/actions/workflows/code-formater.yml/badge.svg)](https://github.com/robatipoor/pf/actions/workflows/code-formater.yml)
@@ -14,7 +14,7 @@
 
 ```sh
 # clone project
-$ git clone https://github/robatipoor/pf
+$ git clone https://github.com/robatipoor/pf
 # build backend binary
 $ cargo build --bin api --release
 # run backend on address 127.0.0.1:8080
@@ -24,10 +24,10 @@ $ ./target/release/api -c api/settings/base.toml
 **Usage**
 
 ```sh
-$ curl -F "file=@file.txt" 127.0.0.1:8080/upload?expire_secs=100
-$ curl -F "file=@file.txt" 127.0.0.1:8080/upload?delete_manually=true
-$ curl -F "file=@file.txt" 127.0.0.1:8080/upload?code_length=10
-$ curl -F "file=@file.txt" 127.0.0.1:8080/upload?max_download=5
+$ curl -F "file=@file.txt" 127.0.0.1:8080/upload\?expire_secs=100
+$ curl -F "file=@file.txt" 127.0.0.1:8080/upload\?delete_manually=true
+$ curl -F "file=@file.txt" 127.0.0.1:8080/upload\?code_length=10
+$ curl -F "file=@file.txt" 127.0.0.1:8080/upload\?max_download=5
 ```
 
 **Sdk**
