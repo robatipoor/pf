@@ -169,7 +169,6 @@ fn base_url(url: &url::Url) -> String {
 mod tests {
 
   use std::process::Stdio;
-
   use assert_cmd::Command;
   use chrono::Utc;
   use fake::{Fake, Faker};

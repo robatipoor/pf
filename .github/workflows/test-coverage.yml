@@ -21,7 +21,7 @@ jobs:
           override: true
 
       - name: Cache tarpaulin
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: cache-tarpaulin
         with:
           path: |
@@ -38,11 +38,11 @@ jobs:
             cargo-tarpaulin
 
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Generate code coverage
         run: |
-          cargo +nightly tarpaulin --verbose --all-features --workspace --timeout 120 --out Xml --engine llvm
+          cargo +nightly tarpaulin --verbose --all-features --workspace --timeout 120 --engine llvm --out Xml
 
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3
