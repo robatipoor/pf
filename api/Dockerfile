@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install lld clang -y
 
 COPY . .
 
-RUN cargo build --release
+RUN cargo build --bin api --release
 
 # deploy stage
 FROM debian:bullseye-slim
@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-cert
 # create workspace directory
 WORKDIR /workspace
 
-COPY settings settings
+COPY api/settings settings
 
 # copy binary and configuration files
 COPY --from=builder /workspace/target/release/api .

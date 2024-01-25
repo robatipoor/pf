@@ -32,8 +32,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
-          context: ./api
-          file: ./Dockerfile
+          context: .
+          file: ./api/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/pf-api:latest
 
