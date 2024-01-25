@@ -11,7 +11,7 @@ use tracing::warn;
 #[tokio::main]
 async fn main() -> ApiResult {
   let args = api::configure::Args::parse();
-  let config = api::configure::ApiConfig::read(args.config, get_env_source("PF"))?;
+  let config = api::configure::ApiConfig::read(args.settings, get_env_source("PF"))?;
   Lazy::force(&INIT_SUBSCRIBER);
   if let Err(e) = tokio::fs::create_dir_all(&config.fs.base_dir).await {
     warn!("failed create base dir: {e}");

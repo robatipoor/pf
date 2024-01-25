@@ -86,7 +86,7 @@ fn get_basic_settings_path(arg_path: Option<PathBuf>) -> std::io::Result<PathBuf
 #[command(author, version, about, long_about = None)]
 pub struct Args {
   #[arg(short, long)]
-  pub config: Option<PathBuf>,
+  pub settings: Option<PathBuf>,
 }
 
 #[cfg(test)]

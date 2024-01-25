@@ -13,12 +13,12 @@
 **Run Backend Service**
 
 ```sh
-# clone project
+# Clone the project
 $ git clone https://github.com/robatipoor/pf
-# build backend binary
+# Build the backend binary
 $ cargo build --bin api --release
-# run backend on address 127.0.0.1:8080
-$ ./target/release/api -c api/settings/base.toml
+# Run the backend on address 127.0.0.1:8080
+$ ./target/release/api --settings api/settings/base.toml
 ```
 
 **Usage**

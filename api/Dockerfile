@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-cert
 # create workspace directory
 WORKDIR /workspace
 
-COPY api/settings settings
+COPY settings settings
 
 # copy binary and configuration files
 COPY --from=builder /workspace/target/release/api .
@@ -28,4 +28,4 @@ EXPOSE 8080
 ENV RUST_LOG info
 
 # run the binary
-ENTRYPOINT ["./api","--config","settings/base.toml"]
+ENTRYPOINT ["./api","--settings","settings/base.toml"]
