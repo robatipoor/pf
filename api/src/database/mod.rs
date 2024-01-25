@@ -64,7 +64,7 @@ impl Database {
       Err(err) => {
         tracing::error!("Compare and swap error: {err}");
         Err(ApiError::DatabaseError(sled::Error::ReportableBug(
-          "Storing the meta data file in the database faild.".to_string(),
+          "Storing the meta data file in the database failed.".to_string(),
         )))
       }
     }
@@ -111,7 +111,7 @@ impl Database {
       Err(err) => {
         tracing::error!("Compare and swap error: {err}");
         return Err(ApiError::DatabaseError(sled::Error::ReportableBug(
-          "Storing the meta data file in the database faild.".to_string(),
+          "Storing the meta data file in the database failed.".to_string(),
         )));
       }
     };

@@ -32,11 +32,11 @@ $ ./target/release/api --settings api/settings/base.toml
 # Build docker image
 $ docker build -t pf-api:latest -f api/Dockerfile .
 # Run Docker container on address 0.0.0.0:8080
-$ docker run --name pf-api --rm -p 8080:8080 -e PF__SERVER__HOST='0.0.0.0' -d pf-api:latest
-# Alternatively, you can pull the image from the github registry
-$ docker pull ghcr.io/robatipoor/pf-api:latest
-# Run Docker container on address 0.0.0.0:8080
-$ docker run --name pf-api --rm -p 8080:8080 -e PF__SERVER__HOST='0.0.0.0' -d ghcr.io/robatipoor/pf-api:latest
+$ docker run --name pf-api --rm -p 8080:8080 \
+-e PF__SERVER__HOST='0.0.0.0' -d pf-api:latest
+# Alternatively, you can pull the image from the github registry and run container
+$ docker run --name pf-api --rm -p 8080:8080 \
+-e PF__SERVER__HOST='0.0.0.0' -d ghcr.io/robatipoor/pf-api:latest
 ```
 
 **How to Use**
@@ -57,11 +57,12 @@ $ curl -F "file=@file.txt" 127.0.0.1:8080/upload\?max_download=5
 * Dependabot configuration
 
 ### Run tests
+
 ```
 ./test.sh
 ```
-![api grid](https://codecov.io/gh/robatipoor/pf/branch/main/graphs/tree.svg?token=BIMUKRJPE7)
 ### Configuration
+
 This project uses [config-rs](https://github.com/mehcode/config-rs) to manage configuration.
 #### Configure with toml files
 ```bash
@@ -69,10 +70,10 @@ settings
 ├── base.toml # default config file 
 
 ```
-#### Configure with environment variables
+#### Override configure with environment variables
 ```bash
-export APP_SERVER__PORT=8080
-export APP_SERVER__HOST=127.0.0.1
+export PF__SERVER__PORT=8080
+export PF__SERVER__HOST=127.0.0.1
 ```
 ### Check code formatting and typo at commit time
 ```
