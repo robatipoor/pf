@@ -1,4 +1,4 @@
-# PasteFile 🗃️📂 📥
+# PasteFile 📁 📥
 
 ![License](https://img.shields.io/github/license/robatipoor/pf)
 [![Lines Of Code](https://tokei.rs/b1/github/robatipoor/pf?category=code)](https://github.com/robatipoor/pf)
