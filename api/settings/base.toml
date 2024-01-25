@@ -5,7 +5,7 @@ default_expire_secs = 7200
 
 [server]
 schema = "http"
-addr = "127.0.0.1"
+host = "127.0.0.1"
 port = 8080
 
 [fs]

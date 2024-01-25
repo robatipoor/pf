@@ -24,7 +24,7 @@ pub struct ApiConfig {
 #[derive(Debug, Deserialize, Clone)]
 pub struct ServerConfig {
   pub schema: UrlSchema,
-  pub addr: String,
+  pub host: String,
   pub port: u16,
 }
 
@@ -50,11 +50,11 @@ pub struct FileSystemConfig {
 
 impl ServerConfig {
   pub fn get_http_addr(&self) -> String {
-    format!("{}://{}:{}", self.schema, self.addr, self.port)
+    format!("{}://{}:{}", self.schema, self.host, self.port)
   }
 
   pub fn get_socket_addr(&self) -> Result<SocketAddr, AddrParseError> {
-    format!("{}:{}", self.addr, self.port).parse()
+    format!("{}:{}", self.host, self.port).parse()
   }
 }
 

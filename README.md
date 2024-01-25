@@ -10,7 +10,13 @@
 [![Test Coverage](https://github.com/robatipoor/pf/actions/workflows/test-coverage.yml/badge.svg)](https://github.com/robatipoor/pf/actions/workflows/test-coverage.yml)
 [![Codecov](https://codecov.io/gh/robatipoor/pf/branch/main/graph/badge.svg?token=BIMUKRJPE7)](https://codecov.io/gh/robatipoor/pf)
 
-**Run Backend Service**
+### Requirements
+
+- [rust](https://www.rust-lang.org/tools/install)
+- [docker](https://www.docker.com/)
+- [docker-compose](https://docs.docker.com/compose/)
+
+**Run Backend Service Locally**
 
 ```sh
 # Clone the project
@@ -20,54 +26,37 @@ $ cargo build --bin api --release
 # Run the backend on address 127.0.0.1:8080
 $ ./target/release/api --settings api/settings/base.toml
 ```
-
-**Usage**
+**Run Backend Service via Docker**
 
 ```sh
+# Build docker image
+$ docker build -t pf-api:latest -f api/Dockerfile .
+# Run Docker container on address 0.0.0.0:8080
+$ docker run --name pf-api --rm -p 8080:8080 -e PF__SERVER__HOST='0.0.0.0' -d pf-api:latest
+# Alternatively, you can pull the image from the github registry
+$ docker pull ghcr.io/robatipoor/pf-api:latest
+# Run Docker container on address 0.0.0.0:8080
+$ docker run --name pf-api --rm -p 8080:8080 -e PF__SERVER__HOST='0.0.0.0' -d ghcr.io/robatipoor/pf-api:latest
+```
+
+**How to Use**
+
+```sh
+# Ping the server
+$ curl -X GET http://127.0.0.1:8081/healthz
+# Upload file
 $ curl -F "file=@file.txt" 127.0.0.1:8080/upload\?expire_secs=100
 $ curl -F "file=@file.txt" 127.0.0.1:8080/upload\?delete_manually=true
 $ curl -F "file=@file.txt" 127.0.0.1:8080/upload\?code_length=10
 $ curl -F "file=@file.txt" 127.0.0.1:8080/upload\?max_download=5
 ```
 
-**Sdk**
-```rust
-extern crate pf_sdk;
-
-use pf_sdk::PastFile;
-
-fn main() {
-    let link = PastFile::create("Some Text ...").unwrap();
-    println!("{}", link);
-}
-```
-### Requirements
-
-- [docker](https://www.docker.com/)
-
-### How to use
-
 
 ### Feature highlights
 
 * Dependabot configuration
 
-### Running locally
-
-```bash
-./run.sh
-# open swagger panel
-xdg-open http://127.0.0.1:8080/api/v1/swagger-ui/
-# manually testing your API routes with curl commands
-curl -X GET http://127.0.0.1:8080/api/v1/server/health_check
-```
-### Running via docker
-
-```bash
-cd ./docker/dev/ && ./up.sh
-```
 ### Run tests
-Some of the integration tests use docker to spin up dependencies on demand (ie a postgres db) so just be aware that docker is needed to run the tests.
 ```
 ./test.sh
 ```
@@ -83,11 +72,11 @@ settings
 #### Configure with environment variables
 ```bash
 export APP_SERVER__PORT=8080
-export APP_SERVER__ADDR=127.0.0.1
+export APP_SERVER__HOST=127.0.0.1
 ```
-### Check code formatting at commit time
+### Check code formatting and typo at commit time
 ```
-cp ./scripts/git ./.git/hooks/
+cp ./scripts/git-hooks/* ./.git/hooks/
 ```
 ## License
 
