@@ -1,14 +1,22 @@
+# Maximum upload size in megabytes
 max_upload_size = 1024
+# Default code length in the url
 default_code_length = 3
+# Default expiration time in seconds
 default_expire_secs = 7200
 
 [server]
+# Communication protocol (e.g., "http" or "https")
 schema = "http"
+# Host IP address for the server
 host = "127.0.0.1"
+# Port number for the server
 port = 8080
 
 [fs]
+# Base directory for file system operations
 base_dir = "fs-tmp"
 
 [db]
+# Path to the database file
 path = "db-tmp"

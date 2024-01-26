@@ -66,26 +66,49 @@ $ curl -X DELETE http://127.0.0.1:8080/{code}/{file_name}
 $ curl -X GET http://127.0.0.1:8080/info/{code}/{file_name}
 ```
 
-
 ### Feature highlights
 
-* Dependabot configuration
+* 
 
 ### Run tests
 
 ```
 ./test.sh
 ```
-### Configuration
+#### Backend settings
+***api/settings/base.toml***
+```toml
+# Maximum upload size in megabytes
+max_upload_size = 1024
 
-This project uses [config-rs](https://github.com/mehcode/config-rs) to manage configuration.
-#### Configure with toml files
-```bash
-settings
-├── base.toml # default config file 
+# Default code length in the url
+default_code_length = 3
 
+# Default expiration time in seconds
+default_expire_secs = 7200
+
+# Server configuration section
+[server]
+# Communication protocol (e.g., "http" or "https")
+schema = "http"
+
+# Host IP address for the server
+host = "127.0.0.1"
+
+# Port number for the server
+port = 8080
+
+# File system configuration section
+[fs]
+# Base directory for file system operations
+base_dir = "fs-tmp"
+
+# Database configuration section
+[db]
+# Path to the database file
+path = "db-tmp"
 ```
-#### Override configure with environment variables
+#### Override settings with environment variables
 ```bash
 export PF__SERVER__PORT=8080
 export PF__SERVER__HOST=127.0.0.1
