@@ -1,4 +1,5 @@
 # PasteFile 📁 📥
+PastFile is a straightforward file-sharing service that allows users to upload and share files through either the command line or a web interface. The service provides a convenient means of sharing files without the necessity for user accounts or a complicated setup. The accompanying code includes the server, encompassing everything you need to create your own instance.
 
 ![License](https://img.shields.io/github/license/robatipoor/pf)
 [![Lines Of Code](https://tokei.rs/b1/github/robatipoor/pf?category=code)](https://github.com/robatipoor/pf)
@@ -10,11 +11,15 @@
 [![Test Coverage](https://github.com/robatipoor/pf/actions/workflows/test-coverage.yml/badge.svg)](https://github.com/robatipoor/pf/actions/workflows/test-coverage.yml)
 [![Codecov](https://codecov.io/gh/robatipoor/pf/branch/main/graph/badge.svg?token=BIMUKRJPE7)](https://codecov.io/gh/robatipoor/pf)
 
-### Requirements
+**Requirements**
 
 - [rust](https://www.rust-lang.org/tools/install)
 - [docker](https://www.docker.com/)
 - [docker-compose](https://docs.docker.com/compose/)
+
+**Feature highlights**
+
+* 
 
 **Run Backend Service Locally**
 
@@ -66,18 +71,10 @@ $ curl -X DELETE http://127.0.0.1:8080/{code}/{file_name}
 $ curl -X GET http://127.0.0.1:8080/info/{code}/{file_name}
 ```
 
-### Feature highlights
+**Backend settings**
 
-* 
-
-### Run tests
-
-```
-./test.sh
-```
-#### Backend settings
-***api/settings/base.toml***
 ```toml
+# api/settings/base.toml
 # Maximum upload size in megabytes
 max_upload_size = 1024
 
@@ -108,23 +105,34 @@ base_dir = "fs-tmp"
 # Path to the database file
 path = "db-tmp"
 ```
-#### Override settings with environment variables
+
+**Override settings with environment variables**
+
 ```bash
 export PF__SERVER__PORT=8080
 export PF__SERVER__HOST=127.0.0.1
 ```
-### Check code formatting and typo at commit time
+
+**Run tests**
+
+```sh
+./test.sh
 ```
+
+**Check code formatting and typo at commit time**
+
+```sh
 cp ./scripts/git-hooks/* ./.git/hooks/
 ```
-## License
+
+**License**
 
 Licensed under either of
 
  * MIT license
    ([LICENSE-MIT](LICENSE) or http://opensource.org/licenses/MIT)
 
-## Contributing
+**Contributing**
 
 Contributors are welcome, please fork and send pull requests! If you find a bug
 or have any ideas on how to improve this project please submit an issue.
