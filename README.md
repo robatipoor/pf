@@ -42,13 +42,28 @@ $ docker run --name pf-api --rm -p 8080:8080 \
 **How to Use**
 
 ```sh
-# Ping the server
-$ curl -X GET http://127.0.0.1:8081/healthz
-# Upload file
+# Ping the server.
+$ curl -X GET http://127.0.0.1:8080/healthz
+# Upload a file.
+$ curl -F "file=@file.txt" 127.0.0.1:8080/upload
+# Download file.
+$ curl -X GET http://127.0.0.1:8080/{code}/{file_name}.{extension}
+# Upload a file with basic authentication.
+$ curl -u username:password -F "file=@file.txt" 127.0.0.1:8080/upload
+# Download file with basic authentication.
+$ curl -u username:password -X GET http://127.0.0.1:8080/{code}/{file_name}.{extension}
+# Upload a file and then display the QR code.
+$ curl -s -F "file=@file.txt" 127.0.0.1:8080/upload | jq -r '.qrcode' | base64 -d; echo
+# Upload a file with an expiration time of 100 seconds.
 $ curl -F "file=@file.txt" 127.0.0.1:8080/upload\?expire_secs=100
-$ curl -F "file=@file.txt" 127.0.0.1:8080/upload\?delete_manually=true
-$ curl -F "file=@file.txt" 127.0.0.1:8080/upload\?code_length=10
-$ curl -F "file=@file.txt" 127.0.0.1:8080/upload\?max_download=5
+# Upload a file with a restriction on the number of downloads.
+$ curl -F "file=@file.txt" 127.0.0.1:8080/upload\?max_download=10
+# Upload a file with a restriction on the number of downloads.
+$ curl -F "file=@file.txt" 127.0.0.1:8080/upload\?code_length=5
+# Delete file.
+$ curl -X DELETE http://127.0.0.1:8080/{code}/{file_name}.{extension}
+# Get metadata file.
+$ curl -X GET http://127.0.0.1:8080/{code}/{file_name}.{extension}/info
 ```
 
 

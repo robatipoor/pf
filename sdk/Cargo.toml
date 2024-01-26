@@ -28,7 +28,6 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 garde = { workspace = true }
 argon2 = { workspace = true }
-qrcodegen = { workspace = true }
 base64 = { workspace = true }
 log-derive = { workspace = true }
 log = { workspace = true }

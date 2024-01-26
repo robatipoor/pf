@@ -15,7 +15,6 @@ pub struct ApiConfig {
   pub server: ServerConfig,
   pub fs: FileSystemConfig,
   pub db: DatabaseConfig,
-  pub domain: String,
   pub max_upload_size: usize,
   pub default_code_length: usize,
   pub default_expire_secs: u64,
@@ -23,6 +22,7 @@ pub struct ApiConfig {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct ServerConfig {
+  pub domain: Option<String>,
   pub schema: UrlSchema,
   pub host: String,
   pub port: u16,
@@ -55,6 +55,10 @@ impl ServerConfig {
 
   pub fn get_socket_addr(&self) -> Result<SocketAddr, AddrParseError> {
     format!("{}:{}", self.host, self.port).parse()
+  }
+
+  pub fn get_domain(&self) -> String {
+    self.domain.clone().unwrap_or_else(|| self.get_http_addr())
   }
 }
 

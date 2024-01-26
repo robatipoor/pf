@@ -1,33 +1,28 @@
-use qrcodegen::QrCode;
-use qrcodegen::QrCodeEcc;
+use base64::{engine, Engine};
+use qrcode::QrCode;
 
 use crate::error::ApiResult;
 
-pub fn encode(text: &str) -> ApiResult<String> {
-  // TODO fix error
-  let qr = QrCode::encode_text(text, QrCodeEcc::Medium).unwrap();
-  Ok(qr_to_str(&qr, 4))
-}
+pub const BASE64_ENGIN: engine::GeneralPurpose =
+  engine::GeneralPurpose::new(&base64::alphabet::STANDARD, engine::general_purpose::PAD);
 
-fn qr_to_str(qr: &QrCode, border: i32) -> String {
-  let mut s = String::new();
-  for y in -border..qr.size() + border {
-    for x in -border..qr.size() + border {
-      let c: char = if qr.get_module(x, y) { '█' } else { ' ' };
-      s.push_str(&format!("{0}{0}", c));
-    }
-    s.push('\n');
-  }
-  s.push('\n');
-  s
+pub fn encode(text: &str) -> ApiResult<String> {
+  let qrcode = QrCode::new(text.as_bytes())?
+    .render::<char>()
+    .quiet_zone(false)
+    .module_dimensions(1, 1)
+    .build();
+  Ok(BASE64_ENGIN.encode(qrcode))
 }
 
 #[cfg(test)]
 mod tests {
   use super::*;
+  use fake::{Fake, Faker};
 
   #[test]
-  pub fn test_encode() {
-    encode("Hello").unwrap();
+  pub fn test_encode_qrcode() {
+    let qr_code = encode(&Faker.fake::<String>()).unwrap();
+    println!("{qr_code}")
   }
 }

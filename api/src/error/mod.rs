@@ -45,6 +45,8 @@ pub enum ApiError {
   DatabaseError(#[from] sled::Error),
   #[error(transparent)]
   Utf8Error(#[from] std::str::Utf8Error),
+  #[error(transparent)]
+  QrCodeError(#[from] qrcode::types::QrError),
   #[error("lock error: {0}")]
   LockError(String),
   #[error("duration out of range error: {0}")]
@@ -124,6 +126,11 @@ impl ApiError {
       ),
       Utf8Error(err) => (
         "UTF8_ERROR",
+        err.to_string(),
+        StatusCode::INTERNAL_SERVER_ERROR,
+      ),
+      QrCodeError(err) => (
+        "QRCODE_ERROR",
         err.to_string(),
         StatusCode::INTERNAL_SERVER_ERROR,
       ),

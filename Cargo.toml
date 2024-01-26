@@ -52,7 +52,7 @@ mime_guess = "2.0.4"
 multer = "3.0.0"
 once_cell = { version = "1.19.0" }
 project-root = "0.2.2"
-qrcodegen = "1.8.0"
+qrcode = "0.13"
 rand = "0.8.5"
 regex = "1.10.3"
 reqwest = { version = "0.11.23", default-features = false, features = [
