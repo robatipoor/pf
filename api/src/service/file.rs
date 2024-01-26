@@ -133,12 +133,13 @@ pub async fn fetch(
         "{} not found",
         file_path.url_path()
       )));
-    } else {
-      let mut updated_meta_data = meta_data.clone();
-      updated_meta_data.count_downloads += 1;
-      state.db.update(&file_path, meta_data, updated_meta_data)?;
+    } else if meta_data.count_downloads + 1 == max {
+      // TODO set expire time
     }
   }
+  let mut updated_meta_data = meta_data.clone();
+  updated_meta_data.count_downloads += 1;
+  state.db.update(&file_path, meta_data, updated_meta_data)?;
   Ok(read_file(&state.config, &file_path))
 }
 

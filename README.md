@@ -45,25 +45,25 @@ $ docker run --name pf-api --rm -p 8080:8080 \
 # Ping the server.
 $ curl -X GET http://127.0.0.1:8080/healthz
 # Upload a file.
-$ curl -F "file=@file.txt" 127.0.0.1:8080/upload
+$ curl -F "file=@{file_name}" 127.0.0.1:8080/upload
 # Download file.
-$ curl -X GET http://127.0.0.1:8080/{code}/{file_name}.{extension}
+$ curl -o {file_name} http://127.0.0.1:8080/{code}/{file_name}
 # Upload a file with basic authentication.
-$ curl -u username:password -F "file=@file.txt" 127.0.0.1:8080/upload
+$ curl -u username:password -F "file=@{file_name}" 127.0.0.1:8080/upload
 # Download file with basic authentication.
-$ curl -u username:password -X GET http://127.0.0.1:8080/{code}/{file_name}.{extension}
+$ curl -o {file_name} -u username:password http://127.0.0.1:8080/{code}/{file_name}
 # Upload a file and then display the QR code.
-$ curl -s -F "file=@file.txt" 127.0.0.1:8080/upload | jq -r '.qrcode' | base64 -d; echo
+$ curl -s -F "file=@{file_name}" 127.0.0.1:8080/upload | jq -r '.qrcode' | base64 -d; echo
 # Upload a file with an expiration time of 100 seconds.
-$ curl -F "file=@file.txt" 127.0.0.1:8080/upload\?expire_secs=100
+$ curl -F "file=@{file_name}" 127.0.0.1:8080/upload\?expire_secs=100
 # Upload a file with a restriction on the number of downloads.
-$ curl -F "file=@file.txt" 127.0.0.1:8080/upload\?max_download=10
+$ curl -F "file=@{file_name}" 127.0.0.1:8080/upload\?max_download=10
 # Upload a file with a restriction on the number of downloads.
-$ curl -F "file=@file.txt" 127.0.0.1:8080/upload\?code_length=5
+$ curl -F "file=@{file_name}" 127.0.0.1:8080/upload\?code_length=5
 # Delete file.
-$ curl -X DELETE http://127.0.0.1:8080/{code}/{file_name}.{extension}
+$ curl -X DELETE http://127.0.0.1:8080/{code}/{file_name}
 # Get metadata file.
-$ curl -X GET http://127.0.0.1:8080/{code}/{file_name}.{extension}/info
+$ curl -X GET http://127.0.0.1:8080/info/{code}/{file_name}
 ```
 
 
