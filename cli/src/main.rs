@@ -20,7 +20,7 @@ pub enum SubCommand {
   Upload {
     #[clap(short, long, value_parser = parse_key_val::<String, String>)]
     auth: Option<(String, String)>,
-    #[clap(default_value_t = 4, short, long)]
+    #[clap(default_value_t = 3, short, long)]
     code_length: usize,
     #[clap(default_value_t = 7200, short, long)]
     expire_secs: u64,
@@ -45,6 +45,22 @@ pub enum SubCommand {
     #[clap(short, long)]
     path: PathBuf,
   },
+}
+
+#[derive(Debug)]
+pub struct ExpireTime {
+  pub value: u64,
+  pub unit: UnitDateTime,
+}
+
+#[derive(Debug)]
+pub enum UnitDateTime {
+  Second,
+  Minute,
+  Hour,
+  Day,
+  Month,
+  Year,
 }
 
 #[tokio::main]
@@ -72,6 +88,8 @@ async fn main() -> anyhow::Result<()> {
       max_download,
       file,
     } => {
+      //   let mut buf = Vec::new();
+      // std::io::stdin().read_to_end(&mut buf).unwrap();
       let file_name = file.file_name().unwrap().to_str().unwrap().to_string();
       let content_type = mime_guess::from_path(&file)
         .first()
