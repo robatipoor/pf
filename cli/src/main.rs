@@ -29,7 +29,7 @@ pub enum SubCommand {
     #[clap(default_value_t = true, short, long)]
     delete_manually: bool,
     #[clap(short, long)]
-    file: PathBuf,
+    path: PathBuf,
   },
   Delete {
     #[clap(short, long, value_parser = parse_key_val::<String, String>)]
@@ -86,17 +86,17 @@ async fn main() -> anyhow::Result<()> {
       expire_secs,
       delete_manually,
       max_download,
-      file,
+      path,
     } => {
       //   let mut buf = Vec::new();
       // std::io::stdin().read_to_end(&mut buf).unwrap();
-      let file_name = file.file_name().unwrap().to_str().unwrap().to_string();
-      let content_type = mime_guess::from_path(&file)
+      let file_name = path.file_name().unwrap().to_str().unwrap().to_string();
+      let content_type = mime_guess::from_path(&path)
         .first()
         .unwrap()
         .essence_str()
         .to_owned();
-      let file = tokio::fs::read(file).await?;
+      let file = tokio::fs::read(path).await?;
       let query = UploadQueryParam {
         max_download,
         code_length: Some(code_length),
@@ -300,7 +300,7 @@ mod tests {
         "--url",
         &ctx.server.uri(),
         "upload",
-        "--file",
+        "--path",
         &ctx.upload_file,
       ])
       .assert()
