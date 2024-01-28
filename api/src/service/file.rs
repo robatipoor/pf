@@ -29,7 +29,7 @@ pub async fn store(
     .unwrap_or(state.config.default_expire_secs) as i64;
   let now = Utc::now();
   let expiration_date = calc_expiration_date(now, expire_secs);
-  let code_length = query
+  let mut code_length = query
     .code_length
     .unwrap_or(state.config.default_code_length);
   let meta = MetaDataFile {
@@ -40,30 +40,32 @@ pub async fn store(
     secret,
     count_downloads: 0,
   };
-  while let Ok(Some(field)) = multipart.next_field().await {
-    let file_name = if let Some(file_name) = field.file_name() {
-      crate::util::file_name::validate(file_name)?;
-      file_name.to_owned()
-    } else {
-      continue;
+  while let Some(field) = multipart.next_field().await? {
+    let file_name = match field.file_name() {
+      Some(file_name) => {
+        crate::util::file_name::validate(file_name)?;
+        file_name
+      }
+      None => continue,
     };
+
     let path = loop {
       let code = crate::util::string::generate_random_string(code_length);
       let path = FilePath {
         code,
-        file_name: file_name.clone(),
+        file_name: file_name.to_string(),
       };
-      if state.db.exist(&path)? {
-        continue;
-      }
-      match state.db.store(path.clone(), meta.clone()).await {
-        Ok(_) => break path,
-        Err(ApiError::ResourceExistsError(e)) => {
-          debug!("Key already exist: {e}");
-          continue;
+      if !state.db.exist(&path)? {
+        match state.db.store(path.clone(), meta.clone()).await {
+          Ok(_) => break path,
+          Err(ApiError::ResourceExistsError(e)) => {
+            debug!("Key already exist: {e}");
+            continue;
+          }
+          Err(e) => return Err(e),
         }
-        Err(e) => return Err(e),
       }
+      code_length += 1;
     };
     let file_path = path.fs_path(&state.config.fs.base_dir);
     if let Err(e) = store_stream(&file_path, field).await {
@@ -79,11 +81,11 @@ pub async fn store(
 }
 
 pub async fn store_stream(file_path: &PathBuf, field: Field<'_>) -> ApiResult<()> {
-  let body_with_io_error = field.map_err(|err| std::io::Error::new(std::io::ErrorKind::Other, err));
-  let body_reader = StreamReader::new(body_with_io_error);
+  let body_reader =
+    StreamReader::new(field.map_err(|err| std::io::Error::new(std::io::ErrorKind::Other, err)));
   futures_util::pin_mut!(body_reader);
-  if let Some(p) = file_path.parent() {
-    tokio::fs::create_dir_all(p).await?;
+  if let Some(parent) = file_path.parent() {
+    tokio::fs::create_dir_all(parent).await?;
   }
   let mut file = BufWriter::new(File::create(file_path).await?);
   tokio::io::copy(&mut body_reader, &mut file).await?;
@@ -176,7 +178,7 @@ pub fn read_file(config: &ApiConfig, file_path: &FilePath) -> ServeFile {
 
 pub fn authorize_user(secret: Option<Secret>, secret_hash: &Option<SecretHash>) -> ApiResult<()> {
   if let Some(hash) = secret_hash {
-    match secret.map(|s| s.verify(hash)) {
+    return match secret.map(|s| s.verify(hash)) {
       Some(Ok(_)) => Ok(()),
       Some(Err(argon2::password_hash::Error::Password)) => Err(ApiError::PermissionDeniedError(
         "Secret token is invalid".to_string(),
@@ -187,10 +189,9 @@ pub fn authorize_user(secret: Option<Secret>, secret_hash: &Option<SecretHash>) 
       None => Err(ApiError::PermissionDeniedError(
         "Authorization header required.".to_string(),
       )),
-    }
-  } else {
-    Ok(())
+    };
   }
+  Ok(())
 }
 
 pub fn calc_expiration_date(now: DateTime<Utc>, secs: i64) -> DateTime<Utc> {

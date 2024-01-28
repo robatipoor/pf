@@ -47,6 +47,8 @@ pub enum ApiError {
   Utf8Error(#[from] std::str::Utf8Error),
   #[error(transparent)]
   QrCodeError(#[from] qrcode::types::QrError),
+  #[error(transparent)]
+  MultipartError(#[from] axum::extract::multipart::MultipartError),
   #[error("lock error: {0}")]
   LockError(String),
   #[error("duration out of range error: {0}")]
@@ -131,6 +133,11 @@ impl ApiError {
       ),
       QrCodeError(err) => (
         "QRCODE_ERROR",
+        err.to_string(),
+        StatusCode::INTERNAL_SERVER_ERROR,
+      ),
+      MultipartError(err) => (
+        "MULTIPART_ERROR",
         err.to_string(),
         StatusCode::INTERNAL_SERVER_ERROR,
       ),
