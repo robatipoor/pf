@@ -16,6 +16,7 @@ use log_derive::logfn;
 use once_cell::sync::Lazy;
 use reqwest::StatusCode;
 use tokio::io::AsyncWriteExt;
+use tokio_util::io::ReaderStream;
 
 pub static CLIENT: Lazy<reqwest::Client> = Lazy::new(|| {
   let disable_redirect = reqwest::redirect::Policy::custom(|attempt| attempt.stop());
@@ -69,6 +70,54 @@ impl PasteFileClient {
     let file_part = reqwest::multipart::Part::bytes(file)
       .file_name(file_name)
       .mime_str(content_type)?;
+    let form = reqwest::multipart::Form::new().part("file", file_part);
+    let mut builder = self
+      .client
+      .post(format!("{}/upload", self.addr))
+      .multipart(form)
+      .query(query);
+    if let Some((user, pass)) = auth {
+      builder = builder.basic_auth(user, Some(pass));
+    }
+    let resp = builder.send().await?;
+    Ok((resp.status(), resp.json().await?))
+  }
+
+  #[logfn(Info)]
+  pub async fn upload_from(
+    &self,
+    source: &Path,
+    query: &UploadQueryParam,
+    auth: Option<(String, String)>,
+  ) -> anyhow::Result<(StatusCode, ApiResponseResult<UploadResponse>)> {
+    let Some(Some(file_name)) = source
+      .file_name()
+      .map(|n| n.to_str().map(|n| n.to_string()))
+    else {
+      return Err(anyhow!("The source path must include the file name."))?;
+    };
+    let file = tokio::fs::File::open(source).await?;
+    let total_size = file.metadata().await?.len();
+    let mut reader_stream = ReaderStream::new(file);
+    let pb = progress_bar(total_size)?;
+    let mut uploaded = 0;
+    let async_stream = async_stream::stream! {
+        while let Some(chunk) = reader_stream.next().await {
+            if let Ok(chunk) = &chunk {
+                let new = std::cmp::min(uploaded + (chunk.len() as u64), total_size);
+                uploaded = new;
+                pb.set_position(new);
+                if uploaded >= total_size {
+                    pb.finish_with_message(format!("Uploaded to"));
+                }
+            }
+            yield chunk;
+        }
+    };
+    let content_type = mime_guess::from_path(source).first().unwrap().to_string();
+    let file_part = reqwest::multipart::Part::stream(reqwest::Body::wrap_stream(async_stream))
+      .file_name(file_name.clone())
+      .mime_str(&content_type)?;
     let form = reqwest::multipart::Form::new().part("file", file_part);
     let mut builder = self
       .client

@@ -1,8 +1,8 @@
 name: test
 on:
   push:
-    branches: ["main","dev"]
-
+    branches:    
+      - '**'
 env:
   CARGO_TERM_COLOR: always
   RUST_LOG: info
