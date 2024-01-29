@@ -1,5 +1,5 @@
 # PasteFile 📁 📥
-PastFile is a straightforward file-sharing service that allows users to upload and share files through either the command line or a web interface. The service provides a convenient means of sharing files without the necessity for user accounts or a complicated setup. The accompanying code includes the server, encompassing everything you need to create your own instance.
+The service provides a convenient means of sharing files without the necessity for user accounts or a complicated setup. The accompanying code includes the server, encompassing everything you need to create your own instance.
 
 ![License](https://img.shields.io/github/license/robatipoor/pf)
 [![Lines Of Code](https://tokei.rs/b1/github/robatipoor/pf?category=code)](https://github.com/robatipoor/pf)

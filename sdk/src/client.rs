@@ -53,9 +53,24 @@ impl PasteFileClient {
     Ok((resp.status(), resp.json().await?))
   }
 
-  pub async fn home_page(&self) -> anyhow::Result<(StatusCode, String)> {
-    let resp = self.client.get(format!("{}/web", self.addr)).send().await?;
-    Ok((resp.status(), resp.text().await?))
+  #[logfn(Info)]
+  async fn upload_file(
+    &self,
+    file_part: reqwest::multipart::Part,
+    query: &UploadQueryParam,
+    auth: Option<(String, String)>,
+  ) -> anyhow::Result<(StatusCode, ApiResponseResult<UploadResponse>)> {
+    let form = reqwest::multipart::Form::new().part("file", file_part);
+    let mut builder = self
+      .client
+      .post(format!("{}/upload", self.addr))
+      .multipart(form)
+      .query(query);
+    if let Some((user, pass)) = auth {
+      builder = builder.basic_auth(user, Some(pass));
+    }
+    let resp = builder.send().await?;
+    Ok((resp.status(), resp.json().await?))
   }
 
   #[logfn(Info)]
@@ -70,17 +85,7 @@ impl PasteFileClient {
     let file_part = reqwest::multipart::Part::bytes(file)
       .file_name(file_name)
       .mime_str(content_type)?;
-    let form = reqwest::multipart::Form::new().part("file", file_part);
-    let mut builder = self
-      .client
-      .post(format!("{}/upload", self.addr))
-      .multipart(form)
-      .query(query);
-    if let Some((user, pass)) = auth {
-      builder = builder.basic_auth(user, Some(pass));
-    }
-    let resp = builder.send().await?;
-    Ok((resp.status(), resp.json().await?))
+    self.upload_file(file_part, query, auth).await
   }
 
   #[logfn(Info)]
@@ -96,6 +101,12 @@ impl PasteFileClient {
     else {
       return Err(anyhow!("The source path must include the file name."))?;
     };
+    let Some(content_type) = mime_guess::from_path(source)
+      .first()
+      .map(|mem| mem.to_string())
+    else {
+      return Err(anyhow!("The source file name must include the extension."))?;
+    };
     let file = tokio::fs::File::open(source).await?;
     let total_size = file.metadata().await?.len();
     let mut reader_stream = ReaderStream::new(file);
@@ -108,36 +119,25 @@ impl PasteFileClient {
                 uploaded = new;
                 pb.set_position(new);
                 if uploaded >= total_size {
-                    pb.finish_with_message(format!("Uploaded to"));
+                    pb.finish_with_message("File upload completed successfully.");
                 }
             }
             yield chunk;
         }
     };
-    let content_type = mime_guess::from_path(source).first().unwrap().to_string();
     let file_part = reqwest::multipart::Part::stream(reqwest::Body::wrap_stream(async_stream))
       .file_name(file_name.clone())
       .mime_str(&content_type)?;
-    let form = reqwest::multipart::Form::new().part("file", file_part);
-    let mut builder = self
-      .client
-      .post(format!("{}/upload", self.addr))
-      .multipart(form)
-      .query(query);
-    if let Some((user, pass)) = auth {
-      builder = builder.basic_auth(user, Some(pass));
-    }
-    let resp = builder.send().await?;
-    Ok((resp.status(), resp.json().await?))
+    self.upload_file(file_part, query, auth).await
   }
 
   #[logfn(Info)]
   pub async fn download(
     &self,
-    path_file: &str,
+    url_path: &str,
     auth: Option<(String, String)>,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<Vec<u8>>)> {
-    let mut builder = self.client.get(format!("{}/{path_file}", self.addr));
+    let mut builder = self.client.get(format!("{}/{url_path}", self.addr));
     if let Some((user, pass)) = auth {
       builder = builder.basic_auth(user, Some(pass));
     }
@@ -183,7 +183,7 @@ impl PasteFileClient {
     let pb = progress_bar(total_size)?;
     while let Some(chunk) = stream.next().await {
       let chunk = chunk?;
-      file.write(&chunk).await?;
+      file.write_all(&chunk).await?;
       let new = std::cmp::min(downloaded + (chunk.len() as u64), total_size);
       downloaded = new;
       pb.set_position(new);
@@ -195,10 +195,10 @@ impl PasteFileClient {
   #[logfn(Info)]
   pub async fn info(
     &self,
-    path_file: &str,
+    url_path: &str,
     auth: Option<(String, String)>,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<MetaDataFileResponse>)> {
-    let mut builder = self.client.get(format!("{}/info/{path_file}", self.addr));
+    let mut builder = self.client.get(format!("{}/info/{url_path}", self.addr));
     if let Some((user, pass)) = auth {
       builder = builder.basic_auth(user, Some(pass));
     }
@@ -209,10 +209,10 @@ impl PasteFileClient {
   #[logfn(Info)]
   pub async fn delete(
     &self,
-    path_file: &str,
+    url_path: &str,
     auth: Option<(String, String)>,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult)> {
-    let mut builder = self.client.delete(format!("{}/{path_file}", self.addr));
+    let mut builder = self.client.delete(format!("{}/{url_path}", self.addr));
     if let Some((user, pass)) = auth {
       builder = builder.basic_auth(user, Some(pass));
     }

@@ -17,4 +17,11 @@ impl<T> ApiResponseResult<T> {
   pub fn is_err(&self) -> bool {
     matches!(*self, Self::Err(_))
   }
+
+  pub fn map<U, F: FnOnce(T) -> U>(self, op: F) -> ApiResponseResult<U> {
+    match self {
+      ApiResponseResult::Ok(t) => ApiResponseResult::Ok(op(t)),
+      ApiResponseResult::Err(e) => ApiResponseResult::Err(e),
+    }
+  }
 }

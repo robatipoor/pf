@@ -12,7 +12,7 @@ pub fn encrypt(data: &[u8], key: &String, nonce: &String) -> anyhow::Result<Vec<
     .as_bytes()
     .try_into()
     .map_err(|_e| anyhow::anyhow!("The nonce length should be 12 characters."))?;
-  let cipher = ChaCha20Poly1305::new(&GenericArray::from_slice(&key));
+  let cipher = ChaCha20Poly1305::new(GenericArray::from_slice(&key));
   let cipher_data = cipher
     .encrypt(Nonce::from_slice(&nonce), data)
     .map_err(|e| anyhow::anyhow!("Encrypt data failed. Error: {e}"))?;
@@ -28,7 +28,7 @@ pub fn decrypt(cipher_data: &[u8], key: &String, nonce: &String) -> anyhow::Resu
     .as_bytes()
     .try_into()
     .map_err(|_e| anyhow::anyhow!("The nonce length should be 12 characters."))?;
-  let cipher = ChaCha20Poly1305::new(&GenericArray::from_slice(&key));
+  let cipher = ChaCha20Poly1305::new(GenericArray::from_slice(&key));
   let data = cipher
     .decrypt(Nonce::from_slice(&nonce), cipher_data)
     .map_err(|e| anyhow::anyhow!("Decrypt data failed. Error: {e}"))?;
