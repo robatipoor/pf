@@ -1,4 +1,4 @@
-// use std::path::Path;
+use std::path::Path;
 
 use crate::{
   error::BodyResponseError,
@@ -7,13 +7,15 @@ use crate::{
     response::{MetaDataFileResponse, UploadResponse},
   },
   result::ApiResponseResult,
+  util::progress::progress_bar,
 };
 
-// use futures_util::StreamExt;
+use anyhow::anyhow;
+use futures_util::StreamExt;
 use log_derive::logfn;
 use once_cell::sync::Lazy;
 use reqwest::StatusCode;
-// use tokio::io::AsyncWriteExt;
+use tokio::io::AsyncWriteExt;
 
 pub static CLIENT: Lazy<reqwest::Client> = Lazy::new(|| {
   let disable_redirect = reqwest::redirect::Policy::custom(|attempt| attempt.stop());
@@ -99,38 +101,47 @@ impl PasteFileClient {
     Ok((status, ApiResponseResult::Ok(resp.bytes().await?.to_vec())))
   }
 
-  // #[logfn(Info)]
-  // pub async fn download_into(
-  //   &self,
-  //   path_file: &str,
-  //   auth: Option<(String, String)>,
-  //   src_path: &Path,
-  // ) -> anyhow::Result<(StatusCode, ApiResponseResult<Vec<u8>>)> {
-  //   let mut builder = self.client.get(format!("{}/{path_file}", self.addr));
-  //   if let Some((user, pass)) = auth {
-  //     builder = builder.basic_auth(user, Some(pass));
-  //   }
-  //   let resp = builder.send().await?;
-  //   let status = resp.status();
-  //   if !status.is_success() {
-  //     let error = resp.json::<BodyResponseError>().await?;
-  //     return Ok((status, ApiResponseResult::Err(error)));
-  //   }
-  //   let total_size = resp.content_length().unwrap();
-  //   let mut file = tokio::fs::File::create(src_path).await?;
-  //   let stream = resp.bytes_stream();
-  //   let mut downloaded: u64 = 0;
-  //   while let Some(chunk) = stream.next().await {
-  //     let chunk = chunk?;
-  //     file.write(&chunk).await?;
-  //     let new = std::cmp::min(downloaded + (chunk.len() as u64), total_size);
-  //     downloaded = new;
-  //     pb.set_position(new);
-  //   }
-
-  //   pb.finish_with_message(format!("Downloaded {} to {}", url, path));
-  //   Ok((status, ApiResponseResult::Ok(resp.bytes().await?.to_vec())))
-  // }
+  #[logfn(Info)]
+  pub async fn download_into(
+    &self,
+    url_path: &str,
+    auth: Option<(String, String)>,
+    dest: &Path,
+  ) -> anyhow::Result<(StatusCode, ApiResponseResult<()>)> {
+    if dest.file_name().is_none() {
+      return Err(anyhow!("The destination path must include the file name."))?;
+    }
+    let url = format!("{}/{url_path}", self.addr);
+    let mut builder = self.client.get(&url);
+    if let Some((user, pass)) = auth {
+      builder = builder.basic_auth(user, Some(pass));
+    }
+    let resp = builder.send().await?;
+    let status = resp.status();
+    if !status.is_success() {
+      let error = resp.json::<BodyResponseError>().await?;
+      return Ok((status, ApiResponseResult::Err(error)));
+    }
+    let total_size = resp
+      .content_length()
+      .ok_or_else(|| anyhow::anyhow!("content length not found"))?;
+    if let Some(parent) = dest.parent() {
+      tokio::fs::create_dir_all(parent).await?;
+    }
+    let mut file = tokio::fs::File::create(dest).await?;
+    let mut stream = resp.bytes_stream();
+    let mut downloaded: u64 = 0;
+    let pb = progress_bar(total_size)?;
+    while let Some(chunk) = stream.next().await {
+      let chunk = chunk?;
+      file.write(&chunk).await?;
+      let new = std::cmp::min(downloaded + (chunk.len() as u64), total_size);
+      downloaded = new;
+      pb.set_position(new);
+    }
+    pb.finish_with_message(format!("Downloaded {url} to {:?}", dest.to_str()));
+    Ok((status, ApiResponseResult::Ok(())))
+  }
 
   #[logfn(Info)]
   pub async fn info(
