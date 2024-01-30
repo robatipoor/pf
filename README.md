@@ -19,7 +19,12 @@ The service provides a convenient means of sharing files without the necessity f
 
 **Feature highlights**
 
-* 
+* Basic Authentication
+* Anonymous Uploads
+* File Expiration
+* Burn After Reading
+* QRCode
+* Command Line Interface (CLI)
 
 **Run Backend Service Locally**
 
@@ -59,12 +64,14 @@ $ curl -u username:password -F "file=@{file_name}" 127.0.0.1:8080/upload
 $ curl -o {file_name} -u username:password http://127.0.0.1:8080/{code}/{file_name}
 # Upload a file and then display the QR code.
 $ curl -s -F "file=@{file_name}" 127.0.0.1:8080/upload | jq -r '.qrcode' | base64 -d; echo
-# Upload a file with an expiration time of 100 seconds.
+# Upload a file with an expiration time of 100 seconds (default value specify in settings file).
 $ curl -F "file=@{file_name}" 127.0.0.1:8080/upload\?expire_secs=100
 # Upload a file with a restriction on the number of downloads.
 $ curl -F "file=@{file_name}" 127.0.0.1:8080/upload\?max_download=10
-# Upload a file with a restriction on the number of downloads.
+# Upload a file and specify the minimum code length in the URL path as 5 (default value specify in settings file).
 $ curl -F "file=@{file_name}" 127.0.0.1:8080/upload\?code_length=5
+# Upload a file and prevent manual deletion until expiration.
+$ curl -F "file=@{file_name}" 127.0.0.1:8080/upload\?delete_manually=false
 # Delete file.
 $ curl -X DELETE http://127.0.0.1:8080/{code}/{file_name}
 # Get metadata file.

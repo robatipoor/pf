@@ -18,6 +18,15 @@ impl<T> ApiResponseResult<T> {
     matches!(*self, Self::Err(_))
   }
 
+  pub fn unwrap(self) -> T {
+    match self {
+      ApiResponseResult::Ok(t) => t,
+      ApiResponseResult::Err(e) => {
+        panic!("called `ApiResponseResult::unwrap()` on an `Err` value {e:?}")
+      }
+    }
+  }
+
   pub fn map<U, F: FnOnce(T) -> U>(self, op: F) -> ApiResponseResult<U> {
     match self {
       ApiResponseResult::Ok(t) => ApiResponseResult::Ok(op(t)),
