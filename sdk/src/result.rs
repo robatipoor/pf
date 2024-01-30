@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{error::BodyResponseError, model::response::MessageResponse};
+use crate::{dto::response::MessageResponse, error::BodyResponseError};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]

@@ -1,4 +1,4 @@
-use sdk::{client::PasteFileClient, model::request::UploadQueryParam};
+use sdk::{client::PasteFileClient, dto::request::UploadQueryParam};
 
 const SERVER_URL: &str = "127.0.0.1:8080";
 

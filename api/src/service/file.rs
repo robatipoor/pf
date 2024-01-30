@@ -6,7 +6,7 @@ use axum::extract::multipart::Field;
 use axum::extract::Multipart;
 use chrono::{DateTime, Utc};
 use futures_util::TryStreamExt;
-use sdk::model::request::UploadQueryParam;
+use sdk::dto::request::UploadQueryParam;
 use std::path::PathBuf;
 use tokio::fs::File;
 use tokio::io::BufWriter;

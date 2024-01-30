@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 use clap::{Parser, Subcommand};
-use sdk::{client::PasteFileClient, model::request::UploadQueryParam, result::ApiResponseResult};
+use sdk::{client::PasteFileClient, dto::request::UploadQueryParam, result::ApiResponseResult};
 use std::{error::Error, path::PathBuf};
 use tokio::io::AsyncWriteExt;
 
@@ -191,7 +191,7 @@ mod tests {
   use fake::{Fake, Faker};
   use once_cell::sync::Lazy;
   use project_root::get_project_root;
-  use sdk::model::response::{MessageResponse, MetaDataFileResponse, UploadResponse};
+  use sdk::dto::response::{MessageResponse, MetaDataFileResponse, UploadResponse};
   use std::process::Stdio;
   use test_context::AsyncTestContext;
   use tokio::io::AsyncWriteExt;

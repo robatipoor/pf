@@ -14,6 +14,8 @@ The service provides a convenient means of sharing files without the necessity f
 **Requirements**
 
 - [rust](https://www.rust-lang.org/tools/install)
+- [curl](https://curl.se/) 
+- [qr](https://jqlang.github.io/jq/)
 - [docker](https://www.docker.com/)
 - [docker-compose](https://docs.docker.com/compose/)
 
@@ -23,7 +25,7 @@ The service provides a convenient means of sharing files without the necessity f
 * Anonymous Uploads
 * File Expiration
 * Burn After Reading
-* QRCode
+* QR code Generator
 * Command Line Interface (CLI)
 
 **Run Backend Service Locally**
@@ -54,8 +56,8 @@ $ docker run --name pf-api --rm -p 8080:8080 \
 ```sh
 # Ping the server.
 $ curl -X GET http://127.0.0.1:8080/healthz
-# Upload a file.
-$ curl -F "file=@{file_name}" 127.0.0.1:8080/upload
+# Upload a file and then get download url.
+$ curl -s -F "file=@{file_name}" 127.0.0.1:8080/upload | jq -r '.url'
 # Download file.
 $ curl -o {file_name} http://127.0.0.1:8080/{code}/{file_name}
 # Upload a file with basic authentication.

@@ -9,7 +9,7 @@ use crate::{
   error::{ApiError, ApiResult},
 };
 use chrono::{DateTime, Utc};
-use sdk::model::response::MetaDataFileResponse;
+use sdk::dto::response::MetaDataFileResponse;
 use serde::{Deserialize, Serialize};
 use sled::IVec;
 use std::sync::RwLock;

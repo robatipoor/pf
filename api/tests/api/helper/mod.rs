@@ -8,7 +8,7 @@ use api::util::tracing::INIT_SUBSCRIBER;
 use fake::{Fake, Faker};
 use once_cell::sync::Lazy;
 use sdk::client::PasteFileClient;
-use sdk::model::request::UploadQueryParam;
+use sdk::dto::request::UploadQueryParam;
 use test_context::AsyncTestContext;
 
 pub struct ApiTestContext {

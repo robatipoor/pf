@@ -6,7 +6,7 @@ use axum::{
   Json,
 };
 
-use sdk::model::{
+use sdk::dto::{
   request::UploadQueryParam,
   response::{MessageResponse, MetaDataFileResponse, UploadResponse},
 };

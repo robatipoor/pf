@@ -1,11 +1,11 @@
 use std::path::Path;
 
 use crate::{
-  error::BodyResponseError,
-  model::{
+  dto::{
     request::UploadQueryParam,
     response::{MetaDataFileResponse, UploadResponse},
   },
+  error::BodyResponseError,
   result::ApiResponseResult,
   util::progress::progress_bar,
 };
