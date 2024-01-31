@@ -1,15 +1,20 @@
 use anyhow::anyhow;
+use base64::Engine;
 use clap::{Parser, Subcommand};
-use sdk::{client::PasteFileClient, dto::request::UploadQueryParam, result::ApiResponseResult};
+use sdk::{
+  client::PasteFileClient, dto::request::UploadQueryParam, result::ApiResponseResult,
+  util::base64::BASE64_ENGIN,
+};
 use std::{error::Error, path::PathBuf};
-use tokio::io::AsyncWriteExt;
+use url::Url;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
   #[arg(short, long)]
-  url: String,
-
+  server_addr: String,
+  #[clap(short, long, value_parser = parse_auth)]
+  auth: Option<(String, String)>,
   #[clap(subcommand)]
   cmd: SubCommand,
 }
@@ -18,62 +23,69 @@ struct Args {
 pub enum SubCommand {
   Ping,
   Upload {
-    #[clap(short, long, value_parser = parse_key_val::<String, String>)]
-    auth: Option<(String, String)>,
-    #[clap(default_value_t = 3, short, long)]
-    code_length: usize,
-    #[clap(default_value_t = 7200, short, long)]
-    expire_secs: u64,
+    #[clap(short, long)]
+    code_length: Option<usize>,
+    #[clap(short, long,value_parser = parse_expire_time_from_str)]
+    expire: Option<u64>,
     #[clap(short, long)]
     max_download: Option<u32>,
-    #[clap(default_value_t = true, short, long)]
-    delete_manually: bool,
     #[clap(short, long)]
-    path: PathBuf,
+    delete_manually: Option<bool>,
+    #[clap(default_value_t = false, short, long)]
+    qrcode: bool,
+    #[clap(default_value_t = false, short, long)]
+    progress_bar: bool,
+    #[clap(short, long)]
+    source_file: PathBuf,
   },
   Delete {
-    #[clap(short, long, value_parser = parse_key_val::<String, String>)]
-    auth: Option<(String, String)>,
+    #[arg(short, long)]
+    url_path: String,
   },
   Info {
-    #[clap(short, long, value_parser = parse_key_val::<String, String>)]
-    auth: Option<(String, String)>,
+    #[arg(short, long)]
+    url_path: String,
   },
   Download {
-    #[clap(short, long, value_parser = parse_key_val::<String, String>)]
-    auth: Option<(String, String)>,
+    #[clap(default_value_t = false, short, long)]
+    progress_bar: bool,
+    #[arg(short, long)]
+    url_path: String,
     #[clap(short, long)]
-    path: PathBuf,
+    destination_dir: PathBuf,
   },
 }
 
-#[derive(Debug)]
-pub struct ExpireTime {
-  pub value: u64,
-  pub unit: UnitDateTime,
-}
-
-#[derive(Debug)]
-pub enum UnitDateTime {
-  Second,
-  Minute,
-  Hour,
-  Day,
-  Month,
-  Year,
+fn parse_expire_time_from_str(
+  expire_time: &str,
+) -> Result<u64, Box<dyn Error + Send + Sync + 'static>> {
+  let words: Vec<&str> = expire_time.split_whitespace().collect();
+  if words.len() != 2 {
+    return Err("Invalid expire time format".into());
+  }
+  let value: u64 = words[0].parse()?;
+  let multiplier = match words[1].to_lowercase().as_str() {
+    "second" | "sec" | "s" => value,
+    "minute" | "min" => value * 60,
+    "hour" | "h" => value * 3600,
+    "day" | "d" => value * 3600 * 24,
+    "month" => value * 3600 * 24 * 30,
+    "year" | "y" => value * 3600 * 24 * 30 * 12,
+    _ => return Err("Invalid expire time format".into()),
+  };
+  Ok(value * multiplier)
 }
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
   let args = Args::parse();
-  let url = url::Url::parse(&args.url)?;
-  let client = PasteFileClient::new(base_url(&url));
+  let client = PasteFileClient::new(args.server_addr);
   match args.cmd {
     SubCommand::Ping => {
       let (_, resp) = client.health_check().await?;
       match resp {
         ApiResponseResult::Ok(resp) => {
-          println!("{}", serde_json::to_string(&resp)?);
+          println!("{}", resp.message);
         }
         ApiResponseResult::Err(err) => {
           return Err(anyhow!("{}", serde_json::to_string(&err)?));
@@ -81,31 +93,68 @@ async fn main() -> anyhow::Result<()> {
       }
     }
     SubCommand::Upload {
-      auth,
       code_length,
-      expire_secs,
+      progress_bar,
+      expire,
       delete_manually,
       max_download,
-      path,
+      qrcode,
+      source_file,
     } => {
-      //   let mut buf = Vec::new();
-      // std::io::stdin().read_to_end(&mut buf).unwrap();
-      let file_name = path.file_name().unwrap().to_str().unwrap().to_string();
-      let content_type = mime_guess::from_path(&path)
-        .first()
-        .unwrap()
-        .essence_str()
-        .to_owned();
-      let file = tokio::fs::read(path).await?;
       let query = UploadQueryParam {
         max_download,
-        code_length: Some(code_length),
-        expire_secs: Some(expire_secs),
-        delete_manually: Some(delete_manually),
+        code_length,
+        expire_secs: expire,
+        delete_manually,
       };
-      let (_, resp) = client
-        .upload(file_name, &content_type, &query, file, auth)
-        .await?;
+      let (_, resp) = if progress_bar {
+        client
+          .upload_with_progress_bar(&source_file, &query, args.auth)
+          .await
+      } else {
+        client.upload_from(&source_file, &query, args.auth).await
+      }?;
+      match resp {
+        ApiResponseResult::Ok(resp) => {
+          if qrcode {
+            println!(
+              "{}",
+              std::str::from_utf8(&BASE64_ENGIN.decode(resp.qrcode)?)?
+            );
+          } else {
+            println!("{}", &Url::parse(&resp.url)?.path()[1..]);
+          }
+        }
+        ApiResponseResult::Err(err) => {
+          return Err(anyhow!("{}", serde_json::to_string(&err)?));
+        }
+      }
+    }
+    SubCommand::Download {
+      progress_bar,
+      url_path,
+      destination_dir,
+    } => {
+      let (_, resp) = if progress_bar {
+        client
+          .download_with_progress_bar(&url_path, args.auth, &destination_dir)
+          .await
+      } else {
+        client
+          .download_into(&url_path, args.auth, &destination_dir)
+          .await
+      }?;
+      match resp {
+        ApiResponseResult::Ok(_) => {
+          println!("Done");
+        }
+        ApiResponseResult::Err(err) => {
+          return Err(anyhow!("{}", serde_json::to_string(&err)?));
+        }
+      }
+    }
+    SubCommand::Info { url_path } => {
+      let (_, resp) = client.info(&url_path, args.auth).await?;
       match resp {
         ApiResponseResult::Ok(resp) => {
           println!("{}", serde_json::to_string(&resp)?);
@@ -115,42 +164,11 @@ async fn main() -> anyhow::Result<()> {
         }
       }
     }
-    SubCommand::Delete { auth } => {
-      let (_, resp) = client.delete(&url.path()[1..], auth).await?;
+    SubCommand::Delete { url_path } => {
+      let (_, resp) = client.delete(&url_path, args.auth).await?;
       match resp {
         ApiResponseResult::Ok(resp) => {
           println!("{}", serde_json::to_string(&resp)?);
-        }
-        ApiResponseResult::Err(err) => {
-          return Err(anyhow!("{}", serde_json::to_string(&err)?));
-        }
-      }
-    }
-    SubCommand::Info { auth } => {
-      let (_, resp) = client.info(&url.path()[1..], auth).await?;
-      match resp {
-        ApiResponseResult::Ok(resp) => {
-          println!("{}", serde_json::to_string(&resp)?);
-        }
-        ApiResponseResult::Err(err) => {
-          return Err(anyhow!("{}", serde_json::to_string(&err)?));
-        }
-      }
-    }
-    SubCommand::Download { path, auth } => {
-      let (_, resp) = client.download(&url.path()[1..], auth).await?;
-      match resp {
-        ApiResponseResult::Ok(resp) => {
-          let file_name = PathBuf::from(url.path())
-            .file_name()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string();
-          let _ = tokio::fs::create_dir_all(&path).await;
-          let mut file = tokio::fs::File::create(path.join(file_name)).await?;
-          file.write_all(&resp).await?;
-          println!("Ok");
         }
         ApiResponseResult::Err(err) => {
           return Err(anyhow!("{}", serde_json::to_string(&err)?));
@@ -161,16 +179,10 @@ async fn main() -> anyhow::Result<()> {
   Ok(())
 }
 
-fn parse_key_val<T, U>(s: &str) -> Result<(T, U), Box<dyn Error + Send + Sync + 'static>>
-where
-  T: std::str::FromStr,
-  T::Err: Error + Send + Sync + 'static,
-  U: std::str::FromStr,
-  U::Err: Error + Send + Sync + 'static,
-{
+fn parse_auth(s: &str) -> Result<(String, String), Box<dyn Error + Send + Sync + 'static>> {
   let pos = s
     .find(':')
-    .ok_or_else(|| format!("invalid username:password: no `:` found in `{s}`"))?;
+    .ok_or_else(|| format!("invalid username:password: no `:` found in {s}"))?;
   Ok((s[..pos].parse()?, s[pos + 1..].parse()?))
 }
 

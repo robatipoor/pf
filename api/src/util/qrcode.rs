@@ -1,10 +1,8 @@
-use base64::{engine, Engine};
+use base64::Engine;
 use qrcode::QrCode;
+use sdk::util::base64::BASE64_ENGIN;
 
 use crate::error::ApiResult;
-
-pub const BASE64_ENGIN: engine::GeneralPurpose =
-  engine::GeneralPurpose::new(&base64::alphabet::STANDARD, engine::general_purpose::PAD);
 
 pub fn encode(text: &str) -> ApiResult<String> {
   let qrcode = QrCode::new(text.as_bytes())?

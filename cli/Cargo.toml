@@ -32,3 +32,4 @@ url = { workspace = true }
 project-root = { workspace = true }
 tracing-subscriber = { workspace = true }
 garde = { workspace = true }
+base64 = { workspace = true }

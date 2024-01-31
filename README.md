@@ -11,14 +11,6 @@ The service provides a convenient means of sharing files without the necessity f
 [![Test Coverage](https://github.com/robatipoor/pf/actions/workflows/test-coverage.yml/badge.svg)](https://github.com/robatipoor/pf/actions/workflows/test-coverage.yml)
 [![Codecov](https://codecov.io/gh/robatipoor/pf/branch/main/graph/badge.svg?token=BIMUKRJPE7)](https://codecov.io/gh/robatipoor/pf)
 
-**Requirements**
-
-- [rust](https://www.rust-lang.org/tools/install)
-- [curl](https://curl.se/) 
-- [qr](https://jqlang.github.io/jq/)
-- [docker](https://www.docker.com/)
-- [docker-compose](https://docs.docker.com/compose/)
-
 **Feature highlights**
 
 * Basic Authentication
@@ -120,6 +112,31 @@ path = "db-tmp"
 ```bash
 export PF__SERVER__PORT=8080
 export PF__SERVER__HOST=127.0.0.1
+```
+
+**PastFile Command Line Interface**
+
+```sh
+# Clone the project
+$ git clone https://github.com/robatipoor/pf
+# Build the cli tool
+$ cargo build --bin cli --release
+# Upload file
+$ ./target/release/cli --server-addr "http://localhost:8080" upload --source-file ~/file.txt 
+# Upload file with basic authentication
+$ ./target/release/cli --server-addr "http://localhost:8080" --auth "username:password" upload --source-file ~/file.txt 
+# Upload file with expire time
+$ ./target/release/cli --server-addr "http://localhost:8080" upload --expire "10m" --source-file ~/file.txt  
+# Upload file display QR code
+$ ./target/release/cli --server-addr "http://localhost:8080" upload --source-file ~/file.txt --qrcode
+# Download file.
+$ ./target/release/cli --server-addr "http://localhost:8080" download  --destination-dir ~/Download
+# Download file.
+$ ./target/release/cli --server-addr "http://localhost:8080" download  --destination-dir ~/Download --url-path "{code}/{file_name}"
+# Get metadata information file.
+$ ./target/release/cli --server-addr "http://localhost:8080" info --url-path "{code}/{file_name}"
+# Delete file
+$ ./target/release/cli --server-addr "http://localhost:8080" delete --url-path "{code}/{file_name}"
 ```
 
 **Run tests**

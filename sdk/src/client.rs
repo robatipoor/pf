@@ -95,18 +95,25 @@ impl PasteFileClient {
     query: &UploadQueryParam,
     auth: Option<(String, String)>,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<UploadResponse>)> {
-    let Some(Some(file_name)) = source
-      .file_name()
-      .map(|n| n.to_str().map(|n| n.to_string()))
-    else {
-      return Err(anyhow!("The source path must include the file name."))?;
-    };
-    let Some(content_type) = mime_guess::from_path(source)
-      .first()
-      .map(|mem| mem.to_string())
-    else {
-      return Err(anyhow!("The source file name must include the extension."))?;
-    };
+    let file_name = crate::util::file::get_file_name(source)?;
+    let content_type = crate::util::file::get_content_type(source)?;
+    let file = tokio::fs::File::open(source).await?;
+    let file_part =
+      reqwest::multipart::Part::stream(reqwest::Body::wrap_stream(ReaderStream::new(file)))
+        .file_name(file_name)
+        .mime_str(&content_type)?;
+    self.upload_file(file_part, query, auth).await
+  }
+
+  #[logfn(Info)]
+  pub async fn upload_with_progress_bar(
+    &self,
+    source: &Path,
+    query: &UploadQueryParam,
+    auth: Option<(String, String)>,
+  ) -> anyhow::Result<(StatusCode, ApiResponseResult<UploadResponse>)> {
+    let file_name = crate::util::file::get_file_name(source)?;
+    let content_type = crate::util::file::get_content_type(source)?;
     let file = tokio::fs::File::open(source).await?;
     let total_size = file.metadata().await?.len();
     let mut reader_stream = ReaderStream::new(file);
@@ -152,6 +159,39 @@ impl PasteFileClient {
 
   #[logfn(Info)]
   pub async fn download_into(
+    &self,
+    url_path: &str,
+    auth: Option<(String, String)>,
+    dest: &Path,
+  ) -> anyhow::Result<(StatusCode, ApiResponseResult<()>)> {
+    if dest.file_name().is_none() {
+      return Err(anyhow!("The destination path must include the file name."))?;
+    }
+    let url = format!("{}/{url_path}", self.addr);
+    let mut builder = self.client.get(&url);
+    if let Some((user, pass)) = auth {
+      builder = builder.basic_auth(user, Some(pass));
+    }
+    let resp = builder.send().await?;
+    let status = resp.status();
+    if !status.is_success() {
+      let error = resp.json::<BodyResponseError>().await?;
+      return Ok((status, ApiResponseResult::Err(error)));
+    }
+    if let Some(parent) = dest.parent() {
+      tokio::fs::create_dir_all(parent).await?;
+    }
+    let mut file = tokio::fs::File::create(dest).await?;
+    let mut stream = resp.bytes_stream();
+    while let Some(chunk) = stream.next().await {
+      let chunk = chunk?;
+      file.write_all(&chunk).await?;
+    }
+    Ok((status, ApiResponseResult::Ok(())))
+  }
+
+  #[logfn(Info)]
+  pub async fn download_with_progress_bar(
     &self,
     url_path: &str,
     auth: Option<(String, String)>,
