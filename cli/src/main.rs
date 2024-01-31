@@ -186,14 +186,14 @@ fn parse_auth(s: &str) -> Result<(String, String), Box<dyn Error + Send + Sync +
   Ok((s[..pos].parse()?, s[pos + 1..].parse()?))
 }
 
-fn base_url(url: &url::Url) -> String {
-  format!(
-    "{}://{}:{}",
-    url.scheme(),
-    url.host_str().unwrap(),
-    url.port().unwrap()
-  )
-}
+// fn base_url(url: &url::Url) -> String {
+//   format!(
+//     "{}://{}:{}",
+//     url.scheme(),
+//     url.host_str().unwrap(),
+//     url.port().unwrap()
+//   )
+// }
 
 #[cfg(test)]
 mod tests {
