@@ -66,10 +66,10 @@ $ curl -F "file=@{file_name}" 127.0.0.1:8080/upload\?max_download=10
 $ curl -F "file=@{file_name}" 127.0.0.1:8080/upload\?code_length=5
 # Upload a file and prevent manual deletion until expiration.
 $ curl -F "file=@{file_name}" 127.0.0.1:8080/upload\?delete_manually=false
-# Delete file.
-$ curl -X DELETE http://127.0.0.1:8080/{code}/{file_name}
 # Get metadata file.
 $ curl -X GET http://127.0.0.1:8080/info/{code}/{file_name}
+# Delete file.
+$ curl -X DELETE http://127.0.0.1:8080/{code}/{file_name}
 ```
 
 **Backend settings**
@@ -121,22 +121,30 @@ export PF__SERVER__HOST=127.0.0.1
 $ git clone https://github.com/robatipoor/pf
 # Build the cli tool
 $ cargo build --bin cli --release
-# Upload file
-$ ./target/release/cli --server-addr "http://localhost:8080" upload --source-file ~/file.txt 
-# Upload file with basic authentication
-$ ./target/release/cli --server-addr "http://localhost:8080" --auth "username:password" upload --source-file ~/file.txt 
-# Upload file with expire time
-$ ./target/release/cli --server-addr "http://localhost:8080" upload --expire "10m" --source-file ~/file.txt  
-# Upload file display QR code
-$ ./target/release/cli --server-addr "http://localhost:8080" upload --source-file ~/file.txt --qrcode
+# Upload a file and then get download url.
+$ ./target/release/cli --server-addr "http://localhost:8080" \
+upload --source-file ~/example-file.txt  
+# Upload a file with basic authentication.
+$ ./target/release/cli --server-addr "http://localhost:8080" \
+--auth "username:password" upload --source-file ~/example-file.txt 
+# Upload a file with an expiration time of 10 minutes.
+$ ./target/release/cli --server-addr "http://localhost:8080" \
+upload --expire "10 minute" --source-file ~/example-file.txt  
+# Upload a file and then display the QR code.
+$ ./target/release/cli --server-addr "http://localhost:8080" \
+upload --source-file ~/example-file.txt --qrcode
 # Download file.
-$ ./target/release/cli --server-addr "http://localhost:8080" download  --destination-dir ~/Download
+$ ./target/release/cli --server-addr "http://localhost:8080" \
+download --destination-dir ~/example-dir/
 # Download file.
-$ ./target/release/cli --server-addr "http://localhost:8080" download  --destination-dir ~/Download --url-path "{code}/{file_name}"
-# Get metadata information file.
-$ ./target/release/cli --server-addr "http://localhost:8080" info --url-path "{code}/{file_name}"
-# Delete file
-$ ./target/release/cli --server-addr "http://localhost:8080" delete --url-path "{code}/{file_name}"
+$ ./target/release/cli --server-addr "http://localhost:8080" \
+download --destination-dir ~/example-dir/ --url-path "{code}/{file_name}"
+# Get metadata file.
+$ ./target/release/cli --server-addr "http://localhost:8080" \
+info --url-path "{code}/{file_name}"
+# Delete file.
+$ ./target/release/cli --server-addr "http://localhost:8080" \
+delete --url-path "{code}/{file_name}"
 ```
 
 **Run tests**

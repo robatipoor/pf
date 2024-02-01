@@ -57,26 +57,6 @@ pub enum SubCommand {
   },
 }
 
-fn parse_expire_time_from_str(
-  expire_time: &str,
-) -> Result<u64, Box<dyn Error + Send + Sync + 'static>> {
-  let words: Vec<&str> = expire_time.split_whitespace().collect();
-  if words.len() != 2 {
-    return Err("Invalid expire time format".into());
-  }
-  let value: u64 = words[0].parse()?;
-  let multiplier = match words[1].to_lowercase().as_str() {
-    "second" | "sec" | "s" => value,
-    "minute" | "min" => value * 60,
-    "hour" | "h" => value * 3600,
-    "day" | "d" => value * 3600 * 24,
-    "month" => value * 3600 * 24 * 30,
-    "year" | "y" => value * 3600 * 24 * 30 * 12,
-    _ => return Err("Invalid expire time format".into()),
-  };
-  Ok(value * multiplier)
-}
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
   let args = Args::parse();
@@ -185,4 +165,24 @@ fn parse_auth(s: &str) -> Result<(String, String), Box<dyn Error + Send + Sync +
     .find(':')
     .ok_or_else(|| format!("invalid username:password: no `:` found in {s}"))?;
   Ok((s[..pos].parse()?, s[pos + 1..].parse()?))
+}
+
+fn parse_expire_time_from_str(
+  expire_time: &str,
+) -> Result<u64, Box<dyn Error + Send + Sync + 'static>> {
+  let words: Vec<&str> = expire_time.split_whitespace().collect();
+  if words.len() != 2 {
+    return Err("Invalid expire time format".into());
+  }
+  let value: u64 = words[0].parse()?;
+  let multiplier = match words[1].to_lowercase().as_str() {
+    "second" | "sec" | "s" => value,
+    "minute" | "min" => value * 60,
+    "hour" | "h" => value * 3600,
+    "day" | "d" => value * 3600 * 24,
+    "month" => value * 3600 * 24 * 30,
+    "year" | "y" => value * 3600 * 24 * 30 * 12,
+    _ => return Err("Invalid expire time format".into()),
+  };
+  Ok(value * multiplier)
 }
