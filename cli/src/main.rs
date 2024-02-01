@@ -6,6 +6,7 @@ use sdk::{
   util::base64::BASE64_ENGIN,
 };
 use std::{error::Error, path::PathBuf};
+
 use url::Url;
 
 #[derive(Parser, Debug)]
@@ -137,11 +138,11 @@ async fn main() -> anyhow::Result<()> {
     } => {
       let (_, resp) = if progress_bar {
         client
-          .download_with_progress_bar(&url_path, args.auth, &destination_dir)
+          .download_with_progress_bar(&url_path, args.auth, destination_dir)
           .await
       } else {
         client
-          .download_into(&url_path, args.auth, &destination_dir)
+          .download_into(&url_path, args.auth, destination_dir)
           .await
       }?;
       match resp {

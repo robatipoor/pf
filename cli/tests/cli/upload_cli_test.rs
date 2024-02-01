@@ -1,16 +1,19 @@
+use assert_cmd::Command;
+
+use crate::helper::CliTestContext;
 
 #[test_context::test_context(CliTestContext)]
 #[tokio::test]
 async fn test_upload_command(ctx: &mut CliTestContext) {
-  // ctx.mock_upload_api().await;
+  let (file, _) = ctx.create_dummy_file().await.unwrap();
   let _out = Command::cargo_bin("cli")
     .unwrap()
     .args([
-      "--url",
-      &ctx.server.uri(),
+      "--server-addr",
+      &ctx.server_addr,
       "upload",
-      "--path",
-      &ctx.upload_file,
+      "--source-file",
+      file.to_str().unwrap(),
     ])
     .assert()
     .success()

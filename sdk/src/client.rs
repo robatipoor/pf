@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::{
   dto::{
@@ -10,7 +10,6 @@ use crate::{
   util::progress::progress_bar,
 };
 
-use anyhow::ensure;
 use futures_util::StreamExt;
 use log_derive::logfn;
 use once_cell::sync::Lazy;
@@ -161,12 +160,17 @@ impl PasteFileClient {
     &self,
     url_path: &str,
     auth: Option<(String, String)>,
-    dest: &Path,
+    mut dest: PathBuf,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<()>)> {
-    ensure!(
-      dest.file_name().is_none(),
-      "The destination path must include the file name."
-    );
+    if dest.is_dir() {
+      dest.push(
+        url_path
+          .split('/')
+          .into_iter()
+          .nth(1)
+          .ok_or_else(|| anyhow::anyhow!("The url_path is invalid."))?,
+      );
+    }
     let url = format!("{}/{url_path}", self.addr);
     let mut builder = self.client.get(&url);
     if let Some((user, pass)) = auth {
@@ -195,12 +199,17 @@ impl PasteFileClient {
     &self,
     url_path: &str,
     auth: Option<(String, String)>,
-    dest: &Path,
+    mut dest: PathBuf,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<()>)> {
-    ensure!(
-      dest.file_name().is_none(),
-      "The destination path must include the file name."
-    );
+    if dest.is_dir() {
+      dest.push(
+        url_path
+          .split('/')
+          .into_iter()
+          .next()
+          .ok_or_else(|| anyhow::anyhow!("The url_path is invalid."))?,
+      );
+    }
     let url = format!("{}/{url_path}", self.addr);
     let mut builder = self.client.get(&url);
     if let Some((user, pass)) = auth {
@@ -228,7 +237,7 @@ impl PasteFileClient {
       downloaded += chunk.len() as u64;
       pb.set_position(downloaded.min(total_size));
     }
-    pb.finish_with_message(format!("Downloaded {url} to {:?}", dest.to_str()));
+    pb.finish_with_message(format!("Downloaded {url}"));
     Ok((status, ApiResponseResult::Ok(())))
   }
 

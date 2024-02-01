@@ -1,18 +1,21 @@
+use assert_cmd::Command;
+
+use crate::helper::CliTestContext;
 
 #[test_context::test_context(CliTestContext)]
 #[tokio::test]
 async fn test_download_command(ctx: &mut CliTestContext) {
-  let code: String = Faker.fake();
-  let file_name = "file.txt";
-  // ctx.mock_download_api(&code, &file_name).await;
+  let (url_path, _) = ctx.upload_dummy_file().await.unwrap();
   let _out = Command::cargo_bin("cli")
     .unwrap()
     .args([
-      "--url",
-      &format!("{}/{code}/{file_name}", &ctx.server.uri()),
+      "--server-addr",
+      &ctx.server_addr,
       "download",
-      "--path",
-      &ctx.download_dir,
+      "--url-path",
+      &url_path,
+      "--destination-dir",
+      ctx.workspace.to_str().unwrap(),
     ])
     .assert()
     .success()

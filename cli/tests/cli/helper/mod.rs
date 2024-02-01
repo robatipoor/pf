@@ -1,3 +1,4 @@
+use fake::{Fake, Faker};
 use once_cell::sync::Lazy;
 use project_root::get_project_root;
 use sdk::retry;
@@ -27,6 +28,7 @@ static SETUP: Lazy<()> = Lazy::new(|| {
 pub struct CliTestContext {
   server: tokio::process::Child,
   pub workspace: PathBuf,
+  pub root_dir: PathBuf,
   pub server_addr: String,
 }
 
@@ -62,8 +64,37 @@ impl CliTestContext {
     Self {
       server: child,
       server_addr,
+      root_dir,
       workspace,
     }
+  }
+
+  pub async fn create_dummy_file(&self) -> anyhow::Result<(PathBuf, String)> {
+    let content = Faker.fake::<String>();
+    let file_name = self
+      .workspace
+      .join(format!("{}.txt", Faker.fake::<String>()));
+    tokio::fs::write(&file_name, &content).await?;
+    Ok((file_name, content))
+  }
+
+  pub async fn upload_dummy_file(&self) -> anyhow::Result<(String, String)> {
+    let (file, content) = self.create_dummy_file().await?;
+    let output = tokio::process::Command::new("target/debug/cli")
+      .args([
+        "--server-addr",
+        &self.server_addr,
+        "upload",
+        "--source-file",
+        file.to_str().unwrap(),
+      ])
+      .current_dir(&self.root_dir)
+      .output()
+      .await?;
+    Ok((
+      std::str::from_utf8(&output.stdout)?.trim().to_owned(),
+      content,
+    ))
   }
 }
 
