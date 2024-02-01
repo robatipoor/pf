@@ -33,3 +33,4 @@ project-root = { workspace = true }
 tracing-subscriber = { workspace = true }
 garde = { workspace = true }
 base64 = { workspace = true }
+cuid2 = { workspace = true }

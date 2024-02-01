@@ -5,7 +5,8 @@ use anyhow::anyhow;
 pub fn get_file_name(source: &Path) -> anyhow::Result<String> {
   source
     .file_name()
-    .and_then(|n| n.to_str().map(|n| n.to_string()))
+    .and_then(|n| n.to_str())
+    .map(|n| n.to_string())
     .ok_or_else(|| anyhow!("The source path must include the file name."))
 }
 

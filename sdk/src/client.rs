@@ -10,7 +10,7 @@ use crate::{
   util::progress::progress_bar,
 };
 
-use anyhow::anyhow;
+use anyhow::ensure;
 use futures_util::StreamExt;
 use log_derive::logfn;
 use once_cell::sync::Lazy;
@@ -122,9 +122,8 @@ impl PasteFileClient {
     let async_stream = async_stream::stream! {
         while let Some(chunk) = reader_stream.next().await {
             if let Ok(chunk) = &chunk {
-                let new = std::cmp::min(uploaded + (chunk.len() as u64), total_size);
-                uploaded = new;
-                pb.set_position(new);
+                uploaded += chunk.len() as u64;
+                pb.set_position(uploaded.min(total_size));
                 if uploaded >= total_size {
                     pb.finish_with_message("File upload completed successfully.");
                 }
@@ -164,9 +163,10 @@ impl PasteFileClient {
     auth: Option<(String, String)>,
     dest: &Path,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<()>)> {
-    if dest.file_name().is_none() {
-      return Err(anyhow!("The destination path must include the file name."))?;
-    }
+    ensure!(
+      dest.file_name().is_none(),
+      "The destination path must include the file name."
+    );
     let url = format!("{}/{url_path}", self.addr);
     let mut builder = self.client.get(&url);
     if let Some((user, pass)) = auth {
@@ -197,9 +197,10 @@ impl PasteFileClient {
     auth: Option<(String, String)>,
     dest: &Path,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<()>)> {
-    if dest.file_name().is_none() {
-      return Err(anyhow!("The destination path must include the file name."))?;
-    }
+    ensure!(
+      dest.file_name().is_none(),
+      "The destination path must include the file name."
+    );
     let url = format!("{}/{url_path}", self.addr);
     let mut builder = self.client.get(&url);
     if let Some((user, pass)) = auth {
@@ -218,15 +219,14 @@ impl PasteFileClient {
       tokio::fs::create_dir_all(parent).await?;
     }
     let mut file = tokio::fs::File::create(dest).await?;
+    let pb = progress_bar(total_size)?;
     let mut stream = resp.bytes_stream();
     let mut downloaded: u64 = 0;
-    let pb = progress_bar(total_size)?;
     while let Some(chunk) = stream.next().await {
       let chunk = chunk?;
       file.write_all(&chunk).await?;
-      let new = std::cmp::min(downloaded + (chunk.len() as u64), total_size);
-      downloaded = new;
-      pb.set_position(new);
+      downloaded += chunk.len() as u64;
+      pb.set_position(downloaded.min(total_size));
     }
     pb.finish_with_message(format!("Downloaded {url} to {:?}", dest.to_str()));
     Ok((status, ApiResponseResult::Ok(())))

@@ -14,6 +14,7 @@ use test_context::AsyncTestContext;
 pub struct ApiTestContext {
   client: PasteFileClient,
   pub state: ApiState,
+  pub workspace: PathBuf,
 }
 
 #[async_trait::async_trait]
@@ -21,27 +22,25 @@ impl AsyncTestContext for ApiTestContext {
   async fn setup() -> Self {
     Lazy::force(&INIT_SUBSCRIBER);
     let workspace = Path::new("test-dump").join(PathBuf::from(cuid2::create_id()));
-    let db_path = Path::new("test-dump").join(PathBuf::from(cuid2::create_id()));
     tokio::fs::create_dir_all(&workspace).await.unwrap();
     let mut config = CONFIG.clone();
     config.server.port = 0;
-    config.fs.base_dir = workspace;
-    config.db.path = db_path;
+    config.db.path = workspace.join(PathBuf::from(cuid2::create_id()));
+    config.fs.base_dir = workspace.clone();
     let server = ApiServer::new(config).await.unwrap();
     let state = server.state.clone();
     let client = PasteFileClient::new(server.state.config.server.get_http_addr());
     api::server::worker::spawn(axum::extract::State(state.clone()));
     tokio::spawn(server.run());
-    Self { state, client }
+    Self {
+      state,
+      client,
+      workspace,
+    }
   }
 
   async fn teardown(self) {
-    tokio::fs::remove_dir_all(&self.state.config.db.path)
-      .await
-      .unwrap();
-    tokio::fs::remove_dir_all(&self.state.config.fs.base_dir)
-      .await
-      .unwrap();
+    tokio::fs::remove_dir_all(&self.workspace).await.unwrap();
   }
 }
 
