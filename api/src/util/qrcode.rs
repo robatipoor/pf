@@ -8,7 +8,7 @@ pub fn encode(text: &str) -> ApiResult<String> {
   let qrcode = QrCode::new(text.as_bytes())?
     .render::<char>()
     .quiet_zone(false)
-    .module_dimensions(1, 1)
+    .module_dimensions(2, 1)
     .build();
   Ok(BASE64_ENGIN.encode(qrcode))
 }
