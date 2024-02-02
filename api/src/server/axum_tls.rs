@@ -17,19 +17,30 @@ pub async fn serve(tcp_listener: TcpListener, router: Router, config: ServerConf
   pin_mut!(tcp_listener);
   // Continuously accept and handle incoming connections
   loop {
+    // Wait for a new TCP connection
+    let (tcp_stream, addr) = match tcp_listener.accept().await {
+      Ok(s) => s,
+      Err(err) => {
+        tracing::error!("Error during accept TCP connection, Error: {err}");
+        continue;
+      }
+    };
+
     let tower_service = router.clone();
     let tls_acceptor = tls_acceptor.clone();
-    // Wait for a new TCP connection
-    let (tcp_stream, addr) = tcp_listener.accept().await.unwrap();
     tokio::spawn(async move {
       // Handle TLS handshake
-      let Ok(stream) = tls_acceptor.accept(tcp_stream).await else {
-        tracing::error!("Error during TLS handshake connection from: {addr}");
-        return;
+      let tls_stream = match tls_acceptor.accept(tcp_stream).await {
+        Ok(s) => s,
+        Err(err) => {
+          tracing::error!("Error during TLS handshake connection from: {addr}, Error: {err}");
+          return;
+        }
       };
+
       // Hyper has its own `AsyncRead` and `AsyncWrite` traits and doesn't use tokio.
       // `TokioIo` converts between them.
-      let stream = TokioIo::new(stream);
+      let stream = TokioIo::new(tls_stream);
 
       // Hyper also has its own `Service` trait and doesn't use tower. We can use
       // `hyper::service::service_fn` to create a hyper `Service` that calls our app through

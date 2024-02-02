@@ -14,10 +14,10 @@ async fn main() -> ApiResult {
   let config = api::configure::ApiConfig::read(args.settings, get_env_source("PF"))?;
   Lazy::force(&INIT_SUBSCRIBER);
   if let Err(e) = tokio::fs::create_dir_all(&config.fs.base_dir).await {
-    warn!("failed create base dir: {e}");
+    warn!("Failed to create base directory: {e}");
   };
   let server = ApiServer::new(config).await?;
   api::server::worker::spawn(State(server.state.clone()));
-  let _ = server.run().await;
+  server.run().await?;
   Ok(())
 }
