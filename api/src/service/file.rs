@@ -17,6 +17,8 @@ use tracing::debug;
 use crate::database::{FilePath, MetaDataFile};
 use crate::server::ApiState;
 
+pub const BYTE_TO_MEGABYTE: u64 = 1024 * 1024;
+
 pub async fn store(
   state: &ApiState,
   query: &UploadQueryParam,
@@ -48,7 +50,6 @@ pub async fn store(
       }
       None => continue,
     };
-    // TODO check limit upload size
     let path = loop {
       let code = crate::util::string::generate_random_string(code_length);
       let path = FilePath {
@@ -68,7 +69,7 @@ pub async fn store(
       code_length += 1;
     };
     let file_path = path.fs_path(&state.config.fs.base_dir);
-    if let Err(e) = store_stream(&file_path, field).await {
+    if let Err(e) = store_stream(&file_path, field, state.config.max_upload_size).await {
       state.db.delete(path).await?;
       return Err(e);
     }
@@ -80,7 +81,11 @@ pub async fn store(
   ))
 }
 
-pub async fn store_stream(file_path: &PathBuf, field: Field<'_>) -> ApiResult<()> {
+pub async fn store_stream(
+  file_path: &PathBuf,
+  field: Field<'_>,
+  max_megabyte_size: usize,
+) -> ApiResult<()> {
   let body_reader =
     StreamReader::new(field.map_err(|err| std::io::Error::new(std::io::ErrorKind::Other, err)));
   futures_util::pin_mut!(body_reader);
@@ -88,7 +93,15 @@ pub async fn store_stream(file_path: &PathBuf, field: Field<'_>) -> ApiResult<()
     tokio::fs::create_dir_all(parent).await?;
   }
   let mut file = BufWriter::new(File::create(file_path).await?);
-  tokio::io::copy(&mut body_reader, &mut file).await?;
+  // TODO This code is not efficient; it should be refactored in the future.
+  let megabyte_size = tokio::io::copy(&mut body_reader, &mut file).await? / BYTE_TO_MEGABYTE;
+  if megabyte_size as usize > max_megabyte_size {
+    tokio::fs::remove_file(file_path).await?;
+    return Err(ApiError::FileTooLarge(format!(
+      "The maximum allowed size for uploaded files is {max_megabyte_size}MB."
+    )));
+  }
+
   Ok(())
 }
 
