@@ -19,6 +19,7 @@ The service provides a convenient means of sharing files without the necessity f
 * Burn After Reading
 * QR code Generator
 * Command Line Interface (CLI)
+* Built-in TLS Server
 
 **Run Backend Service Locally**
 
@@ -48,27 +49,38 @@ $ docker run --name pf-api --rm -p 8080:8080 \
 ```sh
 # Ping the server.
 $ curl -X GET http://127.0.0.1:8080/healthz
-# Upload a file and then get download url.
+
+# Upload a file and retrieve the corresponding download URL.
 $ curl -s -F "file=@{file_name}" 127.0.0.1:8080/upload | jq -r '.url'
-# Download file.
+
+# Download a file.
 $ curl -o {file_name} http://127.0.0.1:8080/{code}/{file_name}
+
 # Upload a file with basic authentication.
 $ curl -u username:password -F "file=@{file_name}" 127.0.0.1:8080/upload
-# Download file with basic authentication.
+
+# Download a file with basic authentication.
 $ curl -o {file_name} -u username:password http://127.0.0.1:8080/{code}/{file_name}
+
 # Upload a file and then display the QR code.
 $ curl -s -F "file=@{file_name}" 127.0.0.1:8080/upload | jq -r '.qrcode' | base64 -d; echo
-# Upload a file with an expiration time of 100 seconds (default value specify in settings file).
+
+# Upload a file with an expiration time of 100 seconds (default value specified in settings file).
 $ curl -F "file=@{file_name}" 127.0.0.1:8080/upload\?expire_secs=100
+
 # Upload a file with a restriction on the number of downloads.
 $ curl -F "file=@{file_name}" 127.0.0.1:8080/upload\?max_download=10
-# Upload a file and specify the minimum code length in the URL path as 5 (default value specify in settings file).
+
+# Upload a file and specify the minimum code length in the URL path as 5 (default value specified in settings file).
 $ curl -F "file=@{file_name}" 127.0.0.1:8080/upload\?code_length=5
+
 # Upload a file and prevent manual deletion until expiration.
 $ curl -F "file=@{file_name}" 127.0.0.1:8080/upload\?delete_manually=false
-# Get metadata file.
+
+# Get metadata for a file.
 $ curl -X GET http://127.0.0.1:8080/info/{code}/{file_name}
-# Delete file.
+
+# Delete a file.
 $ curl -X DELETE http://127.0.0.1:8080/{code}/{file_name}
 ```
 
@@ -96,6 +108,12 @@ host = "127.0.0.1"
 # Port number for the server
 port = 8080
 
+# TLS key file path
+file_tls_key_path = "key.pem"
+
+# TLS certificate file path
+file_tls_cert_path = "cert.pem"
+
 # File system configuration section
 [fs]
 # Base directory for file system operations
@@ -109,7 +127,7 @@ path = "db-tmp"
 
 **Override settings with environment variables**
 
-```bash
+```sh
 export PF__SERVER__PORT=8080
 export PF__SERVER__HOST=127.0.0.1
 ```
@@ -119,32 +137,42 @@ export PF__SERVER__HOST=127.0.0.1
 ```sh
 # Clone the project
 $ git clone https://github.com/robatipoor/pf
-# Build the cli tool
+
+# Build the CLI tool
 $ cargo build --bin cli --release
-# Upload a file and then get download url.
+
+# Upload a file and retrieve the corresponding download URL.
 $ ./target/release/cli --server-addr "http://localhost:8080" \
-upload --source-file ~/example-file.txt  
-# Upload a file with basic authentication.
+upload --source-file ~/example-file.txt --progress-bar
+
+# Upload a file with basic authentication and progress bar option.
 $ ./target/release/cli --server-addr "http://localhost:8080" \
---auth "username:password" upload --source-file ~/example-file.txt 
+--auth "username:password" upload --source-file ~/example-file.txt
+
 # Upload a file with an expiration time of 10 minutes.
 $ ./target/release/cli --server-addr "http://localhost:8080" \
-upload --expire "10 minute" --source-file ~/example-file.txt  
+upload --expire "10 minute" --source-file ~/example-file.txt
+
 # Upload a file and then display the QR code.
 $ ./target/release/cli --server-addr "http://localhost:8080" \
 upload --source-file ~/example-file.txt --qrcode
-# Download file.
+
+# Download a file with progress bar option.
 $ ./target/release/cli --server-addr "http://localhost:8080" \
-download --destination-dir ~/example-dir/
-# Download file.
+download --destination-dir ~/example-dir/ --progress-bar
+
+# Download a file.
 $ ./target/release/cli --server-addr "http://localhost:8080" \
 download --destination-dir ~/example-dir/ --url-path "{code}/{file_name}"
-# Get metadata file.
+
+# Get metadata for a file.
 $ ./target/release/cli --server-addr "http://localhost:8080" \
 info --url-path "{code}/{file_name}"
-# Delete file.
+
+# Delete a file.
 $ ./target/release/cli --server-addr "http://localhost:8080" \
 delete --url-path "{code}/{file_name}"
+
 ```
 
 **Run tests**

@@ -7,16 +7,20 @@ default_expire_secs = 7200
 
 [server]
 # Communication protocol (e.g., "http" or "https")
-schema = "http"
+schema = "https"
 # Host IP address for the server
 host = "127.0.0.1"
 # Port number for the server
 port = 8080
+# TLS key file path
+file_tls_key_path = "key.pem"
+# TLS certificate file path
+file_tls_cert_path = "cert.pem"
 
 [fs]
 # Base directory for file system operations
-base_dir = "fs-tmp"
+base_dir = "tmp/fs"
 
 [db]
 # Path to the database file
-path = "db-tmp"
+path = "tmp/db"

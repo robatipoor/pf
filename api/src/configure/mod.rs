@@ -26,9 +26,11 @@ pub struct ServerConfig {
   pub schema: UrlSchema,
   pub host: String,
   pub port: u16,
+  pub file_tls_key_path: Option<String>,
+  pub file_tls_cert_path: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Clone, strum::Display)]
+#[derive(Debug, Deserialize, Clone, strum::Display, Copy)]
 pub enum UrlSchema {
   #[serde(rename = "http")]
   #[strum(serialize = "http")]
@@ -59,6 +61,21 @@ impl ServerConfig {
 
   pub fn get_domain(&self) -> String {
     self.domain.clone().unwrap_or_else(|| self.get_http_addr())
+  }
+
+  pub fn get_tls_config(&self) -> anyhow::Result<tokio_rustls::rustls::ServerConfig> {
+    crate::server::axum_tls::rustls_server_config(
+      self.file_tls_key_path.as_ref().ok_or_else(|| {
+        anyhow::anyhow!(
+          "The `file_tls_key_path` setting should be configured in the settings file."
+        )
+      })?,
+      self.file_tls_cert_path.as_ref().ok_or_else(|| {
+        anyhow::anyhow!(
+          "The `file_tls_cert_path` setting should be configured in the settings file."
+        )
+      })?,
+    )
   }
 }
 

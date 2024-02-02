@@ -1,6 +1,7 @@
+pub mod axum_tls;
 pub mod worker;
 
-use crate::configure::ApiConfig;
+use crate::configure::{ApiConfig, UrlSchema};
 use crate::database::Database;
 use crate::error::ApiResult;
 use crate::router::get_router;
@@ -31,15 +32,25 @@ impl ApiServer {
   pub async fn new(mut config: ApiConfig) -> ApiResult<Self> {
     let tcp = tokio::net::TcpListener::bind(config.server.get_socket_addr()?).await?;
     let addr = tcp.local_addr()?;
-    tracing::info!("The server is listening on: {addr}");
     config.server.port = addr.port();
+    tracing::info!(
+      "The server is listening on: {}",
+      config.server.get_http_addr()
+    );
     let state = ApiState::new(config)?;
     Ok(Self { state, tcp })
   }
 
   pub async fn run(self) -> ApiResult<()> {
-    let router = get_router(self.state);
-    axum::serve(self.tcp, router).await?;
+    match self.state.config.server.schema {
+      UrlSchema::Http => {
+        axum::serve(self.tcp, get_router(self.state)).await?;
+      }
+      UrlSchema::Https => {
+        let config_server = self.state.config.server.get_tls_config()?;
+        axum_tls::serve(self.tcp, get_router(self.state), config_server).await;
+      }
+    }
     Ok(())
   }
 }
