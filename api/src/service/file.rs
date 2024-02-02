@@ -48,7 +48,7 @@ pub async fn store(
       }
       None => continue,
     };
-
+    // TODO check limit upload size
     let path = loop {
       let code = crate::util::string::generate_random_string(code_length);
       let path = FilePath {

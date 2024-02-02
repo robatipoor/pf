@@ -237,7 +237,9 @@ impl PasteFileClient {
       downloaded += chunk.len() as u64;
       pb.set_position(downloaded.min(total_size));
     }
-    pb.finish_with_message(format!("Downloaded {url}"));
+    pb.finish_with_message(format!(
+      "The download of the file has been completed successfully."
+    ));
     Ok((status, ApiResponseResult::Ok(())))
   }
 
