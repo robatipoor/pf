@@ -25,7 +25,7 @@ impl AsyncTestContext for ApiTestContext {
     tokio::fs::create_dir_all(&workspace).await.unwrap();
     let mut config = CONFIG.clone();
     config.server.port = 0;
-    config.db.path = workspace.join(PathBuf::from(cuid2::create_id()));
+    config.db.path_dir = workspace.join(PathBuf::from(cuid2::create_id()));
     config.fs.base_dir = workspace.clone();
     let server = ApiServer::new(config).await.unwrap();
     let state = server.state.clone();

@@ -7,7 +7,7 @@ default_expire_secs = 7200
 
 [server]
 # Communication protocol (e.g., "http" or "https")
-schema = "https"
+schema = "http"
 # Host IP address for the server
 host = "127.0.0.1"
 # Port number for the server
@@ -22,5 +22,5 @@ file_tls_cert_path = "cert.pem"
 base_dir = "tmp/fs"
 
 [db]
-# Path to the database file
-path = "tmp/db"
+# Path directory to the database file
+path_dir = "tmp/db"

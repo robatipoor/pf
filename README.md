@@ -117,12 +117,12 @@ file_tls_cert_path = "cert.pem"
 # File system configuration section
 [fs]
 # Base directory for file system operations
-base_dir = "fs-tmp"
+base_dir = "tmp/fs"
 
 # Database configuration section
 [db]
-# Path to the database file
-path = "db-tmp"
+# Path directory to the database file
+path_dir = "tmp/db"
 ```
 
 **Override settings with environment variables**

@@ -26,7 +26,7 @@ pub struct Database {
 
 impl Database {
   pub fn new(config: &DatabaseConfig) -> ApiResult<Self> {
-    let db = sled::open(&config.path)?;
+    let db = sled::open(&config.path_dir)?;
     let mut expires = BTreeSet::new();
     for kv in db.iter() {
       let (key, val) = kv?;

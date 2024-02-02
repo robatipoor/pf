@@ -53,14 +53,14 @@ impl AsyncTestContext for StateTestContext {
     tokio::fs::create_dir_all(&workspace).await.unwrap();
     let mut config = CONFIG.clone();
     config.fs.base_dir = workspace;
-    config.db.path = db_path;
+    config.db.path_dir = db_path;
     let state = ApiState::new(config).unwrap();
     crate::server::worker::spawn(axum::extract::State(state.clone()));
     Self { state }
   }
 
   async fn teardown(self) {
-    tokio::fs::remove_dir_all(&self.state.config.db.path)
+    tokio::fs::remove_dir_all(&self.state.config.db.path_dir)
       .await
       .unwrap();
     tokio::fs::remove_dir_all(&self.state.config.fs.base_dir)

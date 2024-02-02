@@ -42,7 +42,7 @@ pub enum UrlSchema {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct DatabaseConfig {
-  pub path: PathBuf,
+  pub path_dir: PathBuf,
 }
 
 #[derive(Debug, Deserialize, Clone)]
