@@ -155,11 +155,11 @@ upload --expire "10 minute" --source-file ~/example-file.txt
 
 # Upload a file and then display the QR code.
 $ ./target/release/cli --server-addr "http://localhost:8080" \
-upload --source-file ~/example-file.txt --qrcode
+upload --source-file ~/example-file.txt --out qr-code
 
 # Download a file with progress bar option.
 $ ./target/release/cli --server-addr "http://localhost:8080" \
-download --destination-dir ~/example-dir/ --progress-bar
+download --destination-dir ~/example-dir/ --url-path "{code}/{file_name}" --progress-bar
 
 # Download a file.
 $ ./target/release/cli --server-addr "http://localhost:8080" \

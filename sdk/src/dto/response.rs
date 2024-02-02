@@ -6,6 +6,14 @@ pub struct MessageResponse {
   pub message: String,
 }
 
+impl MessageResponse {
+  pub fn ok() -> Self {
+    Self {
+      message: "Ok".to_string(),
+    }
+  }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UploadResponse {
   pub expire_time: DateTime<Utc>,

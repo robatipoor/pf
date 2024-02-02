@@ -30,7 +30,7 @@ pub async fn upload(
   query.validate(&())?;
   let secret = crate::util::http::parse_basic_auth(&headers)?;
   let (path, expire_time) = service::file::store(&state, &query, secret, multipart).await?;
-  let url = path.url(&state.config.server.get_domain());
+  let url = path.url(&state.config.server.get_domain())?.to_string();
   let qrcode = crate::util::qrcode::encode(&url)?;
   Ok(Json(UploadResponse {
     url,
@@ -66,7 +66,5 @@ pub async fn delete(
 ) -> ApiResult<Json<MessageResponse>> {
   let secret = crate::util::http::parse_basic_auth(&headers)?;
   service::file::delete(&state, &code, &file_name, secret).await?;
-  Ok(Json(MessageResponse {
-    message: "OK".to_string(),
-  }))
+  Ok(Json(MessageResponse::ok()))
 }

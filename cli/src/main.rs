@@ -1,8 +1,10 @@
 use anyhow::anyhow;
 use base64::Engine;
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use sdk::{
-  client::PasteFileClient, dto::request::UploadQueryParam, result::ApiResponseResult,
+  client::PasteFileClient,
+  dto::{request::UploadQueryParam, response::MessageResponse},
+  result::ApiResponseResult,
   util::base64::BASE64_ENGIN,
 };
 use std::{error::Error, path::PathBuf};
@@ -32,8 +34,8 @@ pub enum SubCommand {
     max_download: Option<u32>,
     #[clap(short, long)]
     delete_manually: Option<bool>,
-    #[clap(default_value_t = false, short, long)]
-    qrcode: bool,
+    #[clap(default_value_t = UploadOutput::Json, short, long)]
+    out: UploadOutput,
     #[clap(default_value_t = false, short, long)]
     progress_bar: bool,
     #[clap(short, long)]
@@ -57,6 +59,24 @@ pub enum SubCommand {
   },
 }
 
+#[derive(ValueEnum, Debug, Clone, Copy)]
+pub enum UploadOutput {
+  QrCode,
+  Url,
+  UrlPath,
+  Json,
+}
+
+impl std::fmt::Display for UploadOutput {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    self
+      .to_possible_value()
+      .expect("no values are skipped")
+      .get_name()
+      .fmt(f)
+  }
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
   let args = Args::parse();
@@ -66,7 +86,7 @@ async fn main() -> anyhow::Result<()> {
       let (_, resp) = client.health_check().await?;
       match resp {
         ApiResponseResult::Ok(resp) => {
-          println!("{}", resp.message);
+          println!("{}", serde_json::to_string(&resp)?);
         }
         ApiResponseResult::Err(err) => {
           return Err(anyhow!("{}", serde_json::to_string(&err)?));
@@ -79,7 +99,7 @@ async fn main() -> anyhow::Result<()> {
       expire,
       delete_manually,
       max_download,
-      qrcode,
+      out,
       source_file,
     } => {
       let query = UploadQueryParam {
@@ -96,16 +116,23 @@ async fn main() -> anyhow::Result<()> {
         client.upload_from(&source_file, &query, args.auth).await
       }?;
       match resp {
-        ApiResponseResult::Ok(resp) => {
-          if qrcode {
+        ApiResponseResult::Ok(resp) => match out {
+          UploadOutput::Json => {
+            println!("{}", serde_json::to_string(&resp)?);
+          }
+          UploadOutput::QrCode => {
             println!(
               "{}",
               std::str::from_utf8(&BASE64_ENGIN.decode(resp.qrcode)?)?
             );
-          } else {
+          }
+          UploadOutput::Url => {
+            println!("{}", resp.url);
+          }
+          UploadOutput::UrlPath => {
             println!("{}", &Url::parse(&resp.url)?.path()[1..]);
           }
-        }
+        },
         ApiResponseResult::Err(err) => {
           return Err(anyhow!("{}", serde_json::to_string(&err)?));
         }
@@ -127,7 +154,7 @@ async fn main() -> anyhow::Result<()> {
       }?;
       match resp {
         ApiResponseResult::Ok(_) => {
-          println!("Done");
+          println!("{}", serde_json::to_string(&MessageResponse::ok())?);
         }
         ApiResponseResult::Err(err) => {
           return Err(anyhow!("{}", serde_json::to_string(&err)?));

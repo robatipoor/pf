@@ -48,7 +48,6 @@ pub async fn serve(tcp_listener: TcpListener, router: Router, config: ServerConf
       let hyper_service = hyper::service::service_fn(move |request: Request<Incoming>| {
         // We have to clone `tower_service` because hyper's `Service` uses `&self` whereas
         // tower's `Service` requires `&mut self`.
-        //
         // We don't need to call `poll_ready` since `Router` is always ready.
         tower_service.clone().call(request)
       });

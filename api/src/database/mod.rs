@@ -182,8 +182,11 @@ pub struct FilePath {
 }
 
 impl FilePath {
-  pub fn url(&self, domain: &str) -> String {
-    format!("{domain}/{}/{}", self.code, self.file_name)
+  pub fn url(&self, domain: &str) -> ApiResult<url::Url> {
+    Ok(url::Url::parse(&format!(
+      "{domain}/{}/{}",
+      self.code, self.file_name
+    ))?)
   }
   pub fn url_path(&self) -> String {
     format!("{}/{}", self.code, self.file_name)

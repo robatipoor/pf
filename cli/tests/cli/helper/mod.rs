@@ -87,6 +87,8 @@ impl CliTestContext {
         "upload",
         "--source-file",
         file.to_str().unwrap(),
+        "--out",
+        "url-path",
       ])
       .current_dir(&self.root_dir)
       .output()
