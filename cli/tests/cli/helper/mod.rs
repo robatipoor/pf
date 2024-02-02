@@ -46,7 +46,7 @@ impl CliTestContext {
     let child = tokio::process::Command::new("target/debug/api")
       .args(["--settings", "api/settings/base.toml"])
       .env("PF__SERVER__PORT", port.to_string())
-      .env("PF__DB__PATH", db_path)
+      .env("PF__DB__PATH_DIR", db_path)
       .env("PF__FS__BASE_DIR", workspace.clone())
       .current_dir(&root_dir)
       .stdout(Stdio::piped())
