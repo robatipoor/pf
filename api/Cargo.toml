@@ -14,9 +14,7 @@ argon2 = { workspace = true }
 async-trait = { workspace = true }
 clap = { workspace = true }
 axum = { workspace = true }
-axum-extra = { workspace = true }
 bincode = { workspace = true }
-build_html = { workspace = true }
 chrono = { workspace = true }
 config = { workspace = true }
 cuid2 = { workspace = true }
