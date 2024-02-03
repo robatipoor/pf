@@ -185,7 +185,7 @@ delete --url-path "{code}/{file_name}"
 
 - [ ] Implement front-end app
 
-- [ ] Built-in support encryption CLI
+- [ ] Build-in support for encryption in CLI
 
 **Check code formatting and typo at commit time**
 
