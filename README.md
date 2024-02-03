@@ -181,6 +181,12 @@ delete --url-path "{code}/{file_name}"
 ./test.sh
 ```
 
+**Todo list**
+
+- [ ] Implement front-end app
+
+- [ ] Built-in support encryption CLI
+
 **Check code formatting and typo at commit time**
 
 ```sh
