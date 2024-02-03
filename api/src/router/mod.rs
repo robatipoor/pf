@@ -12,6 +12,6 @@ pub fn get_router(state: ApiState) -> Router {
     .route("/info/:code/:file_name", get(handler::file::info))
     .route("/:code/:file_name", get(handler::file::download))
     .route("/:code/:file_name", delete(handler::file::delete))
-    .layer(DefaultBodyLimit::max(state.config.max_upload_bytes_size))
+    .layer(DefaultBodyLimit::disable())
     .with_state(state)
 }

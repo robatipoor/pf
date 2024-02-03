@@ -9,13 +9,17 @@ use futures_util::TryStreamExt;
 use sdk::dto::request::UploadQueryParam;
 use std::path::PathBuf;
 use tokio::fs::File;
-use tokio::io::BufWriter;
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, BufWriter};
+use tokio_util::bytes::BytesMut;
 use tokio_util::io::StreamReader;
 use tower_http::services::ServeFile;
 use tracing::debug;
 
 use crate::database::{FilePath, MetaDataFile};
 use crate::server::ApiState;
+
+const BYTE_TO_MEGABYTE: usize = 1024 * 1024;
+const DEFAULT_BUF_SIZE: usize = 8192;
 
 pub async fn store(
   state: &ApiState,
@@ -67,7 +71,7 @@ pub async fn store(
       code_length += 1;
     };
     let file_path = path.fs_path(&state.config.fs.base_dir);
-    if let Err(e) = store_stream(&file_path, field).await {
+    if let Err(e) = store_stream(&file_path, field, state.config.max_upload_bytes_size).await {
       state.db.delete(path).await?;
       return Err(e);
     }
@@ -79,7 +83,7 @@ pub async fn store(
   ))
 }
 
-pub async fn store_stream(file_path: &PathBuf, field: Field<'_>) -> ApiResult<()> {
+pub async fn store_stream(file_path: &PathBuf, field: Field<'_>, max_size: usize) -> ApiResult<()> {
   let body_reader =
     StreamReader::new(field.map_err(|err| std::io::Error::new(std::io::ErrorKind::Other, err)));
   futures_util::pin_mut!(body_reader);
@@ -87,8 +91,46 @@ pub async fn store_stream(file_path: &PathBuf, field: Field<'_>) -> ApiResult<()
     tokio::fs::create_dir_all(parent).await?;
   }
   let mut file = BufWriter::new(File::create(file_path).await?);
-  tokio::io::copy(&mut body_reader, &mut file).await?;
+  copy(&file_path, &mut body_reader, &mut file, max_size).await?;
   Ok(())
+}
+
+pub async fn copy(
+  file_path: &PathBuf,
+  mut reader: impl AsyncRead + Unpin,
+  mut writer: impl AsyncWrite + Unpin,
+  max_size: usize,
+) -> ApiResult<usize> {
+  let mut buffer = BytesMut::with_capacity(DEFAULT_BUF_SIZE);
+  let mut bytes_size = 0;
+  loop {
+    let bytes_read = reader.read_buf(&mut buffer).await?;
+    if bytes_read == 0 {
+      break;
+    }
+    bytes_size += bytes_read;
+    if bytes_size > max_size {
+      return handle_payload_too_large(&file_path, writer, max_size).await;
+    }
+    writer.write_all(&buffer).await?;
+    buffer.clear();
+  }
+  writer.flush().await?;
+  Ok(bytes_size)
+}
+
+async fn handle_payload_too_large(
+  file_path: &PathBuf,
+  mut writer: impl AsyncWrite + Unpin,
+  max_size: usize,
+) -> ApiResult<usize> {
+  writer.shutdown().await?;
+  drop(writer);
+  tokio::fs::remove_file(file_path).await?;
+  Err(ApiError::PayloadTooLarge(format!(
+    "The maximum allowed size for uploaded files is {}MB.",
+    max_size / BYTE_TO_MEGABYTE
+  )))
 }
 
 pub async fn info(

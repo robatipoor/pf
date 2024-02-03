@@ -13,6 +13,8 @@ pub enum ApiError {
   InvalidInputError(#[from] garde::Report),
   #[error("bad request: {0}")]
   BadRequestError(String),
+  #[error("payload too large: {0}")]
+  PayloadTooLarge(String),
   #[error("resource not found: {0}")]
   NotFoundError(String),
   #[error("{0}")]
@@ -142,6 +144,11 @@ impl ApiError {
         "MULTIPART_ERROR",
         err.to_string(),
         StatusCode::INTERNAL_SERVER_ERROR,
+      ),
+      PayloadTooLarge(err) => (
+        "PAYLOAD_TOO_LARGE_ERROR",
+        err.to_string(),
+        StatusCode::PAYLOAD_TOO_LARGE,
       ),
       UrlError(err) => (
         "URL_ERROR",
