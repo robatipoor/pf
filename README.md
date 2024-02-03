@@ -88,8 +88,8 @@ $ curl -X DELETE http://127.0.0.1:8080/{code}/{file_name}
 
 ```toml
 # api/settings/base.toml
-# Maximum upload size in megabytes
-max_upload_size = 1024
+# Maximum upload size in bytes
+max_upload_bytes_size = 1024
 
 # Default code length in the url
 default_code_length = 3

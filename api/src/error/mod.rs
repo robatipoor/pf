@@ -13,8 +13,6 @@ pub enum ApiError {
   InvalidInputError(#[from] garde::Report),
   #[error("bad request: {0}")]
   BadRequestError(String),
-  #[error("file too large: {0}")]
-  FileTooLarge(String),
   #[error("resource not found: {0}")]
   NotFoundError(String),
   #[error("{0}")]
@@ -149,11 +147,6 @@ impl ApiError {
         "URL_ERROR",
         err.to_string(),
         StatusCode::INTERNAL_SERVER_ERROR,
-      ),
-      FileTooLarge(err) => (
-        "FILE_TOO_LARGE_ERROR",
-        err.to_string(),
-        StatusCode::from_u16(420).unwrap(),
       ),
       UnknownError(err) => (
         "UNKNOWN_ERROR",

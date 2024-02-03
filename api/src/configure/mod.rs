@@ -15,7 +15,7 @@ pub struct ApiConfig {
   pub server: ServerConfig,
   pub fs: FileSystemConfig,
   pub db: DatabaseConfig,
-  pub max_upload_size: usize,
+  pub max_upload_bytes_size: usize,
   pub default_code_length: usize,
   pub default_expire_secs: u64,
 }
