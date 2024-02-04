@@ -1,5 +1,5 @@
 use api::{assert_err, assert_ok};
-use sdk::{dto::request::UploadQueryParam, error::BodyResponseError};
+use sdk::dto::{request::UploadQueryParam, response::BodyResponseError};
 use test_context::test_context;
 
 use crate::helper::ApiTestContext;

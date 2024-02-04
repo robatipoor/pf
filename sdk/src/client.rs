@@ -3,10 +3,8 @@ use std::path::{Path, PathBuf};
 use crate::{
   dto::{
     request::UploadQueryParam,
-    response::{MetaDataFileResponse, UploadResponse},
+    response::{ApiResponseResult, BodyResponseError, MetaDataFileResponse, UploadResponse},
   },
-  error::BodyResponseError,
-  result::ApiResponseResult,
   util::progress::progress_bar,
 };
 

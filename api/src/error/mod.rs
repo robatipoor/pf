@@ -3,7 +3,7 @@ use axum::{
   response::{IntoResponse, Response},
   Json,
 };
-use sdk::error::BodyResponseError;
+use sdk::dto::response::BodyResponseError;
 
 pub type ApiResult<T = ()> = std::result::Result<T, ApiError>;
 

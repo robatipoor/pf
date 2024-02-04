@@ -32,13 +32,13 @@ pub async fn store(
     .expire_secs
     .unwrap_or(state.config.default_expire_secs) as i64;
   let now = Utc::now();
-  let expiration_date = calc_expiration_date(now, expire_secs);
+  let expire_date_time = calc_expiration_date(now, expire_secs);
   let mut code_length = query
     .code_length
     .unwrap_or(state.config.default_code_length);
   let meta = MetaDataFile {
     created_at: now,
-    expiration_date,
+    expire_date_time,
     delete_manually: query.delete_manually.unwrap_or(true),
     max_download: query.max_download,
     secret,
@@ -76,7 +76,7 @@ pub async fn store(
       return Err(e);
     }
     state.db.flush().await?;
-    return Ok((path, expiration_date));
+    return Ok((path, expire_date_time));
   }
   Err(ApiError::BadRequestError(
     "multipart/form-data empty body".to_string(),

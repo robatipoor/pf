@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use api::{assert_err, unwrap};
 use fake::{Fake, Faker};
-use sdk::error::BodyResponseError;
+use sdk::dto::response::BodyResponseError;
 use test_context::test_context;
 
 use crate::helper::ApiTestContext;

@@ -1,7 +1,7 @@
 use crate::helper::ApiTestContext;
 use api::{assert_err, assert_ok};
 use fake::{Fake, Faker};
-use sdk::error::BodyResponseError;
+use sdk::dto::response::BodyResponseError;
 use test_context::test_context;
 
 #[test_context(ApiTestContext)]

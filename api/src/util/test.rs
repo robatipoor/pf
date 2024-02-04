@@ -11,7 +11,7 @@ use test_context::AsyncTestContext;
 macro_rules! assert_ok {
   ($result:expr) => {
     assert!(
-      matches!($result, sdk::result::ApiResponseResult::Ok(_)),
+      matches!($result, sdk::dto::response::ApiResponseResult::Ok(_)),
       "match failed: {:?}",
       $result,
     )
@@ -22,7 +22,7 @@ macro_rules! assert_ok {
 macro_rules! assert_err {
     ($result:expr $(, $closure:expr )?) => {
         assert!(
-          matches!($result,sdk::result::ApiResponseResult::Err(ref _e) $( if $closure(_e) )?),
+          matches!($result,sdk::dto::response::ApiResponseResult::Err(ref _e) $( if $closure(_e) )?),
           "match failed: {:?}",$result,
         )
     };
@@ -32,8 +32,8 @@ macro_rules! assert_err {
 macro_rules! unwrap {
   ($result:expr) => {
     match $result {
-      sdk::result::ApiResponseResult::Ok(resp) => resp,
-      sdk::result::ApiResponseResult::Err(e) => {
+      sdk::dto::response::ApiResponseResult::Ok(resp) => resp,
+      sdk::dto::response::ApiResponseResult::Err(e) => {
         panic!("called `util::unwrap!()` on an `Err` value {e:?}")
       }
     }

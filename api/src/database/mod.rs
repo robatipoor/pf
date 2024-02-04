@@ -31,7 +31,7 @@ impl Database {
     for kv in db.iter() {
       let (key, val) = kv?;
       let file_path = FilePath::try_from(&key)?;
-      let expire_time = MetaDataFile::try_from(val)?.expiration_date;
+      let expire_time = MetaDataFile::try_from(val)?.expire_date_time;
       expires.insert((expire_time, file_path));
     }
     Ok(Self {
@@ -75,7 +75,7 @@ impl Database {
   }
 
   pub async fn store(&self, path: FilePath, meta: MetaDataFile) -> ApiResult {
-    let expire_time = meta.expiration_date;
+    let expire_date_time = meta.expire_date_time;
     let meta = IVec::try_from(&meta)?;
     let key = IVec::try_from(&path)?;
     let result = self
@@ -83,11 +83,11 @@ impl Database {
       .compare_and_swap(&key, Option::<IVec>::None, Some(meta))?;
     match result {
       Ok(_) => {
-        let expire = (expire_time, path);
+        let expire = (expire_date_time, path);
         match self.expires.write() {
           Ok(mut guard) => {
             let is_gc_notify = if let Some((first_expire, _)) = guard.iter().next() {
-              *first_expire > expire_time
+              *first_expire > expire_date_time
             } else {
               true
             };
@@ -128,7 +128,7 @@ impl Database {
     {
       match self.expires.write() {
         Ok(mut guard) => {
-          guard.remove(&(meta.expiration_date, path));
+          guard.remove(&(meta.expire_date_time, path));
         }
         Err(err) => {
           tracing::error!("Failed to acquire expires lock: {err}");
@@ -199,7 +199,7 @@ impl FilePath {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct MetaDataFile {
   pub created_at: DateTime<Utc>,
-  pub expiration_date: DateTime<Utc>,
+  pub expire_date_time: DateTime<Utc>,
   pub secret: Option<SecretHash>,
   pub delete_manually: bool,
   pub max_download: Option<u32>,
@@ -283,7 +283,7 @@ impl From<&MetaDataFile> for MetaDataFileResponse {
   fn from(value: &MetaDataFile) -> Self {
     MetaDataFileResponse {
       created_at: value.created_at,
-      expiration_date: value.expiration_date,
+      expire_date_time: value.expire_date_time,
       delete_manually: value.delete_manually,
       max_download: value.max_download,
       count_downloads: value.count_downloads,
@@ -304,7 +304,7 @@ mod tests {
     let path: FilePath = Faker.fake();
     let meta = MetaDataFile {
       created_at: Utc::now(),
-      expiration_date: Utc::now() + chrono::Duration::seconds(10),
+      expire_date_time: Utc::now() + chrono::Duration::seconds(10),
       secret: None,
       delete_manually: true,
       max_download: None,
@@ -318,7 +318,7 @@ mod tests {
       .unwrap();
     let result = ctx.state.db.fetch(&path).unwrap().unwrap();
     assert_eq!(result.created_at, meta.created_at);
-    assert_eq!(result.expiration_date, meta.expiration_date);
+    assert_eq!(result.expire_date_time, meta.expire_date_time);
     assert_eq!(result.secret, meta.secret);
     assert_eq!(result.max_download, meta.max_download);
     assert_eq!(result.count_downloads, meta.count_downloads);
@@ -330,7 +330,7 @@ mod tests {
     let path: FilePath = Faker.fake();
     let meta = MetaDataFile {
       created_at: Utc::now(),
-      expiration_date: Utc::now() + chrono::Duration::seconds(10),
+      expire_date_time: Utc::now() + chrono::Duration::seconds(10),
       secret: None,
       delete_manually: true,
       max_download: None,
@@ -351,7 +351,7 @@ mod tests {
       .unwrap();
     let result = ctx.state.db.fetch(&path).unwrap().unwrap();
     assert_eq!(result.created_at, meta.created_at);
-    assert_eq!(result.expiration_date, meta.expiration_date);
+    assert_eq!(result.expire_date_time, meta.expire_date_time);
     assert_eq!(result.secret, meta.secret);
     assert_eq!(result.max_download, meta.max_download);
     assert_eq!(result.count_downloads, meta.count_downloads + 1);
@@ -363,7 +363,7 @@ mod tests {
     let path: FilePath = Faker.fake();
     let meta = MetaDataFile {
       created_at: Utc::now(),
-      expiration_date: Utc::now() + chrono::Duration::seconds(10),
+      expire_date_time: Utc::now() + chrono::Duration::seconds(10),
       secret: None,
       delete_manually: true,
       max_download: None,
@@ -385,7 +385,7 @@ mod tests {
     let path: FilePath = Faker.fake();
     let meta = MetaDataFile {
       created_at: Utc::now(),
-      expiration_date: Utc::now(),
+      expire_date_time: Utc::now(),
       secret: None,
       delete_manually: true,
       max_download: None,
@@ -408,7 +408,7 @@ mod tests {
     let path: FilePath = Faker.fake();
     let meta = MetaDataFile {
       created_at: Utc::now(),
-      expiration_date: Utc::now() + chrono::Duration::seconds(10),
+      expire_date_time: Utc::now() + chrono::Duration::seconds(10),
       secret: None,
       delete_manually: true,
       max_download: None,

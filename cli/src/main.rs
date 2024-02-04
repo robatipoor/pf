@@ -1,10 +1,11 @@
-use anyhow::anyhow;
 use base64::Engine;
 use clap::{Parser, Subcommand, ValueEnum};
 use sdk::{
   client::PasteFileClient,
-  dto::{request::UploadQueryParam, response::MessageResponse},
-  result::ApiResponseResult,
+  dto::{
+    request::UploadQueryParam,
+    response::{ApiResponseResult, BodyResponseError, MessageResponse},
+  },
   util::base64::BASE64_ENGIN,
 };
 use std::{error::Error, path::PathBuf};
@@ -78,19 +79,17 @@ impl std::fmt::Display for UploadOutput {
 }
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
+async fn main() {
   let args = Args::parse();
   let client = PasteFileClient::new(args.server_addr);
   match args.cmd {
     SubCommand::Ping => {
-      let (_, resp) = client.health_check().await?;
+      let (_, resp) = client.health_check().await.unwrap();
       match resp {
         ApiResponseResult::Ok(resp) => {
-          println!("{}", serde_json::to_string(&resp)?);
+          println!("{}", serde_json::to_string(&resp).unwrap());
         }
-        ApiResponseResult::Err(err) => {
-          return Err(anyhow!("{}", serde_json::to_string(&err)?));
-        }
+        ApiResponseResult::Err(err) => print_err(&err),
       }
     }
     SubCommand::Upload {
@@ -114,28 +113,27 @@ async fn main() -> anyhow::Result<()> {
           .await
       } else {
         client.upload_from(&source_file, &query, args.auth).await
-      }?;
+      }
+      .unwrap();
       match resp {
         ApiResponseResult::Ok(resp) => match out {
           UploadOutput::Json => {
-            println!("{}", serde_json::to_string(&resp)?);
+            println!("{}", serde_json::to_string(&resp).unwrap());
           }
           UploadOutput::QrCode => {
             println!(
               "{}",
-              std::str::from_utf8(&BASE64_ENGIN.decode(resp.qrcode)?)?
+              std::str::from_utf8(&BASE64_ENGIN.decode(resp.qrcode).unwrap()).unwrap()
             );
           }
           UploadOutput::Url => {
             println!("{}", resp.url);
           }
           UploadOutput::UrlPath => {
-            println!("{}", &Url::parse(&resp.url)?.path()[1..]);
+            println!("{}", &Url::parse(&resp.url).unwrap().path()[1..]);
           }
         },
-        ApiResponseResult::Err(err) => {
-          return Err(anyhow!("{}", serde_json::to_string(&err)?));
-        }
+        ApiResponseResult::Err(err) => print_err(&err),
       }
     }
     SubCommand::Download {
@@ -151,40 +149,34 @@ async fn main() -> anyhow::Result<()> {
         client
           .download_into(&url_path, args.auth, destination_dir)
           .await
-      }?;
+      }
+      .unwrap();
       match resp {
         ApiResponseResult::Ok(_) => {
-          println!("{}", serde_json::to_string(&MessageResponse::ok())?);
+          println!("{}", serde_json::to_string(&MessageResponse::ok()).unwrap());
         }
-        ApiResponseResult::Err(err) => {
-          return Err(anyhow!("{}", serde_json::to_string(&err)?));
-        }
+        ApiResponseResult::Err(err) => print_err(&err),
       }
     }
     SubCommand::Info { url_path } => {
-      let (_, resp) = client.info(&url_path, args.auth).await?;
+      let (_, resp) = client.info(&url_path, args.auth).await.unwrap();
       match resp {
         ApiResponseResult::Ok(resp) => {
-          println!("{}", serde_json::to_string(&resp)?);
+          println!("{}", serde_json::to_string(&resp).unwrap());
         }
-        ApiResponseResult::Err(err) => {
-          return Err(anyhow!("{}", serde_json::to_string(&err)?));
-        }
+        ApiResponseResult::Err(err) => print_err(&err),
       }
     }
     SubCommand::Delete { url_path } => {
-      let (_, resp) = client.delete(&url_path, args.auth).await?;
+      let (_, resp) = client.delete(&url_path, args.auth).await.unwrap();
       match resp {
         ApiResponseResult::Ok(resp) => {
-          println!("{}", serde_json::to_string(&resp)?);
+          println!("{}", serde_json::to_string(&resp).unwrap());
         }
-        ApiResponseResult::Err(err) => {
-          return Err(anyhow!("{}", serde_json::to_string(&err)?));
-        }
+        ApiResponseResult::Err(err) => print_err(&err),
       }
     }
-  }
-  Ok(())
+  };
 }
 
 fn parse_auth(s: &str) -> Result<(String, String), Box<dyn Error + Send + Sync + 'static>> {
@@ -212,4 +204,9 @@ fn parse_expire_time_from_str(
     _ => return Err("Invalid expire time format".into()),
   };
   Ok(value * multiplier)
+}
+
+fn print_err(err: &BodyResponseError) {
+  eprintln!("{}", serde_json::to_string(&err).unwrap());
+  std::process::exit(1);
 }
