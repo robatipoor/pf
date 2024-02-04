@@ -91,7 +91,7 @@ $ curl -X DELETE http://127.0.0.1:8080/{code}/{file_name}
 # Maximum upload size in bytes
 max_upload_bytes_size = 1000_000_000 # 1GB
 
-# Default code length in the url
+# Default code length in the url path
 default_code_length = 3
 
 # Default expiration time in seconds
