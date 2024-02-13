@@ -84,5 +84,10 @@ wasm-bindgen = "0.2.90"
 wasm-logger = "0.2.0"
 gloo = "0.11.0"
 js-sys = "0.3.68"
-web-sys = { version = "0.3.68", features = ["XmlHttpRequest","XmlHttpRequestUpload"] }
+web-sys = { version = "0.3.68", features = [
+  "XmlHttpRequest",
+  "XmlHttpRequestUpload",
+] }
+wasm-bindgen-futures = { version = "0.4.41" }
+wasm-streams = { version = "0.4.0" }
 chacha20poly1305 = "0.10.1"

@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-# sdk = { path = "../sdk" }
 yew = { workspace = true }
 gloo = { workspace = true }
 js-sys = { workspace = true }
@@ -27,3 +26,6 @@ test-context = { workspace = true }
 thiserror = { workspace = true }
 url = { workspace = true }
 base64 = { workspace = true }
+wasm-bindgen-futures = { workspace = true }
+wasm-streams = { workspace = true }
+async-stream = { workspace = true }
