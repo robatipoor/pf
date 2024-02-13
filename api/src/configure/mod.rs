@@ -81,12 +81,12 @@ impl ServerConfig {
 
 impl ApiConfig {
   pub fn read(
-    arg_file_src: Option<PathBuf>,
+    file_src: Option<PathBuf>,
     env_src: Environment,
   ) -> Result<Self, config::ConfigError> {
     config::Config::builder()
       .add_source(config::File::from(
-        get_basic_settings_path(arg_file_src)
+        get_basic_settings_path(file_src)
           .map_err(|e| config::ConfigError::Message(e.to_string()))?,
       ))
       .add_source(env_src)
@@ -95,8 +95,8 @@ impl ApiConfig {
   }
 }
 
-fn get_basic_settings_path(arg_path: Option<PathBuf>) -> std::io::Result<PathBuf> {
-  if let Some(path) = arg_path {
+fn get_basic_settings_path(file_src: Option<PathBuf>) -> std::io::Result<PathBuf> {
+  if let Some(path) = file_src {
     Ok(path)
   } else {
     Ok(std::env::current_dir()?.join("settings").join("base.toml"))
