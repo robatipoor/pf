@@ -1,4 +1,4 @@
-use crate::util::arg::get_env_source;
+use crate::util::{arg::get_env_source, dir::get_settings_dir};
 use config::Environment;
 use once_cell::sync::Lazy;
 use serde::Deserialize;
@@ -99,7 +99,7 @@ fn get_basic_settings_path(file_src: Option<PathBuf>) -> std::io::Result<PathBuf
   if let Some(path) = file_src {
     Ok(path)
   } else {
-    Ok(std::env::current_dir()?.join("settings").join("base.toml"))
+    Ok(get_settings_dir()?.join("base.toml"))
   }
 }
 

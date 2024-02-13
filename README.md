@@ -25,19 +25,20 @@ The service provides a convenient means of sharing files without the necessity f
 ```sh
 # Clone the project
 $ git clone https://github.com/robatipoor/pf
-# Build the backend binary
-$ cargo build --bin api --release
-# Run the backend on address 127.0.0.1:8080
-$ ./target/release/api --settings api/settings/base.toml
+
+# Run backend API service
+$ cargo run --bin api
 ```
 **Run Backend Service via Docker**
 
 ```sh
 # Build docker image
 $ docker build -t pf-api:latest -f api/Dockerfile .
+
 # Run Docker container on address 0.0.0.0:8080
 $ docker run --name pf-api --rm -p 8080:8080 \
 -e PF__SERVER__HOST='0.0.0.0' -d pf-api:latest
+
 # Alternatively, you can pull the image from the github registry and run container
 $ docker run --name pf-api --rm -p 8080:8080 \
 -e PF__SERVER__HOST='0.0.0.0' -d ghcr.io/robatipoor/pf-api:latest
@@ -174,10 +175,19 @@ delete --url-path "{code}/{file_name}"
 
 ```
 
-**Run tests**
-
+**Build and Run**
 ```sh
-./test.sh
+# Build the project
+$ cargo build --release
+
+# Run the backend on address 127.0.0.1:8080
+$ ./target/release/api --settings api/settings/base.toml
+```
+
+**Run tests**
+```sh
+# Execute all test projects.
+./test
 ```
 
 **Todo list**
