@@ -7,6 +7,7 @@ use axum::{
 
 pub fn get_router(state: ApiState) -> Router {
   Router::new()
+    .layer(cors_layer())
     .route("/upload", post(handler::file::upload))
     .layer(DefaultBodyLimit::disable())
     .route("/healthz", get(handler::health_check))
@@ -14,4 +15,15 @@ pub fn get_router(state: ApiState) -> Router {
     .route("/:code/:file_name", get(handler::file::download))
     .route("/:code/:file_name", delete(handler::file::delete))
     .with_state(state)
+}
+
+fn cors_layer() -> tower_http::cors::CorsLayer {
+  tower_http::cors::CorsLayer::new()
+    .allow_methods([
+      hyper::Method::GET,
+      hyper::Method::POST,
+      hyper::Method::DELETE,
+    ])
+    .allow_origin(tower_http::cors::AllowOrigin::any())
+    .allow_headers([hyper::header::CONTENT_TYPE])
 }
