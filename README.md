@@ -26,7 +26,13 @@ The service provides a convenient means of sharing files without the necessity f
 # Clone the project
 $ git clone https://github.com/robatipoor/pf
 
-# Run backend API service
+# Build the project
+$ cargo build --release
+
+# Run the backend on address 127.0.0.1:8080
+$ ./target/release/api --settings api/settings/base.toml
+
+# Alternatively, Run backend with cargo
 $ cargo run --bin api
 ```
 **Run Backend Service via Docker**
@@ -173,15 +179,6 @@ info --url-path "{code}/{file_name}"
 $ ./target/release/cli --server-addr "http://localhost:8080" \
 delete --url-path "{code}/{file_name}"
 
-```
-
-**Build and Run**
-```sh
-# Build the project
-$ cargo build --release
-
-# Run the backend on address 127.0.0.1:8080
-$ ./target/release/api --settings api/settings/base.toml
 ```
 
 **Run tests**
