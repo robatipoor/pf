@@ -2,6 +2,8 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::{collections::HashMap, hash::Hash};
 
+use crate::error::ApiResult;
+use crate::server::worker::GarbageCollectorTask;
 use crate::server::ApiState;
 use crate::{configure::CONFIG, util::tracing::INIT_SUBSCRIBER};
 use once_cell::sync::Lazy;
@@ -42,6 +44,7 @@ macro_rules! unwrap {
 
 pub struct StateTestContext {
   pub state: ApiState,
+  gc_task: tokio::task::JoinHandle<ApiResult>,
 }
 
 #[async_trait::async_trait]
@@ -55,11 +58,12 @@ impl AsyncTestContext for StateTestContext {
     config.fs.base_dir = workspace;
     config.db.path_dir = db_path;
     let state = ApiState::new(config).unwrap();
-    crate::server::worker::spawn(axum::extract::State(state.clone()));
-    Self { state }
+    let gc_task = tokio::task::spawn(GarbageCollectorTask::new(state.clone()).run());
+    Self { state, gc_task }
   }
 
   async fn teardown(self) {
+    self.gc_task.abort();
     tokio::fs::remove_dir_all(&self.state.config.db.path_dir)
       .await
       .unwrap();

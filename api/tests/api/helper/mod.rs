@@ -2,6 +2,8 @@ use std::ops::Deref;
 use std::path::{Path, PathBuf};
 
 use api::configure::CONFIG;
+use api::error::ApiResult;
+use api::server::worker::GarbageCollectorTask;
 use api::server::{ApiServer, ApiState};
 use api::unwrap;
 use api::util::tracing::INIT_SUBSCRIBER;
@@ -12,9 +14,11 @@ use sdk::dto::request::UploadQueryParam;
 use test_context::AsyncTestContext;
 
 pub struct ApiTestContext {
-  client: PasteFileClient,
   pub state: ApiState,
   pub workspace: PathBuf,
+  client: PasteFileClient,
+  server_task: tokio::task::JoinHandle<ApiResult>,
+  gc_task: tokio::task::JoinHandle<ApiResult>,
 }
 
 #[async_trait::async_trait]
@@ -30,16 +34,20 @@ impl AsyncTestContext for ApiTestContext {
     let server = ApiServer::new(config).await.unwrap();
     let state = server.state.clone();
     let client = PasteFileClient::new(server.state.config.server.get_http_addr());
-    api::server::worker::spawn(axum::extract::State(state.clone()));
-    tokio::spawn(server.run());
+    let gc_task = tokio::task::spawn(GarbageCollectorTask::new(state.clone()).run());
+    let server_task = tokio::task::spawn(server.run());
     Self {
       state,
       client,
       workspace,
+      server_task,
+      gc_task,
     }
   }
 
   async fn teardown(self) {
+    self.gc_task.abort();
+    self.server_task.abort();
     tokio::fs::remove_dir_all(&self.workspace).await.unwrap();
   }
 }
