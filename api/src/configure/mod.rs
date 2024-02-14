@@ -1,4 +1,4 @@
-use crate::{constant::ENV_PREFIX, util::dir::get_settings_dir};
+use crate::{constant::ENV_PREFIX, util::dir::get_cargo_project_root};
 use config::Environment;
 use once_cell::sync::Lazy;
 use serde::Deserialize;
@@ -104,7 +104,15 @@ fn get_basic_settings_path(file_src: Option<PathBuf>) -> std::io::Result<PathBuf
   if let Some(path) = file_src {
     Ok(path)
   } else {
-    Ok(get_settings_dir()?.join("base.toml"))
+    Ok(get_default_settings_dir()?.join("base.toml"))
+  }
+}
+
+pub fn get_default_settings_dir() -> std::io::Result<PathBuf> {
+  if let Some(root) = get_cargo_project_root()?.map(|root| root.join("api").join("settings")) {
+    Ok(root)
+  } else {
+    std::env::current_dir()
   }
 }
 
