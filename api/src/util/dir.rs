@@ -1,4 +1,4 @@
-use std::{ffi::OsString, path::PathBuf};
+use std::path::PathBuf;
 
 pub fn get_settings_dir() -> std::io::Result<std::path::PathBuf> {
   Ok(
@@ -11,14 +11,12 @@ pub fn get_settings_dir() -> std::io::Result<std::path::PathBuf> {
 
 pub fn get_project_root() -> std::io::Result<PathBuf> {
   let current_path = std::env::current_dir()?;
-  let mut ancestors = current_path.ancestors();
 
-  while let Some(parent) = ancestors.next() {
-    let mut read_dir = std::fs::read_dir(parent)?.into_iter();
-    while let Some(dir) = read_dir.next() {
+  for ancestor in current_path.ancestors() {
+    for dir in std::fs::read_dir(ancestor)? {
       let dir = dir?;
-      if dir.file_name() == OsString::from("Cargo.lock") {
-        return Ok(parent.to_path_buf());
+      if dir.file_name() == *"Cargo.lock" {
+        return Ok(ancestor.to_path_buf());
       }
     }
   }

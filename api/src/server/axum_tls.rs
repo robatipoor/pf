@@ -75,9 +75,7 @@ pub fn rustls_server_config(
   let key = rustls_pemfile::private_key(&mut key_reader)?
     .ok_or_else(|| anyhow::anyhow!("Key is invalid"))?;
 
-  let certs = rustls_pemfile::certs(&mut cert_reader)
-    .into_iter()
-    .collect::<std::io::Result<Vec<_>>>()?;
+  let certs = rustls_pemfile::certs(&mut cert_reader).collect::<std::io::Result<Vec<_>>>()?;
 
   // Configure ServerConfig with extracted key and certificates
   let mut config = ServerConfig::builder()

@@ -1,6 +1,5 @@
-use base64::Engine;
+use base64::{engine::general_purpose::STANDARD, Engine};
 use qrcode::QrCode;
-use sdk::util::base64::BASE64_ENGIN;
 
 use crate::error::ApiResult;
 
@@ -10,7 +9,7 @@ pub fn encode(text: &str) -> ApiResult<String> {
     .quiet_zone(false)
     .module_dimensions(2, 1)
     .build();
-  Ok(BASE64_ENGIN.encode(qrcode))
+  Ok(STANDARD.encode(qrcode))
 }
 
 #[cfg(test)]

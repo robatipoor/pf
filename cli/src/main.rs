@@ -1,16 +1,15 @@
-use base64::Engine;
+use base64::{engine::general_purpose::STANDARD, Engine};
 use clap::{Parser, Subcommand, ValueEnum};
-use sdk::{
-  client::PasteFileClient,
-  dto::{
-    request::UploadQueryParam,
-    response::{ApiResponseResult, BodyResponseError, MessageResponse},
-  },
-  util::base64::BASE64_ENGIN,
+use client::CommandLineClient;
+use sdk::dto::{
+  request::UploadQueryParam,
+  response::{ApiResponseResult, BodyResponseError, MessageResponse},
 };
 use std::{error::Error, path::PathBuf};
-
 use url::Url;
+
+mod client;
+mod util;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -81,7 +80,7 @@ impl std::fmt::Display for UploadOutput {
 #[tokio::main]
 async fn main() {
   let args = Args::parse();
-  let client = PasteFileClient::new(args.server_addr);
+  let client = CommandLineClient::new(args.server_addr);
   match args.cmd {
     SubCommand::Ping => {
       let (_, resp) = client.health_check().await.unwrap();
@@ -123,7 +122,7 @@ async fn main() {
           UploadOutput::QrCode => {
             println!(
               "{}",
-              std::str::from_utf8(&BASE64_ENGIN.decode(resp.qrcode).unwrap()).unwrap()
+              std::str::from_utf8(&STANDARD.decode(resp.qrcode).unwrap()).unwrap()
             );
           }
           UploadOutput::Url => {

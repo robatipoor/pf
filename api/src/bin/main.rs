@@ -6,19 +6,22 @@ use api::{
 use clap::Parser;
 use futures_util::FutureExt;
 use once_cell::sync::Lazy;
-use tracing::warn;
 
 #[tokio::main]
 async fn main() -> ApiResult {
+  // Parse command-line arguments
   let args = api::configure::Args::parse();
+  // Read API configuration
   let config = api::configure::ApiConfig::read(args.settings, get_env_source("PF"))?;
+  // Force initialization of subscriber
   Lazy::force(&INIT_SUBSCRIBER);
-  if let Err(e) = tokio::fs::create_dir_all(&config.fs.base_dir).await {
-    warn!("Failed to create base directory, Error: {e}");
-  };
+  // Create base directory if it doesn't exist
+  tokio::fs::create_dir_all(&config.fs.base_dir).await?;
+  // Initialize API server
   let server = ApiServer::new(config).await?;
+  // Create garbage collector task
   let gc_task = GarbageCollectorTask::new(server.state.clone());
-
+  // Start HTTP server and garbage collector task concurrently
   util::task::join_all(vec![
     ("HTTP_SERVER", true, server.run().boxed()),
     ("GC_TASK", true, gc_task.run().boxed()),

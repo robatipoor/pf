@@ -91,7 +91,7 @@ pub async fn store_stream(file_path: &PathBuf, field: Field<'_>, max_size: usize
     tokio::fs::create_dir_all(parent).await?;
   }
   let mut file = BufWriter::new(File::create(file_path).await?);
-  copy(&file_path, &mut body_reader, &mut file, max_size).await?;
+  copy(file_path, &mut body_reader, &mut file, max_size).await?;
   Ok(())
 }
 
@@ -110,7 +110,7 @@ pub async fn copy(
     }
     bytes_size += bytes_read;
     if bytes_size > max_size {
-      return handle_payload_too_large(&file_path, writer, max_size).await;
+      return handle_payload_too_large(file_path, writer, max_size).await;
     }
     writer.write_all(&buffer).await?;
     buffer.clear();
