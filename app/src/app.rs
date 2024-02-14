@@ -1,4 +1,8 @@
+use base64::engine::general_purpose::STANDARD;
+use base64::Engine;
+use chrono::{DateTime, Utc};
 use gloo::console;
+use serde::{Deserialize, Serialize};
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsCast;
 use web_sys::{
@@ -12,7 +16,7 @@ pub enum MessageApp {
   StartUpload,
   UploadCompleted,
   FileSelected(String, web_sys::Blob),
-  Progress(f64),
+  Progress(f64, f64),
   Error(String),
 }
 
@@ -20,17 +24,32 @@ pub struct App {
   file: Option<(String, web_sys::Blob)>,
   progress: f64,
   request: Option<XmlHttpRequest>,
+  resp: Option<UploadResponse>,
+  progress_closure: Closure<dyn Fn(ProgressEvent)>,
+  onloadend_closure: Closure<dyn Fn(ProgressEvent)>,
 }
 
 impl Component for App {
   type Message = MessageApp;
   type Properties = ();
 
-  fn create(_ctx: &Context<Self>) -> Self {
+  fn create(ctx: &Context<Self>) -> Self {
+    let link = ctx.link().clone();
+    let progress_closure: Closure<dyn Fn(ProgressEvent)> = Closure::new(move |e: ProgressEvent| {
+      link.send_message(MessageApp::Progress(e.total(), e.loaded()))
+    });
+
+    let link = ctx.link().clone();
+    let onloadend_closure: Closure<dyn Fn(ProgressEvent)> =
+      Closure::new(move |_e: ProgressEvent| link.send_message(MessageApp::UploadCompleted));
+
     Self {
       file: Option::default(),
       progress: 0f64,
       request: None,
+      progress_closure,
+      onloadend_closure: onloadend_closure,
+      resp: None,
     }
   }
 
@@ -44,11 +63,19 @@ impl Component for App {
         self.file = Some((name, file));
         true
       }
-      MessageApp::Progress(progress) => {
-        self.progress = progress;
+      MessageApp::Progress(total, progress) => {
+        console::log!("*** Progress ***");
+        self.progress = (progress * 100.0) / total;
         true
       }
-      MessageApp::UploadCompleted => true,
+      MessageApp::UploadCompleted => {
+        console::log!("*** Upload Completed ***");
+        let req = self.request.take().unwrap();
+        let resp: UploadResponse =
+          serde_json::from_str(&req.response().unwrap().as_string().unwrap()).unwrap();
+        self.resp = Some(resp);
+        true
+      }
       MessageApp::Error(_) => true,
     }
   }
@@ -97,6 +124,9 @@ impl Component for App {
             <div id="preview-area">
                 { self.view_progress_bar() }
             </div>
+            <div id="preview-area">
+            { self.view_response() }
+        </div>
         </div>
     }
   }
@@ -108,8 +138,24 @@ impl App {
       html! {
           <div>
               <progress value={self.progress.to_string()}></progress>
-              <span>{ format!("{:.1}%", self.progress) }</span>
+              <span>{ format!("{}%", self.progress) }</span>
           </div>
+      }
+    } else {
+      html! {}
+    }
+  }
+
+  fn view_response(&self) -> Html {
+    if let Some(_) = self.file {
+      html! {
+
+        if let Some(s) = self.resp.as_ref() {
+
+       <div>
+       {std::str::from_utf8(&STANDARD.decode(&s.qrcode).unwrap()).unwrap()}
+       </div>
+        }
       }
     } else {
       html! {}
@@ -145,21 +191,23 @@ impl App {
     let req = XmlHttpRequest::new().unwrap();
     req.open("POST", "http://127.0.0.1:8080/upload").unwrap();
 
-    let link = ctx.link().clone();
-    let progress: Closure<dyn Fn(ProgressEvent)> =
-      Closure::new(move |e: ProgressEvent| link.send_message(MessageApp::Progress(e.loaded())));
     req
-      .add_event_listener_with_callback("progress", progress.as_ref().unchecked_ref())
+      .add_event_listener_with_callback("progress", self.progress_closure.as_ref().unchecked_ref())
       .unwrap();
 
-    let link = ctx.link().clone();
-    let onloadend: Closure<dyn Fn(ProgressEvent)> =
-      Closure::new(move |_e: ProgressEvent| link.send_message(MessageApp::UploadCompleted));
     req
-      .add_event_listener_with_callback("onloadend", onloadend.as_ref().unchecked_ref())
+      .add_event_listener_with_callback("loadend", self.onloadend_closure.as_ref().unchecked_ref())
       .unwrap();
 
     req.send_with_opt_form_data(Some(&f)).unwrap();
+
     self.request = Some(req);
   }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct UploadResponse {
+  pub expire_date_time: DateTime<Utc>,
+  pub url: String,
+  pub qrcode: String,
 }

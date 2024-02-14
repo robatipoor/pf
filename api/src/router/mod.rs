@@ -7,13 +7,13 @@ use axum::{
 
 pub fn get_router(state: ApiState) -> Router {
   Router::new()
-    .layer(cors_layer())
     .route("/upload", post(handler::file::upload))
     .layer(DefaultBodyLimit::disable())
     .route("/healthz", get(handler::health_check))
     .route("/info/:code/:file_name", get(handler::file::info))
     .route("/:code/:file_name", get(handler::file::download))
     .route("/:code/:file_name", delete(handler::file::delete))
+    .layer(cors_layer())
     .with_state(state)
 }
 
