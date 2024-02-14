@@ -1,4 +1,5 @@
 pub mod configure;
+pub mod constant;
 pub mod database;
 pub mod error;
 pub mod handler;

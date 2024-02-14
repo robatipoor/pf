@@ -38,11 +38,7 @@ impl PasteFileClient {
 
   #[logfn(Info)]
   pub async fn health_check(&self) -> anyhow::Result<(StatusCode, ApiResponseResult)> {
-    let resp = self
-      .inner
-      .get(format!("{}/healthz", self.addr))
-      .send()
-      .await?;
+    let resp = self.get(format!("{}/healthz", self.addr)).send().await?;
     Ok((resp.status(), resp.json().await?))
   }
 
@@ -55,7 +51,6 @@ impl PasteFileClient {
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<UploadResponse>)> {
     let form = reqwest::multipart::Form::new().part("file", file_part);
     let mut builder = self
-      .inner
       .post(format!("{}/upload", self.addr))
       .multipart(form)
       .query(query);

@@ -1,7 +1,9 @@
 use api::{
+  configure::env::get_env_source,
+  constant::ENV_PREFIX,
   error::ApiResult,
   server::{worker::GarbageCollectorTask, ApiServer},
-  util::{self, arg::get_env_source, tracing::INIT_SUBSCRIBER},
+  util::{self, tracing::INIT_SUBSCRIBER},
 };
 use clap::Parser;
 use futures_util::FutureExt;
@@ -10,9 +12,9 @@ use once_cell::sync::Lazy;
 #[tokio::main]
 async fn main() -> ApiResult {
   // Parse command-line arguments
-  let args = api::configure::Args::parse();
+  let args = api::configure::args::Args::parse();
   // Read API configuration
-  let config = api::configure::ApiConfig::read(args.settings, get_env_source("PF"))?;
+  let config = api::configure::ApiConfig::read(args.settings, get_env_source(ENV_PREFIX))?;
   // Force initialization of subscriber
   Lazy::force(&INIT_SUBSCRIBER);
   // Create base directory if it doesn't exist

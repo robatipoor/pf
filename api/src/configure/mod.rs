@@ -1,4 +1,4 @@
-use crate::util::{arg::get_env_source, dir::get_settings_dir};
+use crate::{constant::ENV_PREFIX, util::dir::get_settings_dir};
 use config::Environment;
 use once_cell::sync::Lazy;
 use serde::Deserialize;
@@ -7,8 +7,13 @@ use std::{
   path::PathBuf,
 };
 
+use self::env::get_env_source;
+
+pub mod args;
+pub mod env;
+
 pub static CONFIG: Lazy<ApiConfig> =
-  Lazy::new(|| ApiConfig::read(None, get_env_source("PF")).unwrap());
+  Lazy::new(|| ApiConfig::read(None, get_env_source(ENV_PREFIX)).unwrap());
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct ApiConfig {
@@ -101,13 +106,6 @@ fn get_basic_settings_path(file_src: Option<PathBuf>) -> std::io::Result<PathBuf
   } else {
     Ok(get_settings_dir()?.join("base.toml"))
   }
-}
-
-#[derive(clap::Parser, Debug, Default)]
-#[command(author, version, about, long_about = None)]
-pub struct Args {
-  #[arg(short, long)]
-  pub settings: Option<PathBuf>,
 }
 
 #[cfg(test)]
