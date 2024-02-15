@@ -123,7 +123,6 @@ mod tests {
 
   #[test]
   fn test_read_config() {
-    let env_ns = "TEST_PF";
-    ApiConfig::read(None, get_env_source(env_ns)).unwrap();
+    ApiConfig::read(None, get_env_source("TEST_PF")).unwrap();
   }
 }
