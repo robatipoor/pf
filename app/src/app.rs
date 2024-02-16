@@ -21,10 +21,11 @@ pub enum MessageApp {
 }
 
 pub struct App {
+  upload_url: String,
   file: Option<(String, web_sys::Blob)>,
   progress: f64,
   request: Option<XmlHttpRequest>,
-  resp: Option<UploadResponse>,
+  response: Option<UploadResponse>,
   progress_closure: Closure<dyn Fn(ProgressEvent)>,
   onloadend_closure: Closure<dyn Fn(ProgressEvent)>,
 }
@@ -44,12 +45,13 @@ impl Component for App {
       Closure::new(move |_e: ProgressEvent| link.send_message(MessageApp::UploadCompleted));
 
     Self {
+      upload_url: "http://localhost:8080/upload".to_string(),
       file: Option::default(),
       progress: 0f64,
       request: None,
       progress_closure,
       onloadend_closure: onloadend_closure,
-      resp: None,
+      response: None,
     }
   }
 
@@ -73,7 +75,7 @@ impl Component for App {
         let req = self.request.take().unwrap();
         let resp: UploadResponse =
           serde_json::from_str(&req.response().unwrap().as_string().unwrap()).unwrap();
-        self.resp = Some(resp);
+        self.response = Some(resp);
         true
       }
       MessageApp::Error(_) => true,
@@ -147,15 +149,11 @@ impl App {
   }
 
   fn view_response(&self) -> Html {
-    if let Some(_) = self.file {
+    if let Some(response) = self.response.as_ref() {
       html! {
-
-        if let Some(s) = self.resp.as_ref() {
-
        <div>
-       {std::str::from_utf8(&STANDARD.decode(&s.qrcode).unwrap()).unwrap()}
+       {std::str::from_utf8(&STANDARD.decode(&response.qrcode).unwrap()).unwrap()}
        </div>
-        }
       }
     } else {
       html! {}
@@ -189,7 +187,7 @@ impl App {
     f.append_with_blob_and_filename("file", file, filename)
       .unwrap();
     let req = XmlHttpRequest::new().unwrap();
-    req.open("POST", "http://127.0.0.1:8080/upload").unwrap();
+    req.open("POST", &self.upload_url).unwrap();
 
     req
       .add_event_listener_with_callback("progress", self.progress_closure.as_ref().unchecked_ref())
