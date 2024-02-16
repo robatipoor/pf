@@ -50,7 +50,7 @@ impl Component for App {
       progress: 0f64,
       request: None,
       progress_closure,
-      onloadend_closure: onloadend_closure,
+      onloadend_closure,
       response: None,
     }
   }
@@ -136,7 +136,7 @@ impl Component for App {
 
 impl App {
   fn view_progress_bar(&self) -> Html {
-    if let Some(_) = self.file {
+    if self.file.is_some() {
       html! {
           <div>
               <progress value={self.progress.to_string()}></progress>
