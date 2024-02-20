@@ -1,211 +1,181 @@
+use std::path::PathBuf;
+
+use args::{Args, SubCommand, UploadOutput};
 use base64::{engine::general_purpose::STANDARD, Engine};
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::Parser;
 use client::CommandLineClient;
-use sdk::dto::{
-  request::UploadQueryParam,
-  response::{ApiResponseResult, BodyResponseError, MessageResponse},
+use parse::KeyAndNonce;
+use sdk::{
+    dto::{
+        request::UploadQueryParam,
+        response::{ApiResponseResult, BodyResponseError, MessageResponse},
+    },
+    util::random::generate_random_string_with_prefix,
 };
-use std::{error::Error, path::PathBuf};
 use url::Url;
 
+mod args;
 mod client;
+mod parse;
 mod util;
-
-#[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
-struct Args {
-  #[arg(short, long)]
-  server_addr: String,
-  #[clap(short, long, value_parser = parse_auth)]
-  auth: Option<(String, String)>,
-  #[clap(subcommand)]
-  cmd: SubCommand,
-}
-
-#[derive(Subcommand, Debug)]
-pub enum SubCommand {
-  Ping,
-  Upload {
-    #[clap(short, long)]
-    code_length: Option<usize>,
-    #[clap(short, long,value_parser = parse_expire_time_from_str)]
-    expire: Option<u64>,
-    #[clap(short, long)]
-    max_download: Option<u32>,
-    #[clap(short, long)]
-    delete_manually: Option<bool>,
-    #[clap(default_value_t = UploadOutput::Json, short, long)]
-    out: UploadOutput,
-    #[clap(default_value_t = false, short, long)]
-    progress_bar: bool,
-    #[clap(short, long)]
-    source_file: PathBuf,
-  },
-  Delete {
-    #[arg(short, long)]
-    url_path: String,
-  },
-  Info {
-    #[arg(short, long)]
-    url_path: String,
-  },
-  Download {
-    #[clap(default_value_t = false, short, long)]
-    progress_bar: bool,
-    #[arg(short, long)]
-    url_path: String,
-    #[clap(short, long)]
-    destination_dir: PathBuf,
-  },
-}
-
-#[derive(ValueEnum, Debug, Clone, Copy)]
-pub enum UploadOutput {
-  QrCode,
-  Url,
-  UrlPath,
-  Json,
-}
-
-impl std::fmt::Display for UploadOutput {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    self
-      .to_possible_value()
-      .expect("no values are skipped")
-      .get_name()
-      .fmt(f)
-  }
-}
 
 #[tokio::main]
 async fn main() {
-  let args = Args::parse();
-  let client = CommandLineClient::new(args.server_addr);
-  match args.cmd {
-    SubCommand::Ping => {
-      let (_, resp) = client.health_check().await.unwrap();
-      match resp {
-        ApiResponseResult::Ok(resp) => {
-          println!("{}", serde_json::to_string(&resp).unwrap());
+    let args = Args::parse();
+    let client = CommandLineClient::new(args.server_addr);
+    match args.cmd {
+        SubCommand::Ping => {
+            let (_, resp) = client.health_check().await.unwrap();
+            match resp {
+                ApiResponseResult::Ok(resp) => {
+                    println!("{}", serde_json::to_string(&resp).unwrap());
+                }
+                ApiResponseResult::Err(err) => print_response_err(&err),
+            }
         }
-        ApiResponseResult::Err(err) => print_err(&err),
-      }
-    }
-    SubCommand::Upload {
-      code_length,
-      progress_bar,
-      expire,
-      delete_manually,
-      max_download,
-      out,
-      source_file,
-    } => {
-      let query = UploadQueryParam {
-        max_download,
-        code_length,
-        expire_secs: expire,
-        delete_manually,
-      };
-      let (_, resp) = if progress_bar {
-        client
-          .upload_with_progress_bar(&source_file, &query, args.auth)
-          .await
-      } else {
-        client.upload_from(&source_file, &query, args.auth).await
-      }
-      .unwrap();
-      match resp {
-        ApiResponseResult::Ok(resp) => match out {
-          UploadOutput::Json => {
-            println!("{}", serde_json::to_string(&resp).unwrap());
-          }
-          UploadOutput::QrCode => {
-            println!(
-              "{}",
-              std::str::from_utf8(&STANDARD.decode(resp.qrcode).unwrap()).unwrap()
-            );
-          }
-          UploadOutput::Url => {
-            println!("{}", resp.url);
-          }
-          UploadOutput::UrlPath => {
-            println!("{}", &Url::parse(&resp.url).unwrap().path()[1..]);
-          }
-        },
-        ApiResponseResult::Err(err) => print_err(&err),
-      }
-    }
-    SubCommand::Download {
-      progress_bar,
-      url_path,
-      destination_dir,
-    } => {
-      let (_, resp) = if progress_bar {
-        client
-          .download_with_progress_bar(&url_path, args.auth, destination_dir)
-          .await
-      } else {
-        client
-          .download_into(&url_path, args.auth, destination_dir)
-          .await
-      }
-      .unwrap();
-      match resp {
-        ApiResponseResult::Ok(_) => {
-          println!("{}", serde_json::to_string(&MessageResponse::ok()).unwrap());
+        SubCommand::Upload {
+            code_length,
+            progress_bar,
+            expire,
+            delete_manually,
+            max_download,
+            out,
+            mut source_file,
+            encrypt,
+        } => {
+            if source_file.is_dir() {
+                eprintln!("The source file option shoud be set to the path file.");
+                std::process::exit(1);
+            }
+            if let Some(encrypt) = encrypt.clone() {
+                // source_file = encrypt_file(source_file, encrypt).await.unwrap();
+            }
+            let query = UploadQueryParam {
+                max_download,
+                code_length,
+                expire_secs: expire,
+                delete_manually,
+            };
+            let (_, resp) = if progress_bar {
+                client
+                    .upload_with_progress_bar(&source_file, &query, args.auth)
+                    .await
+            } else {
+                client.upload_from(&source_file, &query, args.auth).await
+            }
+            .unwrap();
+            match resp {
+                ApiResponseResult::Ok(resp) => match out {
+                    UploadOutput::Json => {
+                        println!("{}", serde_json::to_string(&resp).unwrap());
+                    }
+                    UploadOutput::QrCode => {
+                        println!(
+                            "{}",
+                            std::str::from_utf8(&STANDARD.decode(resp.qrcode).unwrap()).unwrap()
+                        );
+                    }
+                    UploadOutput::Url => {
+                        println!("{}", resp.url);
+                    }
+                    UploadOutput::UrlPath => {
+                        println!("{}", &Url::parse(&resp.url).unwrap().path()[1..]);
+                    }
+                },
+                ApiResponseResult::Err(err) => print_response_err(&err),
+            }
+            // if encrypt.is_some() {
+            //     tokio::fs::remove_dir_all(source_file)
+            //         .await
+            //         .unwrap();
+            // }
         }
-        ApiResponseResult::Err(err) => print_err(&err),
-      }
-    }
-    SubCommand::Info { url_path } => {
-      let (_, resp) = client.info(&url_path, args.auth).await.unwrap();
-      match resp {
-        ApiResponseResult::Ok(resp) => {
-          println!("{}", serde_json::to_string(&resp).unwrap());
+        SubCommand::Download {
+            progress_bar,
+            url_path,
+            destination,
+            decrypt,
+        } => {
+            let (_, resp) = if progress_bar {
+                client
+                    .download_with_progress_bar(&url_path, args.auth, destination)
+                    .await
+            } else {
+                client
+                    .download_into(&url_path, args.auth, destination)
+                    .await
+            }
+            .unwrap();
+            match resp {
+                ApiResponseResult::Ok(encrypt_source_file) => {
+                    if let Some(decrypt) = decrypt {
+                        // decrypt_file(encrypt_source_file, decrypt).await.unwrap();
+                    }
+                    println!("{}", serde_json::to_string(&MessageResponse::ok()).unwrap());
+                }
+                ApiResponseResult::Err(err) => print_response_err(&err),
+            }
         }
-        ApiResponseResult::Err(err) => print_err(&err),
-      }
-    }
-    SubCommand::Delete { url_path } => {
-      let (_, resp) = client.delete(&url_path, args.auth).await.unwrap();
-      match resp {
-        ApiResponseResult::Ok(resp) => {
-          println!("{}", serde_json::to_string(&resp).unwrap());
+        SubCommand::Info { url_path } => {
+            let (_, resp) = client.info(&url_path, args.auth).await.unwrap();
+            match resp {
+                ApiResponseResult::Ok(resp) => {
+                    println!("{}", serde_json::to_string(&resp).unwrap());
+                }
+                ApiResponseResult::Err(err) => print_response_err(&err),
+            }
         }
-        ApiResponseResult::Err(err) => print_err(&err),
-      }
-    }
-  };
+        SubCommand::Delete { url_path } => {
+            let (_, resp) = client.delete(&url_path, args.auth).await.unwrap();
+            match resp {
+                ApiResponseResult::Ok(resp) => {
+                    println!("{}", serde_json::to_string(&resp).unwrap());
+                }
+                ApiResponseResult::Err(err) => print_response_err(&err),
+            }
+        }
+    };
 }
 
-fn parse_auth(s: &str) -> Result<(String, String), Box<dyn Error + Send + Sync + 'static>> {
-  let pos = s
-    .find(':')
-    .ok_or_else(|| format!("invalid username:password: no `:` found in {s}"))?;
-  Ok((s[..pos].parse()?, s[pos + 1..].parse()?))
+fn print_response_err(err: &BodyResponseError) {
+    eprintln!("{}", serde_json::to_string(&err).unwrap());
+    std::process::exit(1);
 }
 
-fn parse_expire_time_from_str(
-  expire_time: &str,
-) -> Result<u64, Box<dyn Error + Send + Sync + 'static>> {
-  let words: Vec<&str> = expire_time.split_whitespace().collect();
-  if words.len() != 2 {
-    return Err("Invalid expire time format".into());
-  }
-  let value: u64 = words[0].parse()?;
-  let multiplier = match words[1].to_lowercase().as_str() {
-    "second" | "sec" | "s" => value,
-    "minute" | "min" => value * 60,
-    "hour" | "h" => value * 3600,
-    "day" | "d" => value * 3600 * 24,
-    "month" => value * 3600 * 24 * 30,
-    "year" | "y" => value * 3600 * 24 * 30 * 12,
-    _ => return Err("Invalid expire time format".into()),
-  };
-  Ok(value * multiplier)
+async fn encrypt_file(source_file: PathBuf, encrypt: KeyAndNonce) -> anyhow::Result<PathBuf> {
+    let plaintext_source_file = source_file;
+    let encrypt_source_file = sdk::util::file::add_extension(
+        sdk::util::file::add_parent_dir(
+            &plaintext_source_file,
+            &generate_random_string_with_prefix("tmp"),
+        )?,
+        "enc",
+    );
+    tokio::fs::create_dir_all(encrypt_source_file.parent().unwrap()).await?;
+    crate::util::crypto::encrypt_file(
+        encrypt.key,
+        encrypt.nonce,
+        &plaintext_source_file,
+        &encrypt_source_file,
+    )
+    .await?;
+    Ok(encrypt_source_file)
 }
 
-fn print_err(err: &BodyResponseError) {
-  eprintln!("{}", serde_json::to_string(&err).unwrap());
-  std::process::exit(1);
+async fn decrypt_file(encrypt_source_file: PathBuf, decrypt: KeyAndNonce) -> anyhow::Result<()> {
+    let decrypt_dest_file = sdk::util::file::rm_extra_extension(sdk::util::file::add_parent_dir(
+        &encrypt_source_file,
+        &generate_random_string_with_prefix("tmp"),
+    )?)?;
+    crate::util::crypto::decrypt_file(
+        decrypt.key,
+        decrypt.nonce,
+        &encrypt_source_file,
+        &decrypt_dest_file,
+    )
+    .await?;
+    tokio::fs::remove_file(&encrypt_source_file).await.unwrap();
+    tokio::fs::rename(decrypt_dest_file, encrypt_source_file).await?;
+
+    Ok(())
 }

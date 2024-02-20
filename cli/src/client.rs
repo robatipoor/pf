@@ -64,10 +64,10 @@ impl CommandLineClient {
     &self,
     url_path: &str,
     auth: Option<(String, String)>,
-    mut dest: PathBuf,
-  ) -> anyhow::Result<(StatusCode, ApiResponseResult<()>)> {
-    if dest.is_dir() {
-      dest.push(
+    mut destination: PathBuf,
+  ) -> anyhow::Result<(StatusCode, ApiResponseResult<PathBuf>)> {
+    if destination.is_dir() {
+      destination.push(
         url_path
           .split('/')
           .next()
@@ -88,10 +88,10 @@ impl CommandLineClient {
     let total_size = resp
       .content_length()
       .ok_or_else(|| anyhow::anyhow!("content length not found"))?;
-    if let Some(parent) = dest.parent() {
+    if let Some(parent) = destination.parent() {
       tokio::fs::create_dir_all(parent).await?;
     }
-    let mut file = tokio::fs::File::create(dest).await?;
+    let mut file = tokio::fs::File::create(&destination).await?;
     let pb = progress_bar(total_size)?;
     let mut stream = resp.bytes_stream();
     let mut downloaded: u64 = 0;
@@ -102,7 +102,7 @@ impl CommandLineClient {
       pb.set_position(downloaded.min(total_size));
     }
     pb.finish_with_message("The download of the file has been completed successfully.");
-    Ok((status, ApiResponseResult::Ok(())))
+    Ok((status, ApiResponseResult::Ok(destination)))
   }
 }
 

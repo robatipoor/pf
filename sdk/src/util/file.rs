@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::anyhow;
 
@@ -15,4 +15,16 @@ pub fn get_content_type(source: &Path) -> anyhow::Result<String> {
     .first()
     .map(|mem| mem.essence_str().to_owned())
     .ok_or_else(|| anyhow!("The source file name must include the extension."))
+}
+
+pub fn add_extension(source: impl AsRef<Path>, extention: &str) -> PathBuf{
+  todo!()
+}
+
+pub fn add_parent_dir(source: impl AsRef<Path>, extention: &str) -> anyhow::Result<PathBuf> {
+  todo!()
+}
+
+pub fn rm_extra_extension(source: impl AsRef<Path>) -> anyhow::Result<PathBuf> {
+  todo!()
 }

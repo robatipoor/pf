@@ -117,10 +117,10 @@ impl PasteFileClient {
     &self,
     url_path: &str,
     auth: Option<(String, String)>,
-    mut dest: PathBuf,
-  ) -> anyhow::Result<(StatusCode, ApiResponseResult<()>)> {
-    if dest.is_dir() {
-      dest.push(
+    mut destination: PathBuf,
+  ) -> anyhow::Result<(StatusCode, ApiResponseResult<PathBuf>)> {
+    if destination.is_dir() {
+      destination.push(
         url_path
           .split('/')
           .nth(1)
@@ -138,16 +138,16 @@ impl PasteFileClient {
       let error = resp.json::<BodyResponseError>().await?;
       return Ok((status, ApiResponseResult::Err(error)));
     }
-    if let Some(parent) = dest.parent() {
+    if let Some(parent) = destination.parent() {
       tokio::fs::create_dir_all(parent).await?;
     }
-    let mut file = tokio::fs::File::create(dest).await?;
+    let mut file = tokio::fs::File::create(&destination).await?;
     let mut stream = resp.bytes_stream();
     while let Some(chunk) = stream.next().await {
       let chunk = chunk?;
       file.write_all(&chunk).await?;
     }
-    Ok((status, ApiResponseResult::Ok(())))
+    Ok((status, ApiResponseResult::Ok(destination)))
   }
 
   #[logfn(Info)]

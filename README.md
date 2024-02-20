@@ -165,11 +165,11 @@ upload --source-file ~/example-file.txt --out qr-code
 
 # Download a file with progress bar option.
 $ ./target/release/cli --server-addr "http://localhost:8080" \
-download --destination-dir ~/example-dir/ --url-path "{code}/{file_name}" --progress-bar
+download --destination ~/example-dir/ --url-path "{code}/{file_name}" --progress-bar
 
 # Download a file.
 $ ./target/release/cli --server-addr "http://localhost:8080" \
-download --destination-dir ~/example-dir/ --url-path "{code}/{file_name}"
+download --destination ~/example-dir/ --url-path "{code}/{file_name}"
 
 # Get metadata for a file.
 $ ./target/release/cli --server-addr "http://localhost:8080" \

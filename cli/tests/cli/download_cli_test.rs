@@ -14,7 +14,7 @@ async fn test_download_command(ctx: &mut CliTestContext) {
       "download",
       "--url-path",
       &url_path,
-      "--destination-dir",
+      "--destination",
       ctx.workspace.to_str().unwrap(),
     ])
     .assert()
