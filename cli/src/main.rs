@@ -47,10 +47,10 @@ async fn main() {
         eprintln!("The source file option should be set to the path file.");
         std::process::exit(1);
       }
-      let mut is_encrypt_file = false;
+      let mut is_encrypted_file = false;
       if let Some(encrypt) = encrypt.clone() {
         source_file = encrypt_file(source_file, encrypt).await.unwrap();
-        is_encrypt_file = true;
+        is_encrypted_file = true;
       }
       let query = UploadQueryParam {
         max_download,
@@ -86,7 +86,7 @@ async fn main() {
         },
         ApiResponseResult::Err(err) => print_response_err(&err),
       }
-      if is_encrypt_file {
+      if is_encrypted_file {
         tokio::fs::remove_dir_all(source_file).await.unwrap();
       }
     }

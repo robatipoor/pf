@@ -36,12 +36,11 @@ pub fn add_parent_dir(file: impl AsRef<Path>, path: &str) -> anyhow::Result<Path
   let file_name = file
     .file_name()
     .ok_or_else(|| anyhow::anyhow!("Failed to get file name"))?;
-  Ok(
-    file
-      .parent()
-      .map(|p| p.join(path).join(file_name))
-      .unwrap_or_else(|| PathBuf::from(path).join(file_name)),
-  )
+  let parent_dir = file
+    .parent()
+    .map_or_else(|| PathBuf::from(path), |p| p.join(path));
+
+  Ok(parent_dir.join(file_name))
 }
 
 pub fn rm_extra_extension(path: impl AsRef<Path>) -> anyhow::Result<PathBuf> {

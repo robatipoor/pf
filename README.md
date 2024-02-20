@@ -189,8 +189,6 @@ delete --url-path "{code}/{file_name}"
 
 **Todo list**
 
-- [ ] Implement front-end app
-
 - [ ] Build-in support for encryption in CLI
 
 **Check code formatting and typo at commit time**

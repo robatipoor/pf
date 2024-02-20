@@ -12,12 +12,10 @@ pub fn parse_key_and_nonce(input: &str) -> anyhow::Result<KeyAndNonce> {
   let pos = input
     .find(':')
     .ok_or_else(|| anyhow!("Invalid key:nonce: no `:` found in {input}"))?;
-  let key: String = input[..pos].parse()?;
-  let nonce: String = input[pos + 1..].parse()?;
-  Ok(KeyAndNonce {
-    key: KeyType::new(&key)?,
-    nonce: NonceType::new(&nonce)?,
-  })
+  let (key_str, nonce_str) = input.split_at(pos);
+  let key = KeyType::new(key_str)?;
+  let nonce = NonceType::new(&nonce_str[1..])?;
+  Ok(KeyAndNonce { key, nonce })
 }
 
 pub fn parse_auth(input: &str) -> anyhow::Result<(String, String)> {
