@@ -1,3 +1,3 @@
 pub mod file;
-pub mod retry;
 pub mod random;
+pub mod retry;

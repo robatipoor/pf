@@ -7,7 +7,6 @@ use crate::parse::{parse_auth, parse_expire_time_from_str, parse_key_and_nonce, 
 const HELP_ENCRYPT :&str = "The encrypt format should be `key:nonce`, with the key being 32 characters in length and the nonce being 19 characters.";
 const HELP_DECRYPT :&str = "The decrypt format should be `key:nonce`, with the key being 32 characters in length and the nonce being 19 characters.";
 
-
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
