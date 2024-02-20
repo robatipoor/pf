@@ -70,19 +70,19 @@ pub async fn encrypt_file(
   let mut writer = File::create(output_file).await?;
   let mut buffer = [0u8; DEFAULT_BUF_SIZE];
   let mut stream_encryptor =
-    EncryptorBE32::from_aead(XChaCha20Poly1305::new(&*key), (&*nonce).as_ref().into());
+    EncryptorBE32::from_aead(XChaCha20Poly1305::new(&*key), (*nonce).as_ref().into());
   loop {
     let read_count = reader.read(&mut buffer).await?;
     if read_count == DEFAULT_BUF_SIZE {
       let ciphertext = stream_encryptor
         .encrypt_next(buffer.as_slice())
         .map_err(|err| anyhow!("Encrypting file failed, Error: {err}"))?;
-      writer.write(&ciphertext).await?;
+      writer.write_all(&ciphertext).await?;
     } else {
       let ciphertext = stream_encryptor
         .encrypt_last(&buffer[..read_count])
         .map_err(|err| anyhow!("Encrypting file failed, Error: {err}"))?;
-      writer.write(&ciphertext).await?;
+      writer.write_all(&ciphertext).await?;
       break;
     }
   }
@@ -109,14 +109,14 @@ pub async fn decrypt_file(
       let plaintext = stream_decryptor
         .decrypt_next(buffer.as_slice())
         .map_err(|err| anyhow!("Decrypting file failed, Error: {err}"))?;
-      writer.write(&plaintext).await?;
+      writer.write_all(&plaintext).await?;
     } else if read_count == 0 {
       break;
     } else {
       let plaintext = stream_decryptor
         .decrypt_last(&buffer[..read_count])
         .map_err(|err| anyhow!("Decrypting file failed, Error: {err}"))?;
-      writer.write(&plaintext).await?;
+      writer.write_all(&plaintext).await?;
       break;
     }
   }

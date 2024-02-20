@@ -32,7 +32,16 @@ pub fn add_extension(path: impl AsRef<Path>, extension: &str) -> PathBuf {
 }
 
 pub fn add_parent_dir(file: impl AsRef<Path>, path: &str) -> anyhow::Result<PathBuf> {
-  todo!()
+  let file = file.as_ref().to_owned();
+  let file_name = file
+    .file_name()
+    .ok_or_else(|| anyhow::anyhow!("Failed to get file name"))?;
+  Ok(
+    file
+      .parent()
+      .map(|p| p.join(path).join(file_name))
+      .unwrap_or_else(|| PathBuf::from(path).join(file_name)),
+  )
 }
 
 pub fn rm_extra_extension(path: impl AsRef<Path>) -> anyhow::Result<PathBuf> {
@@ -82,5 +91,15 @@ mod tests {
     assert_eq!(result, PathBuf::from("/test/file"));
     let result = rm_extra_extension(Path::new("file")).unwrap();
     assert_eq!(result, PathBuf::from("file"));
+  }
+
+  #[test]
+  fn test_add_parent_dir() {
+    let result = add_parent_dir(Path::new("/test/file.txt.ext"), "test2").unwrap();
+    assert_eq!(result, PathBuf::from("/test/test2/file.txt.ext"));
+    let result = add_parent_dir(Path::new("/test/file"), "test2").unwrap();
+    assert_eq!(result, PathBuf::from("/test/test2/file"));
+    let result = add_parent_dir(Path::new("file"), "test2").unwrap();
+    assert_eq!(result, PathBuf::from("test2/file"));
   }
 }

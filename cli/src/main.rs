@@ -44,7 +44,7 @@ async fn main() {
       encrypt,
     } => {
       if source_file.is_dir() {
-        eprintln!("The source file option shoud be set to the path file.");
+        eprintln!("The source file option should be set to the path file.");
         std::process::exit(1);
       }
       let mut is_encrypt_file = false;
