@@ -18,9 +18,9 @@ mod util;
 #[tokio::main]
 async fn main() {
   let args = Args::parse();
-  let client = CommandLineClient::new(args.server_addr);
   match args.cmd {
     SubCommand::Ping => {
+      let client = CommandLineClient::new(args.server_addr.expect("Server address should be set."));
       let (_, resp) = client.health_check().await.unwrap();
       match resp {
         ApiResponseResult::Ok(resp) => {
@@ -37,14 +37,14 @@ async fn main() {
       max_download,
       out,
       mut source_file,
-      encrypt,
+      key_nonce,
     } => {
       if source_file.is_dir() {
         eprintln!("The source file option should be set to the path file.");
         std::process::exit(1);
       }
-      if let Some(encrypt) = encrypt.as_ref() {
-        source_file = encrypt_file(encrypt, &source_file).await.unwrap();
+      if let Some(key_nonce) = key_nonce.as_ref() {
+        source_file = encrypt_file(key_nonce, &source_file).await.unwrap();
       }
       let query = UploadQueryParam {
         max_download,
@@ -52,6 +52,7 @@ async fn main() {
         expire_secs: expire,
         delete_manually,
       };
+      let client = CommandLineClient::new(args.server_addr.expect("Server address should be set."));
       let (_, resp) = if progress_bar {
         client
           .upload_with_progress_bar(&source_file, &query, args.auth)
@@ -80,16 +81,17 @@ async fn main() {
         },
         ApiResponseResult::Err(err) => print_response_err(&err),
       }
-      if encrypt.is_some() {
-        // tokio::fs::remove_file(source_file).await.unwrap();
+      if key_nonce.is_some() {
+        tokio::fs::remove_file(source_file).await.unwrap();
       }
     }
     SubCommand::Download {
       progress_bar,
       url_path,
       destination,
-      decrypt,
+      key_nonce,
     } => {
+      let client = CommandLineClient::new(args.server_addr.expect("Server address should be set."));
       let (_, resp) = if progress_bar {
         client
           .download_with_progress_bar(&url_path, args.auth, destination)
@@ -102,8 +104,8 @@ async fn main() {
       .unwrap();
       match resp {
         ApiResponseResult::Ok(encrypt_source_file) => {
-          if let Some(decrypt) = decrypt.as_ref() {
-            decrypt_file(decrypt, &encrypt_source_file).await.unwrap();
+          if let Some(key_nonce) = key_nonce.as_ref() {
+            decrypt_file(key_nonce, &encrypt_source_file).await.unwrap();
           }
           println!("{}", serde_json::to_string(&MessageResponse::ok()).unwrap());
         }
@@ -111,6 +113,7 @@ async fn main() {
       }
     }
     SubCommand::Info { url_path } => {
+      let client = CommandLineClient::new(args.server_addr.expect("Server address should be set."));
       let (_, resp) = client.info(&url_path, args.auth).await.unwrap();
       match resp {
         ApiResponseResult::Ok(resp) => {
@@ -120,6 +123,7 @@ async fn main() {
       }
     }
     SubCommand::Delete { url_path } => {
+      let client = CommandLineClient::new(args.server_addr.expect("Server address should be set."));
       let (_, resp) = client.delete(&url_path, args.auth).await.unwrap();
       match resp {
         ApiResponseResult::Ok(resp) => {
@@ -127,6 +131,24 @@ async fn main() {
         }
         ApiResponseResult::Err(err) => print_response_err(&err),
       }
+    }
+    SubCommand::Decrypt {
+      source_file,
+      destination,
+      key_nonce,
+    } => {
+      crate::util::crypto::encrypt(&key_nonce, &source_file, &destination)
+        .await
+        .unwrap();
+    }
+    SubCommand::Encrypt {
+      source_file,
+      destination,
+      key_nonce,
+    } => {
+      crate::util::crypto::encrypt(&key_nonce, &source_file, &destination)
+        .await
+        .unwrap();
     }
   };
 }

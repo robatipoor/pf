@@ -62,37 +62,34 @@ impl std::ops::Deref for NonceType {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct KeyAndNonce {
+pub struct KeyNonce {
   pub key: KeyType,
   pub nonce: NonceType,
 }
 
 pub async fn encrypt_file(
-  key_and_nonce: &KeyAndNonce,
+  key_nonce: &KeyNonce,
   plaintext_file: &PathBuf,
 ) -> anyhow::Result<PathBuf> {
   let encrypt_file = sdk::util::file::add_extension(plaintext_file, "bin");
-  encrypt(key_and_nonce, plaintext_file, &encrypt_file).await?;
+  encrypt(key_nonce, plaintext_file, &encrypt_file).await?;
   Ok(encrypt_file)
 }
 
-pub async fn decrypt_file(
-  key_and_nonce: &KeyAndNonce,
-  encrypted_file: &PathBuf,
-) -> anyhow::Result<()> {
+pub async fn decrypt_file(key_nonce: &KeyNonce, encrypted_file: &PathBuf) -> anyhow::Result<()> {
   let decrypted_file = sdk::util::file::rm_extra_extension(&encrypted_file)?;
   let destination_file =
     sdk::util::file::add_parent_dir(&decrypted_file, &generate_random_string_with_prefix("tmp"))?;
   tokio::fs::create_dir(&destination_file.parent().unwrap()).await?;
-  decrypt(key_and_nonce, encrypted_file, &destination_file).await?;
+  decrypt(key_nonce, encrypted_file, &destination_file).await?;
   tokio::fs::remove_file(encrypted_file).await.unwrap();
   tokio::fs::rename(&destination_file, decrypted_file).await?;
   tokio::fs::remove_dir(destination_file.parent().unwrap()).await?;
   Ok(())
 }
 
-async fn encrypt(
-  KeyAndNonce { key, nonce }: &KeyAndNonce,
+pub async fn encrypt(
+  KeyNonce { key, nonce }: &KeyNonce,
   input_file: &Path,
   output_file: &Path,
 ) -> anyhow::Result<()> {
@@ -108,6 +105,8 @@ async fn encrypt(
         .encrypt_next(buffer.as_slice())
         .map_err(|err| anyhow!("Encrypting file failed, Error: {err}"))?;
       writer.write_all(&ciphertext).await?;
+    } else if read_count == 0 {
+      break;
     } else {
       let ciphertext = stream_encryptor
         .encrypt_last(&buffer[..read_count])
@@ -121,8 +120,8 @@ async fn encrypt(
   Ok(())
 }
 
-async fn decrypt(
-  KeyAndNonce { key, nonce }: &KeyAndNonce,
+pub async fn decrypt(
+  KeyNonce { key, nonce }: &KeyNonce,
   input_file: &Path,
   output_file: &Path,
 ) -> anyhow::Result<()> {
@@ -166,20 +165,18 @@ mod tests {
   #[test_context(FileTestContext)]
   #[tokio::test]
   pub async fn test_encrypt_and_decrypt_file(ctx: &mut FileTestContext) {
-    let key_and_nonce = KeyAndNonce {
+    let key_nonce = KeyNonce {
       key: KeyType::new("01234567890123456789012345678912").unwrap(),
       nonce: NonceType::new("1234567891213141516").unwrap(),
     };
     let contents: String = Faker.fake::<String>();
     let plaintext_file = ctx.temp_path.join("file.txt");
     tokio::fs::write(&plaintext_file, &contents).await.unwrap();
-    let ciphertext_file = encrypt_file(&key_and_nonce, &plaintext_file).await.unwrap();
+    let ciphertext_file = encrypt_file(&key_nonce, &plaintext_file).await.unwrap();
     tokio::fs::remove_file(&plaintext_file).await.unwrap();
     let exist = tokio::fs::try_exists(&ciphertext_file).await.unwrap();
     assert!(exist, "ciphertext file {ciphertext_file:?} should be exist");
-    decrypt_file(&key_and_nonce, &ciphertext_file)
-      .await
-      .unwrap();
+    decrypt_file(&key_nonce, &ciphertext_file).await.unwrap();
     let exist = tokio::fs::try_exists(&ciphertext_file).await.unwrap();
     assert!(!exist, "ciphertext file should not be exist");
     let actual_contents = tokio::fs::read_to_string(plaintext_file).await.unwrap();
@@ -189,7 +186,7 @@ mod tests {
   #[test_context(FileTestContext)]
   #[tokio::test]
   pub async fn test_encrypt_and_decrypt(ctx: &mut FileTestContext) {
-    let key_and_nonce = KeyAndNonce {
+    let key_nonce = KeyNonce {
       key: KeyType::new("01234567890123456789012345678912").unwrap(),
       nonce: NonceType::new("1234567891213141516").unwrap(),
     };
@@ -198,11 +195,11 @@ mod tests {
     let plaintext_file = ctx.temp_path.join("file.txt");
     tokio::fs::write(&plaintext_file, &contents).await.unwrap();
     let ciphertext_file = ctx.temp_path.join("file.bin");
-    encrypt(&key_and_nonce, &plaintext_file, &ciphertext_file)
+    encrypt(&key_nonce, &plaintext_file, &ciphertext_file)
       .await
       .unwrap();
     let result_file = ctx.temp_path.join("result_file.txt");
-    decrypt(&key_and_nonce, &ciphertext_file, &result_file)
+    decrypt(&key_nonce, &ciphertext_file, &result_file)
       .await
       .unwrap();
     let actual_contents = tokio::fs::read_to_string(result_file).await.unwrap();

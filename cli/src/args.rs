@@ -3,8 +3,8 @@ use clap::{Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
 
 use crate::{
-  parse::{parse_auth, parse_expire_time, parse_key_and_nonce},
-  util::crypto::KeyAndNonce,
+  parse::{parse_auth, parse_expire_time, parse_key_nonce},
+  util::crypto::KeyNonce,
 };
 
 const HELP_ENCRYPT :&str = "The encrypt format should be `key:nonce`, with the key being 32 characters in length and the nonce being 19 characters.";
@@ -13,8 +13,12 @@ const HELP_DECRYPT :&str = "The decrypt format should be `key:nonce`, with the k
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
-  #[arg(short, long)]
-  pub server_addr: String,
+  #[arg(
+    short,
+    long,
+    help = "The server address format should be http:// or https:// followed by the IP address and port."
+  )]
+  pub server_addr: Option<String>,
   #[clap(short, long, value_parser = parse_auth, help = "The auth format should be `username:password`")]
   pub auth: Option<(String, String)>,
   #[clap(subcommand)]
@@ -39,8 +43,8 @@ pub enum SubCommand {
     progress_bar: bool,
     #[clap(short, long)]
     source_file: PathBuf,
-    #[clap(long, value_parser = parse_key_and_nonce, help = HELP_ENCRYPT)]
-    encrypt: Option<KeyAndNonce>,
+    #[clap(long, value_parser = parse_key_nonce, help = HELP_ENCRYPT)]
+    key_nonce: Option<KeyNonce>,
   },
   Delete {
     #[arg(short, long)]
@@ -57,8 +61,24 @@ pub enum SubCommand {
     url_path: String,
     #[clap(short, long)]
     destination: PathBuf,
-    #[clap(long, value_parser = parse_key_and_nonce, help = HELP_DECRYPT)]
-    decrypt: Option<KeyAndNonce>,
+    #[clap(long, value_parser = parse_key_nonce, help = HELP_DECRYPT)]
+    key_nonce: Option<KeyNonce>,
+  },
+  Encrypt {
+    #[clap(short, long)]
+    source_file: PathBuf,
+    #[clap(short, long)]
+    destination: PathBuf,
+    #[clap(long, value_parser = parse_key_nonce, help = HELP_ENCRYPT)]
+    key_nonce: KeyNonce,
+  },
+  Decrypt {
+    #[clap(short, long)]
+    source_file: PathBuf,
+    #[clap(short, long)]
+    destination: PathBuf,
+    #[clap(long, value_parser = parse_key_nonce, help = HELP_DECRYPT)]
+    key_nonce: KeyNonce,
   },
 }
 

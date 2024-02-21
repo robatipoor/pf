@@ -1,15 +1,15 @@
 use anyhow::anyhow;
 
-use crate::util::crypto::{KeyAndNonce, KeyType, NonceType};
+use crate::util::crypto::{KeyNonce, KeyType, NonceType};
 
-pub fn parse_key_and_nonce(input: &str) -> anyhow::Result<KeyAndNonce> {
+pub fn parse_key_nonce(input: &str) -> anyhow::Result<KeyNonce> {
   let pos = input
     .find(':')
     .ok_or_else(|| anyhow!("Invalid key:nonce: no `:` found in {input}"))?;
   let (key_str, nonce_str) = input.split_at(pos);
   let key = KeyType::new(key_str)?;
   let nonce = NonceType::new(&nonce_str[1..])?;
-  Ok(KeyAndNonce { key, nonce })
+  Ok(KeyNonce { key, nonce })
 }
 
 pub fn parse_auth(input: &str) -> anyhow::Result<(String, String)> {
