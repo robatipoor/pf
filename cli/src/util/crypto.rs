@@ -80,14 +80,13 @@ pub async fn decrypt_file(
   key_and_nonce: &KeyAndNonce,
   encrypted_file: &PathBuf,
 ) -> anyhow::Result<()> {
-  let decrypted_file = sdk::util::file::rm_extra_extension(sdk::util::file::add_parent_dir(
-    &encrypted_file,
-    &generate_random_string_with_prefix("tmp"),
-  )?)?;
-  tokio::fs::create_dir(&decrypted_file.parent().unwrap()).await?;
-  decrypt(key_and_nonce, encrypted_file, &decrypted_file).await?;
+  let decrypted_file = sdk::util::file::rm_extra_extension(&encrypted_file)?;
+  let destination_file =
+    sdk::util::file::add_parent_dir(&decrypted_file, &generate_random_string_with_prefix("tmp"))?;
+  tokio::fs::create_dir(&destination_file.parent().unwrap()).await?;
+  decrypt(key_and_nonce, encrypted_file, &destination_file).await?;
   tokio::fs::remove_file(encrypted_file).await.unwrap();
-  tokio::fs::rename(decrypted_file, encrypted_file).await?;
+  tokio::fs::rename(destination_file, decrypted_file).await?;
 
   Ok(())
 }
@@ -175,15 +174,14 @@ mod tests {
     let plaintext_file = ctx.temp_path.join("file.txt");
     tokio::fs::write(&plaintext_file, &contents).await.unwrap();
     let ciphertext_file = encrypt_file(&key_and_nonce, &plaintext_file).await.unwrap();
-    let exist = tokio::fs::try_exists(&plaintext_file).await.unwrap();
-    assert!(!exist);
+    tokio::fs::remove_file(&plaintext_file).await.unwrap();
     let exist = tokio::fs::try_exists(&ciphertext_file).await.unwrap();
-    assert!(exist);
+    assert!(exist, "ciphertext file {ciphertext_file:?} should be exist");
     decrypt_file(&key_and_nonce, &ciphertext_file)
       .await
       .unwrap();
     let exist = tokio::fs::try_exists(&ciphertext_file).await.unwrap();
-    assert!(!exist);
+    assert!(!exist, "ciphertext file should not be exist");
     let actual_contents = tokio::fs::read_to_string(plaintext_file).await.unwrap();
     assert_eq!(contents, actual_contents)
   }

@@ -184,7 +184,7 @@ delete --url-path "{code}/{file_name}"
 **Run tests**
 ```sh
 # Execute all test projects.
-./test
+$ ./test
 ```
 
 **Todo list**
@@ -194,7 +194,7 @@ delete --url-path "{code}/{file_name}"
 **Check code formatting and typo at commit time**
 
 ```sh
-cp ./scripts/git-hooks/* ./.git/hooks/
+$ cp ./scripts/git-hooks/* ./.git/hooks/
 ```
 
 **License**
