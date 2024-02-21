@@ -4,7 +4,6 @@ pub mod hash;
 pub mod http;
 pub mod qrcode;
 pub mod secret;
-pub mod string;
 pub mod task;
 pub mod test;
 pub mod tracing;

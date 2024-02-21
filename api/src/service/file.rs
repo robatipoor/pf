@@ -53,7 +53,7 @@ pub async fn store(
       None => continue,
     };
     let path = loop {
-      let code = crate::util::string::generate_random_string(code_length);
+      let code = sdk::util::random::generate_random_string(code_length);
       let path = FilePath {
         code,
         file_name: file_name.to_string(),

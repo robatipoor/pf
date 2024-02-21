@@ -25,8 +25,8 @@ async fn main() -> ApiResult {
   let gc_task = GarbageCollectorTask::new(server.state.clone());
   // Start HTTP server and garbage collector task concurrently
   util::task::join_all(vec![
-    ("HTTP_SERVER", true, server.run().boxed()),
-    ("GC_TASK", true, gc_task.run().boxed()),
+    ("http server", true, server.run().boxed()),
+    ("garbage collector", true, gc_task.run().boxed()),
   ])
   .await?;
   Ok(())

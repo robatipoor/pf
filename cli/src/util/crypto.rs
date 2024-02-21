@@ -71,7 +71,7 @@ pub async fn encrypt_file(
   key_and_nonce: &KeyAndNonce,
   plaintext_file: &PathBuf,
 ) -> anyhow::Result<PathBuf> {
-  let encrypt_file = sdk::util::file::add_extension(plaintext_file, "enc");
+  let encrypt_file = sdk::util::file::add_extension(plaintext_file, "bin");
   encrypt(key_and_nonce, plaintext_file, &encrypt_file).await?;
   Ok(encrypt_file)
 }
@@ -86,8 +86,8 @@ pub async fn decrypt_file(
   tokio::fs::create_dir(&destination_file.parent().unwrap()).await?;
   decrypt(key_and_nonce, encrypted_file, &destination_file).await?;
   tokio::fs::remove_file(encrypted_file).await.unwrap();
-  tokio::fs::rename(destination_file, decrypted_file).await?;
-
+  tokio::fs::rename(&destination_file, decrypted_file).await?;
+  tokio::fs::remove_dir(destination_file.parent().unwrap()).await?;
   Ok(())
 }
 

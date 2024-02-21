@@ -19,7 +19,7 @@ pub async fn join_all(tasks: Vec<ApiTask>) -> ApiResult {
       None
     };
     tokio::spawn(async move {
-      tracing::info!("Start :{name}.");
+      tracing::info!("Task {name} started.");
       if let Err(e) = task.await {
         if let Some(sender) = sender {
           sender

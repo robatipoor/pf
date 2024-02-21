@@ -34,7 +34,7 @@ impl ApiServer {
     let addr = tcp.local_addr()?;
     config.server.port = addr.port();
     tracing::info!(
-      "The server is listening on: {}",
+      "The server is listening on: {}.",
       config.server.get_http_addr()
     );
     let state = ApiState::new(config)?;

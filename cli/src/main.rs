@@ -81,7 +81,7 @@ async fn main() {
         ApiResponseResult::Err(err) => print_response_err(&err),
       }
       if encrypt.is_some() {
-        tokio::fs::remove_dir_all(source_file).await.unwrap();
+        // tokio::fs::remove_file(source_file).await.unwrap();
       }
     }
     SubCommand::Download {

@@ -13,7 +13,7 @@ pub fn get_file_name(path: &Path) -> anyhow::Result<String> {
 pub fn get_content_type(path: &Path) -> anyhow::Result<String> {
   mime_guess::from_path(path)
     .first()
-    .map(|mem| mem.essence_str().to_owned())
+    .map(|meme| meme.essence_str().to_owned())
     .ok_or_else(|| anyhow!("The source file name must include the extension."))
 }
 
@@ -72,6 +72,8 @@ mod tests {
   fn test_get_content_type() {
     let result = get_content_type(Path::new("/test/file.txt")).unwrap();
     assert_eq!(result, "text/plain");
+    let result = get_content_type(Path::new("/test/file.txt.bin")).unwrap();
+    assert_eq!(result, "application/octet-stream");
   }
 
   #[test]
