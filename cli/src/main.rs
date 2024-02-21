@@ -1,18 +1,14 @@
-use std::path::PathBuf;
-
 use args::{Args, SubCommand, UploadOutput};
 use base64::{engine::general_purpose::STANDARD, Engine};
 use clap::Parser;
 use client::CommandLineClient;
-use parse::KeyAndNonce;
-use sdk::{
-  dto::{
-    request::UploadQueryParam,
-    response::{ApiResponseResult, BodyResponseError, MessageResponse},
-  },
-  util::random::generate_random_string_with_prefix,
+
+use sdk::dto::{
+  request::UploadQueryParam,
+  response::{ApiResponseResult, BodyResponseError, MessageResponse},
 };
 use url::Url;
+use util::crypto::{decrypt_file, encrypt_file};
 
 mod args;
 mod client;
@@ -47,10 +43,8 @@ async fn main() {
         eprintln!("The source file option should be set to the path file.");
         std::process::exit(1);
       }
-      let mut is_encrypted_file = false;
-      if let Some(encrypt) = encrypt.clone() {
+      if let Some(encrypt) = encrypt.as_ref() {
         source_file = encrypt_file(source_file, encrypt).await.unwrap();
-        is_encrypted_file = true;
       }
       let query = UploadQueryParam {
         max_download,
@@ -86,7 +80,7 @@ async fn main() {
         },
         ApiResponseResult::Err(err) => print_response_err(&err),
       }
-      if is_encrypted_file {
+      if encrypt.is_some() {
         tokio::fs::remove_dir_all(source_file).await.unwrap();
       }
     }
@@ -108,7 +102,7 @@ async fn main() {
       .unwrap();
       match resp {
         ApiResponseResult::Ok(encrypt_source_file) => {
-          if let Some(decrypt) = decrypt {
+          if let Some(decrypt) = decrypt.as_ref() {
             decrypt_file(encrypt_source_file, decrypt).await.unwrap();
           }
           println!("{}", serde_json::to_string(&MessageResponse::ok()).unwrap());
@@ -140,35 +134,4 @@ async fn main() {
 fn print_response_err(err: &BodyResponseError) {
   eprintln!("{}", serde_json::to_string(&err).unwrap());
   std::process::exit(1);
-}
-
-async fn encrypt_file(source_file: PathBuf, encrypt: KeyAndNonce) -> anyhow::Result<PathBuf> {
-  let plaintext_source_file = source_file;
-  let encrypt_source_file = sdk::util::file::add_extension(&plaintext_source_file, "enc");
-  crate::util::crypto::encrypt_file(
-    encrypt.key,
-    encrypt.nonce,
-    &plaintext_source_file,
-    &encrypt_source_file,
-  )
-  .await?;
-  Ok(encrypt_source_file)
-}
-
-async fn decrypt_file(encrypt_source_file: PathBuf, decrypt: KeyAndNonce) -> anyhow::Result<()> {
-  let decrypt_dest_file = sdk::util::file::rm_extra_extension(sdk::util::file::add_parent_dir(
-    &encrypt_source_file,
-    &generate_random_string_with_prefix("tmp"),
-  )?)?;
-  crate::util::crypto::decrypt_file(
-    decrypt.key,
-    decrypt.nonce,
-    &encrypt_source_file,
-    &decrypt_dest_file,
-  )
-  .await?;
-  tokio::fs::remove_file(&encrypt_source_file).await.unwrap();
-  tokio::fs::rename(decrypt_dest_file, encrypt_source_file).await?;
-
-  Ok(())
 }

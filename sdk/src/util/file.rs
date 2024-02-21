@@ -71,7 +71,7 @@ mod tests {
   #[test]
   fn test_get_content_type() {
     let result = get_content_type(Path::new("/test/file.txt")).unwrap();
-    assert_eq!(result, "plain/text");
+    assert_eq!(result, "text/plain");
   }
 
   #[test]

@@ -8,11 +8,14 @@ use chacha20poly1305::{
   consts::U32,
   XChaCha20Poly1305,
 };
-use std::path::Path;
+use sdk::util::random::generate_random_string_with_prefix;
+use std::path::{Path, PathBuf};
 use tokio::{
   fs::File,
   io::{AsyncReadExt, AsyncWriteExt},
 };
+
+use crate::parse::KeyAndNonce;
 
 const DEFAULT_BUF_SIZE: usize = 4096; // 4KB chunk size
 
@@ -61,8 +64,32 @@ impl std::ops::Deref for NonceType {
 }
 
 pub async fn encrypt_file(
-  key: KeyType,
-  nonce: NonceType,
+  plaintext_file: PathBuf,
+  key_and_nonce: &KeyAndNonce,
+) -> anyhow::Result<PathBuf> {
+  let encrypt_file = sdk::util::file::add_extension(&plaintext_file, "enc");
+  encrypt(key_and_nonce, &plaintext_file, &encrypt_file).await?;
+  Ok(encrypt_file)
+}
+
+pub async fn decrypt_file(
+  encrypted_file: PathBuf,
+  key_and_nonce: &KeyAndNonce,
+) -> anyhow::Result<()> {
+  let decrypted_file = sdk::util::file::rm_extra_extension(sdk::util::file::add_parent_dir(
+    &encrypted_file,
+    &generate_random_string_with_prefix("tmp"),
+  )?)?;
+  tokio::fs::create_dir(&decrypted_file.parent().unwrap()).await?;
+  decrypt(key_and_nonce, &encrypted_file, &decrypted_file).await?;
+  tokio::fs::remove_file(&encrypted_file).await.unwrap();
+  tokio::fs::rename(decrypted_file, encrypted_file).await?;
+
+  Ok(())
+}
+
+async fn encrypt(
+  KeyAndNonce { key, nonce }: &KeyAndNonce,
   input_file: &Path,
   output_file: &Path,
 ) -> anyhow::Result<()> {
@@ -91,9 +118,8 @@ pub async fn encrypt_file(
   Ok(())
 }
 
-pub async fn decrypt_file(
-  key: KeyType,
-  nonce: NonceType,
+async fn decrypt(
+  KeyAndNonce { key, nonce }: &KeyAndNonce,
   input_file: &Path,
   output_file: &Path,
 ) -> anyhow::Result<()> {
@@ -137,18 +163,20 @@ mod tests {
   #[test_context(FileTestContext)]
   #[tokio::test]
   pub async fn test_encrypt_and_decrypt_file(ctx: &mut FileTestContext) {
-    let key = KeyType::new("01234567890123456789012345678912").unwrap();
-    let nonce = NonceType::new("1234567891213141516").unwrap();
+    let key_and_nonce = KeyAndNonce {
+      key: KeyType::new("01234567890123456789012345678912").unwrap(),
+      nonce: NonceType::new("1234567891213141516").unwrap(),
+    };
     let contents = Faker.fake::<String>();
 
     let plaintext_file = ctx.temp_path.join("file.txt");
     tokio::fs::write(&plaintext_file, &contents).await.unwrap();
     let ciphertext_file = ctx.temp_path.join("file.bin");
-    encrypt_file(key, nonce, &plaintext_file, &ciphertext_file)
+    encrypt(&key_and_nonce, &plaintext_file, &ciphertext_file)
       .await
       .unwrap();
     let result_file = ctx.temp_path.join("result_file.txt");
-    decrypt_file(key, nonce, &ciphertext_file, &result_file)
+    decrypt(&key_and_nonce, &ciphertext_file, &result_file)
       .await
       .unwrap();
     let actual_contents = tokio::fs::read_to_string(result_file).await.unwrap();

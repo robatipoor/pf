@@ -2,7 +2,7 @@ use clap::{Parser, Subcommand, ValueEnum};
 
 use std::path::PathBuf;
 
-use crate::parse::{parse_auth, parse_expire_time_from_str, parse_key_and_nonce, KeyAndNonce};
+use crate::parse::{parse_auth, parse_expire_time, parse_key_and_nonce, KeyAndNonce};
 
 const HELP_ENCRYPT :&str = "The encrypt format should be `key:nonce`, with the key being 32 characters in length and the nonce being 19 characters.";
 const HELP_DECRYPT :&str = "The decrypt format should be `key:nonce`, with the key being 32 characters in length and the nonce being 19 characters.";
@@ -24,7 +24,7 @@ pub enum SubCommand {
   Upload {
     #[clap(short, long)]
     code_length: Option<usize>,
-    #[clap(short, long,value_parser = parse_expire_time_from_str)]
+    #[clap(short, long,value_parser = parse_expire_time)]
     expire: Option<u64>,
     #[clap(short, long)]
     max_download: Option<u32>,

@@ -25,8 +25,8 @@ pub fn parse_auth(input: &str) -> anyhow::Result<(String, String)> {
   Ok((input[..pos].parse()?, input[pos + 1..].parse()?))
 }
 
-pub fn parse_expire_time_from_str(expire_time: &str) -> anyhow::Result<u64> {
-  let words: Vec<&str> = expire_time.split_whitespace().collect();
+pub fn parse_expire_time(input: &str) -> anyhow::Result<u64> {
+  let words: Vec<&str> = input.split_whitespace().collect();
   if words.len() != 2 {
     return Err(anyhow!("Invalid expire time format"));
   }
