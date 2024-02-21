@@ -2,7 +2,10 @@ use clap::{Parser, Subcommand, ValueEnum};
 
 use std::path::PathBuf;
 
-use crate::parse::{parse_auth, parse_expire_time, parse_key_and_nonce, KeyAndNonce};
+use crate::{
+  parse::{parse_auth, parse_expire_time, parse_key_and_nonce},
+  util::crypto::KeyAndNonce,
+};
 
 const HELP_ENCRYPT :&str = "The encrypt format should be `key:nonce`, with the key being 32 characters in length and the nonce being 19 characters.";
 const HELP_DECRYPT :&str = "The decrypt format should be `key:nonce`, with the key being 32 characters in length and the nonce being 19 characters.";

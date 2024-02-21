@@ -1,12 +1,6 @@
 use anyhow::anyhow;
 
-use crate::util::crypto::{KeyType, NonceType};
-
-#[derive(Debug, Clone)]
-pub struct KeyAndNonce {
-  pub key: KeyType,
-  pub nonce: NonceType,
-}
+use crate::util::crypto::{KeyAndNonce, KeyType, NonceType};
 
 pub fn parse_key_and_nonce(input: &str) -> anyhow::Result<KeyAndNonce> {
   let pos = input

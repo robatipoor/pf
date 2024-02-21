@@ -15,8 +15,6 @@ use tokio::{
   io::{AsyncReadExt, AsyncWriteExt},
 };
 
-use crate::parse::KeyAndNonce;
-
 const DEFAULT_BUF_SIZE: usize = 4096; // 4KB chunk size
 
 #[derive(Debug, Clone, Copy)]
@@ -61,6 +59,12 @@ impl std::ops::Deref for NonceType {
   fn deref(&self) -> &Self::Target {
     &self.0
   }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct KeyAndNonce {
+  pub key: KeyType,
+  pub nonce: NonceType,
 }
 
 pub async fn encrypt_file(
