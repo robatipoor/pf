@@ -68,25 +68,25 @@ pub struct KeyAndNonce {
 }
 
 pub async fn encrypt_file(
-  plaintext_file: PathBuf,
   key_and_nonce: &KeyAndNonce,
+  plaintext_file: &PathBuf,
 ) -> anyhow::Result<PathBuf> {
-  let encrypt_file = sdk::util::file::add_extension(&plaintext_file, "enc");
-  encrypt(key_and_nonce, &plaintext_file, &encrypt_file).await?;
+  let encrypt_file = sdk::util::file::add_extension(plaintext_file, "enc");
+  encrypt(key_and_nonce, plaintext_file, &encrypt_file).await?;
   Ok(encrypt_file)
 }
 
 pub async fn decrypt_file(
-  encrypted_file: PathBuf,
   key_and_nonce: &KeyAndNonce,
+  encrypted_file: &PathBuf,
 ) -> anyhow::Result<()> {
   let decrypted_file = sdk::util::file::rm_extra_extension(sdk::util::file::add_parent_dir(
     &encrypted_file,
     &generate_random_string_with_prefix("tmp"),
   )?)?;
   tokio::fs::create_dir(&decrypted_file.parent().unwrap()).await?;
-  decrypt(key_and_nonce, &encrypted_file, &decrypted_file).await?;
-  tokio::fs::remove_file(&encrypted_file).await.unwrap();
+  decrypt(key_and_nonce, encrypted_file, &decrypted_file).await?;
+  tokio::fs::remove_file(encrypted_file).await.unwrap();
   tokio::fs::rename(decrypted_file, encrypted_file).await?;
 
   Ok(())
@@ -167,6 +167,30 @@ mod tests {
   #[test_context(FileTestContext)]
   #[tokio::test]
   pub async fn test_encrypt_and_decrypt_file(ctx: &mut FileTestContext) {
+    let key_and_nonce = KeyAndNonce {
+      key: KeyType::new("01234567890123456789012345678912").unwrap(),
+      nonce: NonceType::new("1234567891213141516").unwrap(),
+    };
+    let contents: String = Faker.fake::<String>();
+    let plaintext_file = ctx.temp_path.join("file.txt");
+    tokio::fs::write(&plaintext_file, &contents).await.unwrap();
+    let ciphertext_file = encrypt_file(&key_and_nonce, &plaintext_file).await.unwrap();
+    let exist = tokio::fs::try_exists(&plaintext_file).await.unwrap();
+    assert!(!exist);
+    let exist = tokio::fs::try_exists(&ciphertext_file).await.unwrap();
+    assert!(exist);
+    decrypt_file(&key_and_nonce, &ciphertext_file)
+      .await
+      .unwrap();
+    let exist = tokio::fs::try_exists(&ciphertext_file).await.unwrap();
+    assert!(!exist);
+    let actual_contents = tokio::fs::read_to_string(plaintext_file).await.unwrap();
+    assert_eq!(contents, actual_contents)
+  }
+
+  #[test_context(FileTestContext)]
+  #[tokio::test]
+  pub async fn test_encrypt_and_decrypt(ctx: &mut FileTestContext) {
     let key_and_nonce = KeyAndNonce {
       key: KeyType::new("01234567890123456789012345678912").unwrap(),
       nonce: NonceType::new("1234567891213141516").unwrap(),

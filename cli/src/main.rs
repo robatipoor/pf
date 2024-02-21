@@ -44,7 +44,7 @@ async fn main() {
         std::process::exit(1);
       }
       if let Some(encrypt) = encrypt.as_ref() {
-        source_file = encrypt_file(source_file, encrypt).await.unwrap();
+        source_file = encrypt_file(encrypt, &source_file).await.unwrap();
       }
       let query = UploadQueryParam {
         max_download,
@@ -103,7 +103,7 @@ async fn main() {
       match resp {
         ApiResponseResult::Ok(encrypt_source_file) => {
           if let Some(decrypt) = decrypt.as_ref() {
-            decrypt_file(encrypt_source_file, decrypt).await.unwrap();
+            decrypt_file(decrypt, &encrypt_source_file).await.unwrap();
           }
           println!("{}", serde_json::to_string(&MessageResponse::ok()).unwrap());
         }
