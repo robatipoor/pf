@@ -26,9 +26,6 @@ async fn main() {
       source_file,
       key_nonce,
     } => {
-      if source_file.is_dir() {
-        panic!("The source file option should be set to the path file.");
-      }
       let server_addr = args.server_addr.expect("Server address should be set.");
       let args = UploadArguments {
         server_addr,
@@ -74,24 +71,16 @@ async fn main() {
       destination,
       key_nonce,
     } => {
-      if source_file.is_dir() {
-        panic!("The source file option should be set to the path file.");
-      }
       if destination.is_file() && destination == source_file {
         panic!("Destination file has an invalid path.")
       }
       command::encrypt_file(&key_nonce, &source_file, destination).await;
     }
     SubCommand::Decrypt {
-      mut source_file,
-      mut destination,
+      source_file,
+      destination,
       key_nonce,
     } => {
-      if source_file.is_dir() {
-        panic!("The source file option should be set to the path file.");
-      }
-      source_file = source_file.canonicalize().unwrap();
-      destination = destination.canonicalize().unwrap();
       if destination.is_file() && destination == source_file {
         panic!("Destination file has an invalid path.")
       }

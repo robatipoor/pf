@@ -3,7 +3,7 @@ use clap::{Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
 
 use crate::{
-  parse::{parse_auth, parse_expire_time, parse_key_nonce},
+  parse::{parse_auth, parse_destination, parse_expire_time, parse_key_nonce, parse_source_file},
   util::crypto::KeyNonce,
 };
 
@@ -41,7 +41,7 @@ pub enum SubCommand {
     out: UploadOutput,
     #[clap(default_value_t = false, short, long)]
     progress_bar: bool,
-    #[clap(short, long)]
+    #[clap(short, long, value_parser = parse_source_file)]
     source_file: PathBuf,
     #[clap(long, value_parser = parse_key_nonce, help = HELP_ENCRYPT)]
     key_nonce: Option<KeyNonce>,
@@ -59,23 +59,23 @@ pub enum SubCommand {
     progress_bar: bool,
     #[arg(short, long)]
     url_path: String,
-    #[clap(short, long)]
+    #[clap(short, long, value_parser = parse_destination)]
     destination: PathBuf,
     #[clap(long, value_parser = parse_key_nonce, help = HELP_DECRYPT)]
     key_nonce: Option<KeyNonce>,
   },
   Encrypt {
-    #[clap(short, long)]
+    #[clap(short, long, value_parser = parse_source_file)]
     source_file: PathBuf,
-    #[clap(short, long)]
+    #[clap(short, long, value_parser = parse_destination)]
     destination: PathBuf,
     #[clap(long, value_parser = parse_key_nonce, help = HELP_ENCRYPT)]
     key_nonce: KeyNonce,
   },
   Decrypt {
-    #[clap(short, long)]
+    #[clap(short, long, value_parser = parse_source_file)]
     source_file: PathBuf,
-    #[clap(short, long)]
+    #[clap(short, long, value_parser = parse_destination)]
     destination: PathBuf,
     #[clap(long, value_parser = parse_key_nonce, help = HELP_DECRYPT)]
     key_nonce: KeyNonce,

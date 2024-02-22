@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use anyhow::anyhow;
 
 use crate::util::crypto::{KeyNonce, KeyType, NonceType};
@@ -40,4 +42,20 @@ pub fn parse_expire_time(input: &str) -> anyhow::Result<u64> {
     _ => return Err(anyhow!("Invalid expire time format")),
   };
   Ok(value * multiplier)
+}
+
+pub fn parse_source_file(source_file: &str) -> anyhow::Result<PathBuf> {
+  let source_file = PathBuf::from(source_file).canonicalize()?;
+  if source_file.is_dir() {
+    Err(anyhow!(
+      "The source file option should be set to the path file."
+    ))
+  } else {
+    Ok(source_file)
+  }
+}
+
+pub fn parse_destination(destination: &str) -> anyhow::Result<PathBuf> {
+  let destination = PathBuf::from(destination).canonicalize()?;
+  Ok(destination)
 }
