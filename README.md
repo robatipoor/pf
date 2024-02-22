@@ -189,7 +189,7 @@ $ ./test
 
 **Todo list**
 
-- [ ] Build-in support for encryption in CLI
+- [ ] Implement front-end application
 
 **Check code formatting and typo at commit time**
 

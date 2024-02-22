@@ -70,7 +70,7 @@ impl CommandLineClient {
       destination.push(
         url_path
           .split('/')
-          .next()
+          .last()
           .ok_or_else(|| anyhow::anyhow!("The url_path is invalid."))?,
       );
     }

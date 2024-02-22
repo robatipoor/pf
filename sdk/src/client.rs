@@ -123,7 +123,7 @@ impl PasteFileClient {
       destination.push(
         url_path
           .split('/')
-          .nth(1)
+          .last()
           .ok_or_else(|| anyhow::anyhow!("The url_path is invalid."))?,
       );
     }
