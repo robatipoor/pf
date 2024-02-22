@@ -132,7 +132,7 @@ async fn main() {
         ApiResponseResult::Err(err) => print_response_err(&err),
       }
     }
-    SubCommand::Decrypt {
+    SubCommand::Encrypt {
       source_file,
       destination,
       key_nonce,
@@ -141,12 +141,12 @@ async fn main() {
         .await
         .unwrap();
     }
-    SubCommand::Encrypt {
+    SubCommand::Decrypt {
       source_file,
       destination,
       key_nonce,
     } => {
-      crate::util::crypto::encrypt(&key_nonce, &source_file, &destination)
+      crate::util::crypto::decrypt(&key_nonce, &source_file, &destination)
         .await
         .unwrap();
     }
