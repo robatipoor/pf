@@ -7,7 +7,7 @@ pub fn parse_key_nonce(input: &str) -> anyhow::Result<KeyNonce> {
     .find(':')
     .ok_or_else(|| anyhow!("Invalid key:nonce: no `:` found in {input}"))?;
   let (key_str, nonce_str) = input.split_at(pos);
-  if key_str.is_ascii() || nonce_str.is_ascii() {
+  if !key_str.is_ascii() || !nonce_str.is_ascii() {
     return Err(anyhow!(
       "ASCII characters should be used for the `key_nonce`."
     ));

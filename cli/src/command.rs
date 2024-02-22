@@ -12,17 +12,6 @@ use url::Url;
 
 use crate::{args::UploadOutput, client::CommandLineClient, util::crypto::KeyNonce};
 
-pub async fn ping(server_addr: String) {
-  let client = CommandLineClient::new(server_addr);
-  let (_, resp) = client.health_check().await.unwrap();
-  match resp {
-    ApiResponseResult::Ok(resp) => {
-      println!("{}", serde_json::to_string(&resp).unwrap());
-    }
-    ApiResponseResult::Err(err) => print_response_err(&err),
-  }
-}
-
 pub struct UploadArguments {
   pub server_addr: String,
   pub auth: Option<(String, String)>,
@@ -34,6 +23,17 @@ pub struct UploadArguments {
   pub out: UploadOutput,
   pub source_file: PathBuf,
   pub key_nonce: Option<KeyNonce>,
+}
+
+pub async fn ping(server_addr: String) {
+  let client = CommandLineClient::new(server_addr);
+  let (_, resp) = client.health_check().await.unwrap();
+  match resp {
+    ApiResponseResult::Ok(resp) => {
+      println!("{}", serde_json::to_string(&resp).unwrap());
+    }
+    ApiResponseResult::Err(err) => print_response_err(&err),
+  }
 }
 
 pub async fn upload(args: UploadArguments) {

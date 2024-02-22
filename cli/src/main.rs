@@ -83,13 +83,15 @@ async fn main() {
       command::encrypt_file(&key_nonce, &source_file, destination).await;
     }
     SubCommand::Decrypt {
-      source_file,
-      destination,
+      mut source_file,
+      mut destination,
       key_nonce,
     } => {
       if source_file.is_dir() {
         panic!("The source file option should be set to the path file.");
       }
+      source_file = source_file.canonicalize().unwrap();
+      destination = destination.canonicalize().unwrap();
       if destination.is_file() && destination == source_file {
         panic!("Destination file has an invalid path.")
       }
