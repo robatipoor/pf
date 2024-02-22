@@ -13,7 +13,7 @@ async fn test_download_command(ctx: &mut CliTestContext) {
       &ctx.server_addr,
       "download",
       "--url-path",
-      &url_path,
+      &url_path.to_string(),
       "--destination",
       ctx.workspace.to_str().unwrap(),
     ])

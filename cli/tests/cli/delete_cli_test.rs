@@ -13,7 +13,7 @@ async fn test_delete_command(ctx: &mut CliTestContext) {
       &ctx.server_addr,
       "delete",
       "--url-path",
-      &url_path,
+      &url_path.to_string(),
     ])
     .assert()
     .success()

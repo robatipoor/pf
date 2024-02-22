@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::anyhow;
+use sdk::dto::FileUrlPath;
 
 use crate::util::crypto::{KeyNonce, KeyType, NonceType};
 
@@ -58,4 +59,8 @@ pub fn parse_source_file(source_file: &str) -> anyhow::Result<PathBuf> {
 pub fn parse_destination(destination: &str) -> anyhow::Result<PathBuf> {
   let destination = PathBuf::from(destination).canonicalize()?;
   Ok(destination)
+}
+
+pub fn parse_file_url_path(file_path: &str) -> anyhow::Result<FileUrlPath> {
+  FileUrlPath::from_str(file_path)
 }

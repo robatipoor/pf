@@ -8,6 +8,7 @@ use sdk::{
   dto::{
     request::UploadQueryParam,
     response::{ApiResponseResult, BodyResponseError, UploadResponse},
+    FileUrlPath,
   },
 };
 
@@ -62,20 +63,14 @@ impl CommandLineClient {
 
   pub async fn download_with_progress_bar(
     &self,
-    url_path: &str,
+    url_path: &FileUrlPath,
     auth: Option<(String, String)>,
     mut destination: PathBuf,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<PathBuf>)> {
     if destination.is_dir() {
-      destination.push(
-        url_path
-          .split('/')
-          .last()
-          .ok_or_else(|| anyhow::anyhow!("The url_path is invalid."))?,
-      );
+      destination.push(&url_path.file_name);
     }
-    let url = format!("{}/{url_path}", self.addr);
-    let mut builder = self.get(&url);
+    let mut builder = self.get(url_path.to_url(&self.addr)?);
     if let Some((user, pass)) = auth {
       builder = builder.basic_auth(user, Some(pass));
     }

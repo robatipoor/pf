@@ -1,4 +1,6 @@
 use crate::configure::ApiConfig;
+use crate::database::file_path::FilePath;
+use crate::database::meta_data_file::MetaDataFile;
 use crate::error::{ApiError, ApiResult, ToApiResult};
 use crate::util::secret::{Secret, SecretHash};
 use anyhow::anyhow;
@@ -15,7 +17,6 @@ use tokio_util::io::StreamReader;
 use tower_http::services::ServeFile;
 use tracing::debug;
 
-use crate::database::{FilePath, MetaDataFile};
 use crate::server::ApiState;
 
 const BYTE_TO_MEGABYTE: usize = 1024 * 1024;
@@ -70,7 +71,7 @@ pub async fn store(
       }
       code_length += 1;
     };
-    let file_path = path.fs_path(&state.config.fs.base_dir);
+    let file_path = path.to_fs_path(&state.config.fs.base_dir);
     if let Err(e) = store_stream(&file_path, field, state.config.max_upload_bytes_size).await {
       state.db.delete(path).await?;
       return Err(e);
@@ -139,18 +140,15 @@ pub async fn info(
   file_name: &str,
   secret: Option<Secret>,
 ) -> ApiResult<MetaDataFile> {
-  let path = FilePath {
+  let file_path = FilePath {
     code: code.to_string(),
     file_name: file_name.to_string(),
   };
-  let meta = state.db.fetch(&path)?.to_result()?;
+  let meta = state.db.fetch(&file_path)?.to_result()?;
   if let Some(max) = meta.max_download {
     if meta.count_downloads >= max {
-      state.db.delete(path.clone()).await?;
-      return Err(ApiError::NotFoundError(format!(
-        "{} not found",
-        path.url_path()
-      )));
+      state.db.delete(file_path.clone()).await?;
+      return Err(ApiError::NotFoundError(format!("{file_path} not found",)));
     }
   }
   authorize_user(secret, &meta.secret)?;
@@ -172,10 +170,7 @@ pub async fn fetch(
   if let Some(max) = meta_data.max_download {
     if meta_data.count_downloads >= max {
       state.db.delete(file_path.clone()).await?;
-      return Err(ApiError::NotFoundError(format!(
-        "{} not found",
-        file_path.url_path()
-      )));
+      return Err(ApiError::NotFoundError(format!("{file_path} not found")));
     } else if meta_data.count_downloads + 1 == max {
       // TODO set expire time
     }
@@ -199,14 +194,13 @@ pub async fn delete(
   if let Some(meta) = state.db.fetch(&path)? {
     if meta.delete_manually {
       authorize_user(secret, &meta.secret)?;
-      let file_path = path.fs_path(&state.config.fs.base_dir);
+      let file_path = path.to_fs_path(&state.config.fs.base_dir);
       tokio::fs::remove_file(file_path).await?;
       state.db.delete(path).await?;
       state.db.flush().await?;
     } else {
       return Err(ApiError::PermissionDeniedError(format!(
-        "{} is not deletable",
-        path.url_path()
+        "{path} is not deletable"
       )));
     }
   }
@@ -214,7 +208,7 @@ pub async fn delete(
 }
 
 pub fn read_file(config: &ApiConfig, file_path: &FilePath) -> ServeFile {
-  ServeFile::new(file_path.fs_path(&config.fs.base_dir))
+  ServeFile::new(file_path.to_fs_path(&config.fs.base_dir))
 }
 
 pub fn authorize_user(secret: Option<Secret>, secret_hash: &Option<SecretHash>) -> ApiResult<()> {

@@ -1,19 +1,20 @@
-use std::path::Path;
-use std::sync::Arc;
-use std::time::Duration;
-use std::{collections::BTreeSet, path::PathBuf};
-
-use crate::util::secret::SecretHash;
 use crate::{
   configure::DatabaseConfig,
   error::{ApiError, ApiResult},
 };
 use chrono::{DateTime, Utc};
-use sdk::dto::response::MetaDataFileResponse;
-use serde::{Deserialize, Serialize};
 use sled::IVec;
+use std::collections::BTreeSet;
+use std::sync::Arc;
 use std::sync::RwLock;
+use std::time::Duration;
 use tokio::sync::Notify;
+
+use self::file_path::FilePath;
+use self::meta_data_file::MetaDataFile;
+
+pub mod file_path;
+pub mod meta_data_file;
 
 pub type Expires = Arc<RwLock<BTreeSet<(DateTime<Utc>, FilePath)>>>;
 
@@ -181,124 +182,9 @@ impl Database {
   }
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq, PartialOrd, Ord, fake::Dummy)]
-pub struct FilePath {
-  pub code: String,
-  pub file_name: String,
-}
-
-impl FilePath {
-  pub fn url(&self, domain: &str) -> ApiResult<url::Url> {
-    Ok(url::Url::parse(&format!(
-      "{domain}/{}/{}",
-      self.code, self.file_name
-    ))?)
-  }
-  pub fn url_path(&self) -> String {
-    format!("{}/{}", self.code, self.file_name)
-  }
-  pub fn fs_path(&self, base_dir: &Path) -> PathBuf {
-    base_dir.join(format!("{}/{}", self.code, self.file_name))
-  }
-}
-
-#[derive(Clone, Serialize, Deserialize)]
-pub struct MetaDataFile {
-  pub created_at: DateTime<Utc>,
-  pub expire_date_time: DateTime<Utc>,
-  pub secret: Option<SecretHash>,
-  pub delete_manually: bool,
-  pub max_download: Option<u32>,
-  pub count_downloads: u32,
-}
-
-impl TryFrom<&[u8]> for MetaDataFile {
-  type Error = ApiError;
-
-  fn try_from(value: &[u8]) -> ApiResult<Self> {
-    let value = bincode::deserialize::<Self>(value)?;
-    Ok(value)
-  }
-}
-
-impl TryFrom<&IVec> for MetaDataFile {
-  type Error = ApiError;
-
-  fn try_from(value: &IVec) -> ApiResult<Self> {
-    let value = bincode::deserialize::<Self>(value)?;
-    Ok(value)
-  }
-}
-
-impl TryFrom<IVec> for MetaDataFile {
-  type Error = ApiError;
-
-  fn try_from(value: IVec) -> ApiResult<Self> {
-    Self::try_from(&value)
-  }
-}
-
-impl TryFrom<&MetaDataFile> for IVec {
-  type Error = ApiError;
-  fn try_from(value: &MetaDataFile) -> ApiResult<IVec> {
-    let value = bincode::serialize(value)?;
-    Ok(IVec::from(value))
-  }
-}
-
-impl TryFrom<MetaDataFile> for IVec {
-  type Error = ApiError;
-  fn try_from(value: MetaDataFile) -> ApiResult<IVec> {
-    Self::try_from(&value)
-  }
-}
-
-impl TryFrom<&IVec> for FilePath {
-  type Error = ApiError;
-
-  fn try_from(value: &IVec) -> ApiResult<Self> {
-    let value = bincode::deserialize::<Self>(value)?;
-    Ok(value)
-  }
-}
-
-impl TryFrom<IVec> for FilePath {
-  type Error = ApiError;
-
-  fn try_from(value: IVec) -> ApiResult<Self> {
-    Self::try_from(&value)
-  }
-}
-
-impl TryFrom<&FilePath> for IVec {
-  type Error = ApiError;
-  fn try_from(value: &FilePath) -> ApiResult<IVec> {
-    let value = bincode::serialize(value)?;
-    Ok(IVec::from(value))
-  }
-}
-
-impl TryFrom<FilePath> for IVec {
-  type Error = ApiError;
-  fn try_from(value: FilePath) -> ApiResult<IVec> {
-    Self::try_from(&value)
-  }
-}
-
-impl From<&MetaDataFile> for MetaDataFileResponse {
-  fn from(value: &MetaDataFile) -> Self {
-    MetaDataFileResponse {
-      created_at: value.created_at,
-      expire_date_time: value.expire_date_time,
-      delete_manually: value.delete_manually,
-      max_download: value.max_download,
-      count_downloads: value.count_downloads,
-    }
-  }
-}
-
 #[cfg(test)]
 mod tests {
+
   use super::*;
   use crate::util::test::StateTestContext;
   use fake::{Fake, Faker};

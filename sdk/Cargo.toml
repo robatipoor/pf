@@ -21,3 +21,4 @@ log-derive = { workspace = true }
 log = { workspace = true }
 async-stream = { workspace = true }
 mime_guess = { workspace = true }
+url = { workspace = true }

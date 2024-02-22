@@ -1,7 +1,7 @@
 use fake::{Fake, Faker};
 use once_cell::sync::Lazy;
 use project_root::get_project_root;
-use sdk::retry;
+use sdk::{dto::FileUrlPath, retry};
 
 use std::{
   io,
@@ -78,7 +78,7 @@ impl CliTestContext {
     Ok((file_name, content))
   }
 
-  pub async fn upload_dummy_file(&self) -> anyhow::Result<(String, String)> {
+  pub async fn upload_dummy_file(&self) -> anyhow::Result<(FileUrlPath, String)> {
     let (file, content) = self.create_dummy_file().await?;
     let output = tokio::process::Command::new("target/debug/cli")
       .args([
@@ -87,16 +87,14 @@ impl CliTestContext {
         "upload",
         "--source-file",
         file.to_str().unwrap(),
-        "--out",
+        "--output",
         "url-path",
       ])
       .current_dir(&self.root_dir)
       .output()
       .await?;
-    Ok((
-      std::str::from_utf8(&output.stdout)?.trim().to_owned(),
-      content,
-    ))
+    let url_path = FileUrlPath::from_str(std::str::from_utf8(&output.stdout)?.trim())?;
+    Ok((url_path, content))
   }
 }
 

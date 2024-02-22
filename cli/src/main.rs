@@ -22,7 +22,7 @@ async fn main() {
       expire,
       delete_manually,
       max_download,
-      out,
+      output,
       source_file,
       key_nonce,
     } => {
@@ -35,7 +35,7 @@ async fn main() {
         expire,
         delete_manually,
         max_download,
-        out,
+        output,
         source_file,
         key_nonce,
       };

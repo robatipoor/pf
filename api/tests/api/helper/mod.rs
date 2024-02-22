@@ -11,6 +11,7 @@ use fake::{Fake, Faker};
 use once_cell::sync::Lazy;
 use sdk::client::PasteFileClient;
 use sdk::dto::request::UploadQueryParam;
+use sdk::dto::FileUrlPath;
 use test_context::AsyncTestContext;
 
 pub struct ApiTestContext {
@@ -90,12 +91,12 @@ impl ApiTestContext {
       .await
       .unwrap();
     let resp = unwrap!(resp);
-    let path = url::Url::parse(&resp.url).unwrap().path()[1..].to_string();
+    let url_path = FileUrlPath::from_url(&resp.url).unwrap();
     DummyFile {
       content,
       content_type: content_type.to_string(),
       file_name,
-      path,
+      url_path,
     }
   }
 }
@@ -105,5 +106,5 @@ pub struct DummyFile {
   pub content: Vec<u8>,
   pub content_type: String,
   pub file_name: String,
-  pub path: String,
+  pub url_path: FileUrlPath,
 }

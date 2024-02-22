@@ -1,0 +1,60 @@
+use crate::error::{ApiError, ApiResult};
+use serde::{Deserialize, Serialize};
+use sled::IVec;
+use std::path::{Path, PathBuf};
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq, PartialOrd, Ord, fake::Dummy)]
+pub struct FilePath {
+  pub code: String,
+  pub file_name: String,
+}
+
+impl FilePath {
+  pub fn to_url(&self, base_url: &str) -> Result<url::Url, url::ParseError> {
+    Ok(url::Url::parse(&format!(
+      "{base_url}/{}/{}",
+      self.code, self.file_name
+    ))?)
+  }
+  pub fn to_fs_path(&self, base_dir: &Path) -> PathBuf {
+    base_dir.join(format!("{}/{}", self.code, self.file_name))
+  }
+}
+
+impl TryFrom<&IVec> for FilePath {
+  type Error = ApiError;
+
+  fn try_from(value: &IVec) -> ApiResult<Self> {
+    let value = bincode::deserialize::<Self>(value)?;
+    Ok(value)
+  }
+}
+
+impl TryFrom<IVec> for FilePath {
+  type Error = ApiError;
+
+  fn try_from(value: IVec) -> ApiResult<Self> {
+    Self::try_from(&value)
+  }
+}
+
+impl TryFrom<&FilePath> for IVec {
+  type Error = ApiError;
+  fn try_from(value: &FilePath) -> ApiResult<IVec> {
+    let value = bincode::serialize(value)?;
+    Ok(IVec::from(value))
+  }
+}
+
+impl TryFrom<FilePath> for IVec {
+  type Error = ApiError;
+  fn try_from(value: FilePath) -> ApiResult<IVec> {
+    Self::try_from(&value)
+  }
+}
+
+impl std::fmt::Display for FilePath {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}/{}", self.code, self.file_name)
+  }
+}

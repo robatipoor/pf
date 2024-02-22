@@ -13,7 +13,7 @@ async fn test_info_command(ctx: &mut CliTestContext) {
       &ctx.server_addr,
       "info",
       "--url-path",
-      &url_path,
+      &url_path.to_string(),
     ])
     .assert()
     .success()

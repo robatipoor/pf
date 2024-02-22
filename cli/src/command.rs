@@ -5,6 +5,7 @@ use sdk::{
   dto::{
     request::UploadQueryParam,
     response::{ApiResponseResult, BodyResponseError, MessageResponse},
+    FileUrlPath,
   },
   util::file::{add_extension, rm_extra_extension},
 };
@@ -20,7 +21,7 @@ pub struct UploadArguments {
   pub expire: Option<u64>,
   pub delete_manually: Option<bool>,
   pub max_download: Option<u32>,
-  pub out: UploadOutput,
+  pub output: UploadOutput,
   pub source_file: PathBuf,
   pub key_nonce: Option<KeyNonce>,
 }
@@ -59,7 +60,7 @@ pub async fn upload(args: UploadArguments) {
   }
   .unwrap();
   match resp {
-    ApiResponseResult::Ok(resp) => match args.out {
+    ApiResponseResult::Ok(resp) => match args.output {
       UploadOutput::Json => {
         println!("{}", serde_json::to_string(&resp).unwrap());
       }
@@ -87,7 +88,7 @@ pub async fn download(
   server_addr: String,
   auth: Option<(String, String)>,
   progress_bar: bool,
-  url_path: String,
+  url_path: FileUrlPath,
   destination: PathBuf,
   key_nonce: Option<KeyNonce>,
 ) {
@@ -113,7 +114,7 @@ pub async fn download(
   }
 }
 
-pub async fn info(server_addr: String, url_path: String, auth: Option<(String, String)>) {
+pub async fn info(server_addr: String, url_path: FileUrlPath, auth: Option<(String, String)>) {
   let client = CommandLineClient::new(server_addr);
   let (_, resp) = client.info(&url_path, auth).await.unwrap();
   match resp {
@@ -124,7 +125,7 @@ pub async fn info(server_addr: String, url_path: String, auth: Option<(String, S
   }
 }
 
-pub async fn delete(server_addr: String, url_path: String, auth: Option<(String, String)>) {
+pub async fn delete(server_addr: String, url_path: FileUrlPath, auth: Option<(String, String)>) {
   let client = CommandLineClient::new(server_addr);
   let (_, resp) = client.delete(&url_path, auth).await.unwrap();
   match resp {

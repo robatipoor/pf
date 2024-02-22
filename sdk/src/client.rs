@@ -6,6 +6,7 @@ use std::{
 use crate::dto::{
   request::UploadQueryParam,
   response::{ApiResponseResult, BodyResponseError, MetaDataFileResponse, UploadResponse},
+  FileUrlPath,
 };
 
 use futures_util::StreamExt;
@@ -96,10 +97,10 @@ impl PasteFileClient {
   #[logfn(Info)]
   pub async fn download(
     &self,
-    url_path: &str,
+    url_path: &FileUrlPath,
     auth: Option<(String, String)>,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<Vec<u8>>)> {
-    let mut builder = self.get(format!("{}/{url_path}", self.addr));
+    let mut builder = self.get(url_path.to_url(&self.addr)?);
     if let Some((user, pass)) = auth {
       builder = builder.basic_auth(user, Some(pass));
     }
@@ -115,20 +116,14 @@ impl PasteFileClient {
   #[logfn(Info)]
   pub async fn download_into(
     &self,
-    url_path: &str,
+    url_path: &FileUrlPath,
     auth: Option<(String, String)>,
     mut destination: PathBuf,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<PathBuf>)> {
     if destination.is_dir() {
-      destination.push(
-        url_path
-          .split('/')
-          .last()
-          .ok_or_else(|| anyhow::anyhow!("The url_path is invalid."))?,
-      );
+      destination.push(&url_path.file_name);
     }
-    let url = format!("{}/{url_path}", self.addr);
-    let mut builder = self.get(&url);
+    let mut builder = self.get(url_path.to_url(&self.addr)?);
     if let Some((user, pass)) = auth {
       builder = builder.basic_auth(user, Some(pass));
     }
@@ -153,10 +148,10 @@ impl PasteFileClient {
   #[logfn(Info)]
   pub async fn info(
     &self,
-    url_path: &str,
+    url_path: &FileUrlPath,
     auth: Option<(String, String)>,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<MetaDataFileResponse>)> {
-    let mut builder = self.get(format!("{}/info/{url_path}", self.addr));
+    let mut builder = self.get(format!("{}/info/{}", self.addr, url_path));
     if let Some((user, pass)) = auth {
       builder = builder.basic_auth(user, Some(pass));
     }
@@ -167,10 +162,10 @@ impl PasteFileClient {
   #[logfn(Info)]
   pub async fn delete(
     &self,
-    url_path: &str,
+    url_path: &FileUrlPath,
     auth: Option<(String, String)>,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult)> {
-    let mut builder = self.inner.delete(format!("{}/{url_path}", self.addr));
+    let mut builder = self.inner.delete(url_path.to_url(&self.addr)?);
     if let Some((user, pass)) = auth {
       builder = builder.basic_auth(user, Some(pass));
     }

@@ -1,9 +1,13 @@
 use clap::{Parser, Subcommand, ValueEnum};
+use sdk::dto::FileUrlPath;
 
 use std::path::PathBuf;
 
 use crate::{
-  parse::{parse_auth, parse_destination, parse_expire_time, parse_key_nonce, parse_source_file},
+  parse::{
+    parse_auth, parse_destination, parse_expire_time, parse_file_url_path, parse_key_nonce,
+    parse_source_file,
+  },
   util::crypto::KeyNonce,
 };
 
@@ -38,7 +42,7 @@ pub enum SubCommand {
     #[clap(short, long)]
     delete_manually: Option<bool>,
     #[clap(default_value_t = UploadOutput::Json, short, long)]
-    out: UploadOutput,
+    output: UploadOutput,
     #[clap(default_value_t = false, short, long)]
     progress_bar: bool,
     #[clap(short, long, value_parser = parse_source_file)]
@@ -47,18 +51,18 @@ pub enum SubCommand {
     key_nonce: Option<KeyNonce>,
   },
   Delete {
-    #[arg(short, long)]
-    url_path: String,
+    #[arg(short, long, value_parser = parse_file_url_path)]
+    url_path: FileUrlPath,
   },
   Info {
-    #[arg(short, long)]
-    url_path: String,
+    #[arg(short, long, value_parser = parse_file_url_path)]
+    url_path: FileUrlPath,
   },
   Download {
     #[clap(default_value_t = false, short, long)]
     progress_bar: bool,
-    #[arg(short, long)]
-    url_path: String,
+    #[arg(short, long, value_parser = parse_file_url_path)]
+    url_path: FileUrlPath,
     #[clap(short, long, value_parser = parse_destination)]
     destination: PathBuf,
     #[clap(long, value_parser = parse_key_nonce, help = HELP_DECRYPT)]
