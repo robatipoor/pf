@@ -9,6 +9,7 @@ use axum::{
 use sdk::dto::{
   request::UploadQueryParam,
   response::{MessageResponse, MetaDataFileResponse, UploadResponse},
+  FileUrlPath,
 };
 
 use garde::Validate;
@@ -29,8 +30,11 @@ pub async fn upload(
 ) -> ApiResult<Json<UploadResponse>> {
   query.validate(&())?;
   let secret = crate::util::http::parse_basic_auth(&headers)?;
-  let (path, expire_date_time) = service::file::store(&state, &query, secret, multipart).await?;
-  let url = path.to_url(&state.config.server.get_domain())?.to_string();
+  let (file_path, expire_date_time) =
+    service::file::store(&state, &query, secret, multipart).await?;
+  let url = FileUrlPath::from(file_path)
+    .to_url(&state.config.server.get_domain())?
+    .to_string();
   let qrcode = crate::util::qrcode::encode(&url)?;
   Ok(Json(UploadResponse {
     url,

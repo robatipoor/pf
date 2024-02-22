@@ -71,7 +71,7 @@ pub async fn store(
       }
       code_length += 1;
     };
-    let file_path = path.to_fs_path(&state.config.fs.base_dir);
+    let file_path = state.config.fs.base_dir.join::<PathBuf>((&path).into());
     if let Err(e) = store_stream(&file_path, field, state.config.max_upload_bytes_size).await {
       state.db.delete(path).await?;
       return Err(e);
@@ -80,7 +80,7 @@ pub async fn store(
     return Ok((path, expire_date_time));
   }
   Err(ApiError::BadRequestError(
-    "multipart/form-data empty body".to_string(),
+    "The multipart/form-data body is empty.".to_string(),
   ))
 }
 
@@ -194,7 +194,7 @@ pub async fn delete(
   if let Some(meta) = state.db.fetch(&path)? {
     if meta.delete_manually {
       authorize_user(secret, &meta.secret)?;
-      let file_path = path.to_fs_path(&state.config.fs.base_dir);
+      let file_path = state.config.fs.base_dir.join::<PathBuf>((&path).into());
       tokio::fs::remove_file(file_path).await?;
       state.db.delete(path).await?;
       state.db.flush().await?;
@@ -208,7 +208,7 @@ pub async fn delete(
 }
 
 pub fn read_file(config: &ApiConfig, file_path: &FilePath) -> ServeFile {
-  ServeFile::new(file_path.to_fs_path(&config.fs.base_dir))
+  ServeFile::new(config.fs.base_dir.join::<PathBuf>(file_path.into()))
 }
 
 pub fn authorize_user(secret: Option<Secret>, secret_hash: &Option<SecretHash>) -> ApiResult<()> {
