@@ -75,7 +75,7 @@ pub async fn encrypt_file(
 }
 
 pub async fn decrypt_file(key_nonce: &KeyNonce, encrypted_file: &PathBuf) -> anyhow::Result<()> {
-  let decrypted_file = sdk::util::file::rm_extra_extension(&encrypted_file)?;
+  let decrypted_file = sdk::util::file::rm_extra_extension(encrypted_file)?;
   let destination_file =
     sdk::util::file::add_parent_dir(&decrypted_file, &generate_random_string_with_prefix("tmp"))?;
   tokio::fs::create_dir(&destination_file.parent().unwrap()).await?;
@@ -96,7 +96,7 @@ pub async fn encrypt(
   const BUFFER_LEN: usize = 500;
   let mut buffer = [0u8; BUFFER_LEN];
   let mut stream_encryptor =
-    EncryptorBE32::from_aead(XChaCha20Poly1305::new(&*key), (*nonce).as_ref().into());
+    EncryptorBE32::from_aead(XChaCha20Poly1305::new(key), (*nonce).as_ref().into());
   loop {
     let read_count = reader.read(&mut buffer).await?;
     if read_count == BUFFER_LEN {
@@ -129,7 +129,7 @@ pub async fn decrypt(
   const BUFFER_LEN: usize = 500 + 16;
   let mut buffer = [0u8; BUFFER_LEN];
   let mut stream_decryptor =
-    DecryptorBE32::from_aead(XChaCha20Poly1305::new(&*key), nonce.as_ref().into());
+    DecryptorBE32::from_aead(XChaCha20Poly1305::new(key), nonce.as_ref().into());
 
   loop {
     let read_count = reader.read(&mut buffer).await?;
