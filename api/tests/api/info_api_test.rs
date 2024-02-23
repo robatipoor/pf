@@ -1,5 +1,5 @@
 use crate::helper::ApiTestContext;
-use api::{assert_err, unwrap};
+use crate::{assert_response_err, unwrap};
 use fake::{Fake, Faker};
 use sdk::dto::{response::BodyResponseError, FileUrlPath};
 use test_context::test_context;
@@ -21,7 +21,7 @@ pub async fn test_info(ctx: &mut ApiTestContext) {
 pub async fn test_get_info_when_file_not_exist(ctx: &mut ApiTestContext) {
   let url_path = Faker.fake::<FileUrlPath>();
   let (status, resp) = ctx.info(&url_path, None).await.unwrap();
-  assert_err!(resp, |e: &BodyResponseError| e.error_type == "NOT_FOUND");
+  assert_response_err!(resp, |e: &BodyResponseError| e.error_type == "NOT_FOUND");
   assert!(!status.is_success(), "status: {status}");
 }
 
@@ -34,6 +34,6 @@ pub async fn test_get_info_when_file_exceed_max_dl(ctx: &mut ApiTestContext) {
   let (status, _resp) = ctx.download(&file.url_path, None).await.unwrap();
   assert!(status.is_success());
   let (status, resp) = ctx.info(&file.url_path, None).await.unwrap();
-  assert_err!(resp, |e: &BodyResponseError| e.error_type == "NOT_FOUND");
+  assert_response_err!(resp, |e: &BodyResponseError| e.error_type == "NOT_FOUND");
   assert!(!status.is_success(), "status: {status}");
 }

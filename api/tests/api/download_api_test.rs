@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use api::{assert_err, unwrap};
+use crate::{assert_response_err, unwrap};
 use fake::{Fake, Faker};
 use sdk::dto::response::BodyResponseError;
 use test_context::test_context;
@@ -28,7 +28,7 @@ pub async fn test_download_when_file_exceed_max_dl(ctx: &mut ApiTestContext) {
   let (status, _) = ctx.download(&file.url_path, None).await.unwrap();
   assert!(status.is_success());
   let (status, resp) = ctx.download(&file.url_path, None).await.unwrap();
-  assert_err!(resp, |e: &BodyResponseError| e.error_type == "NOT_FOUND");
+  assert_response_err!(resp, |e: &BodyResponseError| e.error_type == "NOT_FOUND");
   assert!(!status.is_success(), "status: {status}");
 }
 
@@ -42,7 +42,7 @@ pub async fn test_download_when_expired(ctx: &mut ApiTestContext) {
   assert!(status.is_success());
   tokio::time::sleep(Duration::from_secs(1)).await;
   let (status, resp) = ctx.download(&file.url_path, None).await.unwrap();
-  assert_err!(resp, |e: &BodyResponseError| e.error_type == "NOT_FOUND");
+  assert_response_err!(resp, |e: &BodyResponseError| e.error_type == "NOT_FOUND");
   assert!(!status.is_success(), "status: {status}");
 }
 
@@ -54,7 +54,7 @@ pub async fn test_download_file_with_auth(ctx: &mut ApiTestContext) {
     .upload_dummy_file(None, None, Some(1), None, None, auth.clone())
     .await;
   let (status, resp) = ctx.download(&file.url_path, None).await.unwrap();
-  assert_err!(resp, |e: &BodyResponseError| e.error_type
+  assert_response_err!(resp, |e: &BodyResponseError| e.error_type
     == "PERMISSION_DENIED");
   assert!(!status.is_success());
   let (status, _) = ctx.download(&file.url_path, auth).await.unwrap();

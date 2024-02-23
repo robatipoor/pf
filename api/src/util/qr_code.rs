@@ -31,4 +31,9 @@ mod tests {
   pub fn test_encode_to_text_format() {
     let _qr_code = encode_to_text_format(&Faker.fake::<String>()).unwrap();
   }
+
+  #[test]
+  pub fn test_encode_to_image_format() {
+    let _qr_code = encode_to_image_format(&Faker.fake::<String>()).unwrap();
+  }
 }

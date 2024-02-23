@@ -9,39 +9,6 @@ use crate::{configure::CONFIG, util::tracing::INIT_SUBSCRIBER};
 use once_cell::sync::Lazy;
 use test_context::AsyncTestContext;
 
-#[macro_export]
-macro_rules! assert_ok {
-  ($result:expr) => {
-    assert!(
-      matches!($result, sdk::dto::response::ApiResponseResult::Ok(_)),
-      "match failed: {:?}",
-      $result,
-    )
-  };
-}
-
-#[macro_export]
-macro_rules! assert_err {
-    ($result:expr $(, $closure:expr )?) => {
-        assert!(
-          matches!($result,sdk::dto::response::ApiResponseResult::Err(ref _e) $( if $closure(_e) )?),
-          "match failed: {:?}",$result,
-        )
-    };
-}
-
-#[macro_export]
-macro_rules! unwrap {
-  ($result:expr) => {
-    match $result {
-      sdk::dto::response::ApiResponseResult::Ok(resp) => resp,
-      sdk::dto::response::ApiResponseResult::Err(e) => {
-        panic!("called `util::unwrap!()` on an `Err` value {e:?}")
-      }
-    }
-  };
-}
-
 pub struct StateTestContext {
   pub state: ApiState,
   gc_task: tokio::task::JoinHandle<ApiResult>,

@@ -1,7 +1,8 @@
+use fake::Dummy;
 use garde::Validate;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Validate, Default)]
+#[derive(Debug, Serialize, Deserialize, Validate, Default, Dummy)]
 pub struct UploadQueryParam {
   #[garde(range(min = 1, max = 100_000_000))]
   pub max_download: Option<u32>,
@@ -15,7 +16,7 @@ pub struct UploadQueryParam {
   pub qr_code_format: Option<QrCodeFormat>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize, Validate, Dummy)]
 pub enum QrCodeFormat {
   #[serde(rename = "text")]
   Text,

@@ -1,11 +1,11 @@
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
 
+use crate::unwrap;
 use api::configure::CONFIG;
 use api::error::ApiResult;
 use api::server::worker::GarbageCollectorTask;
 use api::server::{ApiServer, ApiState};
-use api::unwrap;
 use api::util::tracing::INIT_SUBSCRIBER;
 use fake::{Fake, Faker};
 use once_cell::sync::Lazy;
@@ -13,6 +13,8 @@ use sdk::client::PasteFileClient;
 use sdk::dto::request::{QrCodeFormat, UploadQueryParam};
 use sdk::dto::FileUrlPath;
 use test_context::AsyncTestContext;
+
+pub mod assert;
 
 pub struct ApiTestContext {
   pub state: ApiState,

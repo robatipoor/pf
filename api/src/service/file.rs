@@ -24,24 +24,24 @@ const DEFAULT_BUF_SIZE: usize = 8192;
 
 pub async fn store(
   state: &ApiState,
-  query: &UploadQueryParam,
+  param: &UploadQueryParam,
   secret: Option<Secret>,
   mut multipart: Multipart,
 ) -> ApiResult<(FilePath, DateTime<Utc>)> {
   let secret = secret.map(|s| s.hash()).transpose()?;
-  let expire_secs = query
+  let expire_secs = param
     .expire_secs
     .unwrap_or(state.config.default_expire_secs) as i64;
   let now = Utc::now();
   let expire_date_time = calc_expiration_date(now, expire_secs);
-  let mut code_length = query
+  let mut code_length = param
     .code_length
     .unwrap_or(state.config.default_code_length);
   let meta = MetaDataFile {
     created_at: now,
     expire_date_time,
-    delete_manually: query.delete_manually.unwrap_or(true),
-    max_download: query.max_download,
+    delete_manually: param.delete_manually.unwrap_or(true),
+    max_download: param.max_download,
     secret,
     count_downloads: 0,
   };
@@ -231,4 +231,35 @@ pub fn authorize_user(secret: Option<Secret>, secret_hash: &Option<SecretHash>) 
 
 pub fn calc_expiration_date(now: DateTime<Utc>, secs: i64) -> DateTime<Utc> {
   now + chrono::Duration::seconds(secs)
+}
+
+#[cfg(test)]
+mod tests {
+
+  use super::*;
+  use crate::{
+    assert_err,
+    util::{multipart::create_multipart_request, test::StateTestContext},
+  };
+
+  use test_context::test_context;
+
+  #[test_context(StateTestContext)]
+  #[tokio::test]
+  async fn test_delete_unprivileged_file(ctx: &mut StateTestContext) {
+    let param = UploadQueryParam {
+      max_download: None,
+      code_length: None,
+      expire_secs: None,
+      delete_manually: Some(false),
+      qr_code_format: None,
+    };
+    let multipart = create_multipart_request("file_name.txt", "data")
+      .await
+      .unwrap();
+    let (file_path, _) = store(&ctx.state, &param, None, multipart).await.unwrap();
+    let result = delete(&ctx.state, &file_path.code, &file_path.file_name, None).await;
+    assert_err!(result, |e: &ApiError| e.to_string()
+      == format!("{}/file_name.txt is not deletable", file_path.code));
+  }
 }
