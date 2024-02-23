@@ -15,7 +15,7 @@ use tower::ServiceExt;
 use tower_http::services::fs::ServeFileSystemResponseBody;
 
 use crate::{
-  error::ApiResult,
+  error::result::ApiResult,
   server::ApiState,
   service::{self},
 };

@@ -3,7 +3,7 @@ pub mod worker;
 
 use crate::configure::{ApiConfig, UrlSchema};
 use crate::database::Database;
-use crate::error::ApiResult;
+use crate::error::result::ApiResult;
 use crate::router::get_router;
 use std::sync::Arc;
 

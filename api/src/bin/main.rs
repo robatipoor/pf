@@ -1,7 +1,7 @@
 use api::{
   configure::env::get_env_source,
   constant::ENV_PREFIX,
-  error::ApiResult,
+  error::result::ApiResult,
   server::{worker::GarbageCollectorTask, ApiServer},
   util::{self, tracing::INIT_SUBSCRIBER},
 };

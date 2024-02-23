@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 
 use crate::unwrap;
 use api::configure::CONFIG;
-use api::error::ApiResult;
+use api::error::result::ApiResult;
 use api::server::worker::GarbageCollectorTask;
 use api::server::{ApiServer, ApiState};
 use api::util::tracing::INIT_SUBSCRIBER;

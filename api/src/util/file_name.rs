@@ -1,4 +1,4 @@
-use crate::error::{invalid_input_error, ApiResult};
+use crate::error::{invalid_input_error, result::ApiResult};
 
 pub fn validate(path: &str) -> ApiResult {
   let path = std::path::Path::new(path);

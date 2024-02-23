@@ -1,11 +1,8 @@
-use axum::{
-  http::StatusCode,
-  response::{IntoResponse, Response},
-  Json,
-};
+use axum::http::StatusCode;
 use sdk::dto::response::BodyResponseError;
 
-pub type ApiResult<T = ()> = std::result::Result<T, ApiError>;
+pub mod response;
+pub mod result;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ApiError {
@@ -53,6 +50,8 @@ pub enum ApiError {
   MultipartError(#[from] axum::extract::multipart::MultipartError),
   #[error(transparent)]
   UrlError(#[from] url::ParseError),
+  #[error(transparent)]
+  ImageError(#[from] image::ImageError),
   #[error("lock error: {0}")]
   LockError(String),
   #[error("duration out of range error: {0}")]
@@ -155,6 +154,11 @@ impl ApiError {
         err.to_string(),
         StatusCode::INTERNAL_SERVER_ERROR,
       ),
+      ImageError(err) => (
+        "IMAGE_ERROR",
+        err.to_string(),
+        StatusCode::INTERNAL_SERVER_ERROR,
+      ),
       UnknownError(err) => (
         "UNKNOWN_ERROR",
         err.to_string(),
@@ -178,25 +182,8 @@ impl ApiError {
   }
 }
 
-impl IntoResponse for ApiError {
-  fn into_response(self) -> Response {
-    let (body, status_code) = self.response();
-    (status_code, Json(body)).into_response()
-  }
-}
-
 pub fn invalid_input_error(field: &'static str, message: &'static str) -> ApiError {
   let mut report = garde::Report::new();
   report.append(garde::Path::new(field), garde::Error::new(message));
   ApiError::InvalidInputError(report)
-}
-
-pub trait ToApiResult<T> {
-  fn to_result(self) -> ApiResult<T>;
-}
-
-impl<T> ToApiResult<T> for Option<T> {
-  fn to_result(self) -> ApiResult<T> {
-    self.ok_or_else(|| ApiError::NotFoundError(format!("{} not found", std::any::type_name::<T>())))
-  }
 }

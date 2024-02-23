@@ -1,4 +1,4 @@
-use crate::error::ApiResult;
+use crate::error::result::ApiResult;
 
 use super::ApiState;
 

@@ -1,4 +1,4 @@
-use crate::error::{ApiError, ApiResult};
+use crate::error::{result::ApiResult, ApiError};
 use sdk::dto::FileUrlPath;
 use serde::{Deserialize, Serialize};
 use sled::IVec;

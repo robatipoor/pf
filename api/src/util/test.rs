@@ -2,7 +2,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::{collections::HashMap, hash::Hash};
 
-use crate::error::ApiResult;
+use crate::error::result::ApiResult;
 use crate::server::worker::GarbageCollectorTask;
 use crate::server::ApiState;
 use crate::{configure::CONFIG, util::tracing::INIT_SUBSCRIBER};

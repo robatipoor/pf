@@ -1,4 +1,4 @@
-use crate::error::{ApiError, ApiResult};
+use crate::error::{result::ApiResult, ApiError};
 
 #[derive(Debug, Clone, Eq, PartialEq, PartialOrd, Ord)]
 pub struct Secret(String);

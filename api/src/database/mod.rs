@@ -1,6 +1,6 @@
 use crate::{
   configure::DatabaseConfig,
-  error::{ApiError, ApiResult},
+  error::{result::ApiResult, ApiError},
 };
 use chrono::{DateTime, Utc};
 use sled::IVec;

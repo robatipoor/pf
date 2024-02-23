@@ -1,6 +1,6 @@
 use tracing::error;
 
-use crate::error::{ApiError, ApiResult};
+use crate::error::{result::ApiResult, ApiError};
 
 /// If a task is fail fast after encounter an error node goes down.
 pub type IsFailFast = bool;
