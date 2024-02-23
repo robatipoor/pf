@@ -69,7 +69,7 @@ $ curl -u username:password -F "file=@{file_name}" 127.0.0.1:8080/upload
 $ curl -o {file_name} -u username:password http://127.0.0.1:8080/{code}/{file_name}
 
 # Upload a file and then display the QR code.
-$ curl -s -F "file=@{file_name}" 127.0.0.1:8080/upload | jq -r '.qrcode' | base64 -d; echo
+$ curl -s -F "file=@{file_name}" 127.0.0.1:8080/upload\?qr_code_format=text | jq -r '.qr_code' | base64 -d; echo
 
 # Upload a file with an expiration time of 100 seconds (default value specified in settings file).
 $ curl -F "file=@{file_name}" 127.0.0.1:8080/upload\?expire_secs=100

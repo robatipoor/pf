@@ -59,8 +59,8 @@ log = "0.4.20"
 log-derive = "0.4.1"
 mime_guess = "2.0.4"
 once_cell = { version = "1.19.0" }
-project-root = "0.2.2"
 qrcode = "0.13"
+image = "0.24.8"
 rand = "0.8.5"
 reqwest = { version = "0.11.24", default-features = false, features = [
   "json",

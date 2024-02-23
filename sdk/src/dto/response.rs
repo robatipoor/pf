@@ -18,7 +18,7 @@ impl MessageResponse {
 pub struct UploadResponse {
   pub expire_date_time: DateTime<Utc>,
   pub url: String,
-  pub qrcode: String,
+  pub qr_code: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

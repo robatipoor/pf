@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 pub mod request;
 pub mod response;
@@ -10,7 +11,26 @@ pub struct FileUrlPath {
 }
 
 impl FileUrlPath {
-  pub fn from_str(input: &str) -> anyhow::Result<Self> {
+  pub fn from_url(url: &str) -> anyhow::Result<Self> {
+    let url_path = url::Url::parse(url)?.path().to_string();
+    Self::from_str(&url_path)
+  }
+
+  pub fn to_url(&self, base_url: &str) -> Result<url::Url, url::ParseError> {
+    url::Url::parse(&format!("{base_url}/{}/{}", self.code, self.file_name))
+  }
+}
+
+impl std::fmt::Display for FileUrlPath {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}/{}", self.code, self.file_name)
+  }
+}
+
+impl FromStr for FileUrlPath {
+  type Err = anyhow::Error;
+
+  fn from_str(input: &str) -> Result<Self, Self::Err> {
     let input = input.trim_start_matches('/').split('/').collect::<Vec<_>>();
 
     if input.len() != 2 {
@@ -21,24 +41,6 @@ impl FileUrlPath {
     let file_name = input[1].to_string();
 
     Ok(Self { code, file_name })
-  }
-
-  pub fn from_url(url: &str) -> anyhow::Result<Self> {
-    let url_path = url::Url::parse(url)?.path().to_string();
-    Self::from_str(&url_path)
-  }
-
-  pub fn to_url(&self, base_url: &str) -> Result<url::Url, url::ParseError> {
-    Ok(url::Url::parse(&format!(
-      "{base_url}/{}/{}",
-      self.code, self.file_name
-    ))?)
-  }
-}
-
-impl std::fmt::Display for FileUrlPath {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    write!(f, "{}/{}", self.code, self.file_name)
   }
 }
 

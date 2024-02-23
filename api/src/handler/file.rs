@@ -5,14 +5,12 @@ use axum::{
   response::Response,
   Json,
 };
-
+use garde::Validate;
 use sdk::dto::{
-  request::UploadQueryParam,
+  request::{QrCodeFormat, UploadQueryParam},
   response::{MessageResponse, MetaDataFileResponse, UploadResponse},
   FileUrlPath,
 };
-
-use garde::Validate;
 use tower::ServiceExt;
 use tower_http::services::fs::ServeFileSystemResponseBody;
 
@@ -35,12 +33,23 @@ pub async fn upload(
   let url = FileUrlPath::from(file_path)
     .to_url(&state.config.server.get_domain())?
     .to_string();
-  let qrcode = crate::util::qrcode::encode(&url)?;
+  let qr_code = generate_qr_code(query.qr_code_format, &url)?;
   Ok(Json(UploadResponse {
     url,
     expire_date_time,
-    qrcode,
+    qr_code,
   }))
+}
+
+pub fn generate_qr_code(
+  qr_code_format: Option<QrCodeFormat>,
+  input: &str,
+) -> ApiResult<Option<String>> {
+  match qr_code_format {
+    Some(QrCodeFormat::Text) => Ok(Some(crate::util::qr_code::encode_to_text_format(input)?)),
+    Some(QrCodeFormat::Image) => Ok(Some(crate::util::qr_code::encode_to_image_format(input)?)),
+    None => Ok(None),
+  }
 }
 
 pub async fn download(

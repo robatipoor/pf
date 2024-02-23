@@ -51,9 +51,9 @@ impl From<FilePath> for FileUrlPath {
   }
 }
 
-impl Into<PathBuf> for &FilePath {
-  fn into(self) -> PathBuf {
-    PathBuf::from(self.to_string())
+impl From<&FilePath> for PathBuf {
+  fn from(value: &FilePath) -> Self {
+    PathBuf::from(value.to_string())
   }
 }
 

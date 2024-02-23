@@ -152,7 +152,7 @@ impl App {
     if let Some(response) = self.response.as_ref() {
       html! {
        <div>
-       {std::str::from_utf8(&STANDARD.decode(&response.qrcode).unwrap()).unwrap()}
+       {std::str::from_utf8(&STANDARD.decode(&response.qr_code).unwrap()).unwrap()}
        </div>
       }
     } else {
@@ -207,5 +207,5 @@ impl App {
 pub struct UploadResponse {
   pub expire_date_time: DateTime<Utc>,
   pub url: String,
-  pub qrcode: String,
+  pub qr_code: String,
 }

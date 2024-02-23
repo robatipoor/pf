@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use base64::{engine::general_purpose::STANDARD, Engine};
 use sdk::{
   dto::{
-    request::UploadQueryParam,
+    request::{QrCodeFormat, UploadQueryParam},
     response::{ApiResponseResult, BodyResponseError, MessageResponse},
     FileUrlPath,
   },
@@ -44,11 +44,17 @@ pub async fn upload(args: UploadArguments) {
       .await
       .unwrap();
   }
+  let qr_code_format = if args.output == UploadOutput::Json || args.output == UploadOutput::QrCode {
+    Some(QrCodeFormat::Text)
+  } else {
+    None
+  };
   let query = UploadQueryParam {
     max_download: args.max_download,
     code_length: args.code_length,
     expire_secs: args.expire,
     delete_manually: args.delete_manually,
+    qr_code_format,
   };
   let client = CommandLineClient::new(args.server_addr);
   let (_, resp) = if args.progress_bar {
@@ -67,7 +73,7 @@ pub async fn upload(args: UploadArguments) {
       UploadOutput::QrCode => {
         println!(
           "{}",
-          std::str::from_utf8(&STANDARD.decode(resp.qrcode).unwrap()).unwrap()
+          std::str::from_utf8(&STANDARD.decode(resp.qr_code.unwrap()).unwrap()).unwrap()
         );
       }
       UploadOutput::Url => {

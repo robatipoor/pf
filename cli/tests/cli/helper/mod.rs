@@ -1,12 +1,12 @@
 use fake::{Fake, Faker};
 use once_cell::sync::Lazy;
-use project_root::get_project_root;
-use sdk::{dto::FileUrlPath, retry};
+use sdk::{dto::FileUrlPath, retry, util::dir::get_cargo_project_root};
 
 use std::{
   io,
   path::{Path, PathBuf},
   process::{ExitStatus, Stdio},
+  str::FromStr,
 };
 use test_context::AsyncTestContext;
 use tracing::info;
@@ -16,7 +16,7 @@ static SETUP: Lazy<()> = Lazy::new(|| {
   std::process::Command::new("cargo")
     .arg("build")
     .arg("-q")
-    .current_dir(&get_project_root().unwrap())
+    .current_dir(&get_cargo_project_root().unwrap().unwrap())
     .stdout(Stdio::piped())
     .spawn()
     .unwrap()
@@ -36,7 +36,7 @@ impl CliTestContext {
   async fn new() -> Self {
     Lazy::force(&SETUP);
 
-    let root_dir = get_project_root().unwrap();
+    let root_dir = get_cargo_project_root().unwrap().unwrap();
     let workspace = root_dir.join(Path::new("test-dump").join(PathBuf::from(cuid2::create_id())));
     tokio::fs::create_dir_all(&workspace).await.unwrap();
     let db_path = workspace.join(PathBuf::from(cuid2::create_id()));

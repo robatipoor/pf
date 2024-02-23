@@ -10,7 +10,9 @@ use crate::helper::ApiTestContext;
 #[test_context(ApiTestContext)]
 #[tokio::test]
 pub async fn test_download(ctx: &mut ApiTestContext) {
-  let file = ctx.upload_dummy_file(None, None, None, None, None).await;
+  let file = ctx
+    .upload_dummy_file(None, None, None, None, None, None)
+    .await;
   let (status, body) = ctx.download(&file.url_path, None).await.unwrap();
   let body = unwrap!(body);
   assert_eq!(file.content, body);
@@ -20,7 +22,9 @@ pub async fn test_download(ctx: &mut ApiTestContext) {
 #[test_context(ApiTestContext)]
 #[tokio::test]
 pub async fn test_download_when_file_exceed_max_dl(ctx: &mut ApiTestContext) {
-  let file = ctx.upload_dummy_file(Some(1), None, None, None, None).await;
+  let file = ctx
+    .upload_dummy_file(Some(1), None, None, None, None, None)
+    .await;
   let (status, _) = ctx.download(&file.url_path, None).await.unwrap();
   assert!(status.is_success());
   let (status, resp) = ctx.download(&file.url_path, None).await.unwrap();
@@ -31,7 +35,9 @@ pub async fn test_download_when_file_exceed_max_dl(ctx: &mut ApiTestContext) {
 #[test_context(ApiTestContext)]
 #[tokio::test]
 pub async fn test_download_when_expired(ctx: &mut ApiTestContext) {
-  let file = ctx.upload_dummy_file(None, None, Some(1), None, None).await;
+  let file = ctx
+    .upload_dummy_file(None, None, Some(1), None, None, None)
+    .await;
   let (status, _) = ctx.download(&file.url_path, None).await.unwrap();
   assert!(status.is_success());
   tokio::time::sleep(Duration::from_secs(1)).await;
@@ -45,7 +51,7 @@ pub async fn test_download_when_expired(ctx: &mut ApiTestContext) {
 pub async fn test_download_file_with_auth(ctx: &mut ApiTestContext) {
   let auth = Some(Faker.fake::<(String, String)>());
   let file = ctx
-    .upload_dummy_file(None, None, Some(1), None, auth.clone())
+    .upload_dummy_file(None, None, Some(1), None, None, auth.clone())
     .await;
   let (status, resp) = ctx.download(&file.url_path, None).await.unwrap();
   assert_err!(resp, |e: &BodyResponseError| e.error_type

@@ -7,7 +7,9 @@ use test_context::test_context;
 #[test_context(ApiTestContext)]
 #[tokio::test]
 pub async fn test_delete_exist_file(ctx: &mut ApiTestContext) {
-  let file = ctx.upload_dummy_file(None, None, None, None, None).await;
+  let file = ctx
+    .upload_dummy_file(None, None, None, None, None, None)
+    .await;
   let (status, resp) = ctx.info(&file.url_path, None).await.unwrap();
   assert_ok!(resp);
   assert!(status.is_success(), "status: {status}");
@@ -32,7 +34,7 @@ pub async fn test_delete_not_exist_file(ctx: &mut ApiTestContext) {
 #[tokio::test]
 pub async fn test_delete_file_is_not_deletable(ctx: &mut ApiTestContext) {
   let file = ctx
-    .upload_dummy_file(None, None, None, Some(false), None)
+    .upload_dummy_file(None, None, None, Some(false), None, None)
     .await;
   let (status, _) = ctx.info(&file.url_path, None).await.unwrap();
   assert!(status.is_success(), "status: {status}");

@@ -86,7 +86,7 @@ pub enum SubCommand {
   },
 }
 
-#[derive(ValueEnum, Debug, Clone, Copy)]
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UploadOutput {
   QrCode,
   Url,

@@ -10,7 +10,7 @@ use api::util::tracing::INIT_SUBSCRIBER;
 use fake::{Fake, Faker};
 use once_cell::sync::Lazy;
 use sdk::client::PasteFileClient;
-use sdk::dto::request::UploadQueryParam;
+use sdk::dto::request::{QrCodeFormat, UploadQueryParam};
 use sdk::dto::FileUrlPath;
 use test_context::AsyncTestContext;
 
@@ -68,6 +68,7 @@ impl ApiTestContext {
     len: Option<usize>,
     exp: Option<u64>,
     del: Option<bool>,
+    qr: Option<QrCodeFormat>,
     auth: Option<(String, String)>,
   ) -> DummyFile {
     let file_name: String = format!("{}.txt", Faker.fake::<String>());
@@ -78,6 +79,7 @@ impl ApiTestContext {
       code_length: len,
       expire_secs: exp,
       delete_manually: del,
+      qr_code_format: qr,
     };
     let (_, resp) = self
       .client

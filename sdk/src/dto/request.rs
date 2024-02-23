@@ -11,4 +11,14 @@ pub struct UploadQueryParam {
   pub expire_secs: Option<u64>,
   #[garde(skip)]
   pub delete_manually: Option<bool>,
+  #[garde(skip)]
+  pub qr_code_format: Option<QrCodeFormat>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+pub enum QrCodeFormat {
+  #[serde(rename = "text")]
+  Text,
+  #[serde(rename = "image")]
+  Image,
 }
