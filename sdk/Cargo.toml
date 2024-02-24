@@ -22,3 +22,5 @@ log = { workspace = true }
 async-stream = { workspace = true }
 mime_guess = { workspace = true }
 url = { workspace = true }
+qrcode = { workspace = true }
+image = { workspace = true }

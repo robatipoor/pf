@@ -22,7 +22,6 @@ fake = { workspace = true }
 futures-util = { workspace = true }
 hyper = { workspace = true }
 once_cell = { workspace = true }
-qrcode = { workspace = true }
 base64 = { workspace = true }
 rand = { workspace = true }
 reqwest = { workspace = true }
@@ -43,5 +42,4 @@ tower-http = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 url = { workspace = true }
-image = { workspace = true }
 garde = { workspace = true }

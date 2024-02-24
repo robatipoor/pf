@@ -1,14 +1,12 @@
-use std::path::{Path, PathBuf};
-
-use base64::{engine::general_purpose::STANDARD, Engine};
 use sdk::{
   dto::{
-    request::{QrCodeFormat, UploadQueryParam},
+    request::UploadQueryParam,
     response::{ApiResponseResult, BodyResponseError, MessageResponse},
     FileUrlPath,
   },
   util::file::{add_extension, rm_extra_extension},
 };
+use std::path::{Path, PathBuf};
 use url::Url;
 
 use crate::{args::UploadOutput, client::CommandLineClient, util::crypto::KeyNonce};
@@ -44,25 +42,20 @@ pub async fn upload(args: UploadArguments) {
       .await
       .unwrap();
   }
-  let qr_code_format = if args.output == UploadOutput::Json || args.output == UploadOutput::QrCode {
-    Some(QrCodeFormat::Text)
-  } else {
-    None
-  };
-  let query = UploadQueryParam {
+  let param = UploadQueryParam {
     max_download: args.max_download,
     code_length: args.code_length,
     expire_secs: args.expire,
     delete_manually: args.delete_manually,
-    qr_code_format,
+    qr_code_format: None,
   };
   let client = CommandLineClient::new(args.server_addr);
   let (_, resp) = if args.progress_bar {
     client
-      .upload_with_progress_bar(&source_file, &query, args.auth)
+      .upload_with_progress_bar(&source_file, &param, args.auth)
       .await
   } else {
-    client.upload_from(&source_file, &query, args.auth).await
+    client.upload_from(&source_file, &param, args.auth).await
   }
   .unwrap();
   match resp {
@@ -71,10 +64,8 @@ pub async fn upload(args: UploadArguments) {
         println!("{}", serde_json::to_string(&resp).unwrap());
       }
       UploadOutput::QrCode => {
-        println!(
-          "{}",
-          std::str::from_utf8(&STANDARD.decode(resp.qr_code.unwrap()).unwrap()).unwrap()
-        );
+        let qr_code = sdk::util::qr_code::generate_text_qr_code(&resp.url).unwrap();
+        println!("{qr_code}");
       }
       UploadOutput::Url => {
         println!("{}", resp.url);

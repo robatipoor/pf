@@ -46,8 +46,12 @@ pub fn generate_qr_code(
   input: &str,
 ) -> ApiResult<Option<String>> {
   match qr_code_format {
-    Some(QrCodeFormat::Text) => Ok(Some(crate::util::qr_code::encode_to_text_format(input)?)),
-    Some(QrCodeFormat::Image) => Ok(Some(crate::util::qr_code::encode_to_image_format(input)?)),
+    Some(QrCodeFormat::Text) => Ok(Some(sdk::util::qr_code::generate_base64_text_qr_code(
+      input,
+    )?)),
+    Some(QrCodeFormat::Image) => Ok(Some(sdk::util::qr_code::generate_base64_png_qr_code(
+      input,
+    )?)),
     None => Ok(None),
   }
 }
