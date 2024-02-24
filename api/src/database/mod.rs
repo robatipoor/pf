@@ -73,7 +73,7 @@ impl Database {
       Err(err) => {
         tracing::error!("Compare and swap failed, Error: {err}");
         Err(ApiError::DatabaseError(sled::Error::ReportableBug(
-          "Updating the meta data file in the database failed.".to_string(),
+          format!("Updating the meta data file in the database failed, Error: {err}"),
         )))
       }
     }
@@ -267,13 +267,12 @@ mod tests {
       .store(path.clone(), meta.clone())
       .await
       .unwrap();
-    let result = ctx.state.db.exist(&path).unwrap();
-    assert!(result);
+    assert!(ctx.state.db.exist(&path).unwrap());
   }
 
   #[test_context(StateTestContext)]
   #[tokio::test]
-  async fn test_store_file_and_purge_it(ctx: &mut StateTestContext) {
+  async fn test_store_file_and_expire_it(ctx: &mut StateTestContext) {
     let path: FilePath = Faker.fake();
     let meta = MetaDataFile {
       created_at: Utc::now(),
@@ -290,8 +289,7 @@ mod tests {
       .await
       .unwrap();
     tokio::time::sleep(Duration::from_secs(1)).await;
-    let result = ctx.state.db.exist(&path).unwrap();
-    assert!(!result);
+    assert!(!ctx.state.db.exist(&path).unwrap());
   }
 
   #[test_context(StateTestContext)]
@@ -312,14 +310,53 @@ mod tests {
       .store(path.clone(), meta.clone())
       .await
       .unwrap();
-    ctx.state.db.delete(path).await.unwrap().unwrap();
+    ctx.state.db.delete(path.clone()).await.unwrap().unwrap();
+    assert!(!ctx.state.db.exist(&path).unwrap());
   }
 
   #[test_context(StateTestContext)]
   #[tokio::test]
   async fn test_delete_file_that_does_not_exist(ctx: &mut StateTestContext) {
-    let path: FilePath = Faker.fake();
+    let mut path: FilePath = Faker.fake();
+    let meta = MetaDataFile {
+      created_at: Utc::now(),
+      expire_date_time: Utc::now() + chrono::Duration::seconds(10),
+      secret: None,
+      delete_manually: true,
+      max_download: None,
+      count_downloads: 0,
+    };
+    ctx
+      .state
+      .db
+      .store(path.clone(), meta.clone())
+      .await
+      .unwrap();
+    path.file_name = format!("{}.txt", Faker.fake::<String>());
     let result = ctx.state.db.delete(path).await.unwrap();
+    assert!(result.is_none())
+  }
+
+  #[test_context(StateTestContext)]
+  #[tokio::test]
+  async fn test_fetch_file_that_does_not_exist(ctx: &mut StateTestContext) {
+    let mut path: FilePath = Faker.fake();
+    let meta = MetaDataFile {
+      created_at: Utc::now(),
+      expire_date_time: Utc::now() + chrono::Duration::seconds(10),
+      secret: None,
+      delete_manually: true,
+      max_download: None,
+      count_downloads: 0,
+    };
+    ctx
+      .state
+      .db
+      .store(path.clone(), meta.clone())
+      .await
+      .unwrap();
+    path.file_name = format!("{}.txt", Faker.fake::<String>());
+    let result = ctx.state.db.fetch(&path).unwrap();
     assert!(result.is_none())
   }
 }

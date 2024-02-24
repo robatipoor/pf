@@ -34,7 +34,7 @@ pub enum ApiError {
   ReqwestError(#[from] reqwest::Error),
   #[error(transparent)]
   SystemTimeError(#[from] std::time::SystemTimeError),
-  #[error("hash error {0}")]
+  #[error("hash error: {0}")]
   HashError(String),
   #[error(transparent)]
   SpawnTaskError(#[from] tokio::task::JoinError),

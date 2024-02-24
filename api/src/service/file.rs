@@ -147,7 +147,10 @@ pub async fn info(
     code: code.to_string(),
     file_name: file_name.to_string(),
   };
-  let meta = state.db.fetch(&file_path)?.to_result()?;
+  let meta = state
+    .db
+    .fetch(&file_path)?
+    .to_result(&file_path.to_string())?;
   if let Some(max) = meta.max_download {
     if meta.count_downloads >= max {
       state.db.delete(file_path.clone()).await?;
@@ -168,7 +171,10 @@ pub async fn fetch(
     code: code.to_string(),
     file_name: file_name.to_string(),
   };
-  let meta_data = state.db.fetch(&file_path)?.to_result()?;
+  let meta_data = state
+    .db
+    .fetch(&file_path)?
+    .to_result(&file_path.to_string())?;
   authorize_user(secret, &meta_data.secret)?;
   if let Some(max) = meta_data.max_download {
     if meta_data.count_downloads >= max {
@@ -245,6 +251,7 @@ mod tests {
     util::{multipart::create_multipart_request, test::StateTestContext},
   };
 
+  use fake::{Fake, Faker};
   use test_context::test_context;
 
   #[test_context(StateTestContext)]
@@ -257,12 +264,132 @@ mod tests {
       delete_manually: Some(false),
       qr_code_format: None,
     };
-    let multipart = create_multipart_request("file_name.txt", "data")
-      .await
-      .unwrap();
+    let file_name = format!("{}.txt", Faker.fake::<String>());
+    let multipart = create_multipart_request(&file_name, "data").await.unwrap();
     let (file_path, _) = store(&ctx.state, &param, None, multipart).await.unwrap();
     let result = delete(&ctx.state, &file_path.code, &file_path.file_name, None).await;
     assert_err!(result, |e: &ApiError| e.to_string()
-      == format!("{}/file_name.txt is not deletable", file_path.code));
+      == format!("{}/{file_name} is not deletable", file_path.code));
+  }
+
+  #[test_context(StateTestContext)]
+  #[tokio::test]
+  async fn test_max_download_file_error(ctx: &mut StateTestContext) {
+    let param = UploadQueryParam {
+      max_download: Some(1),
+      code_length: None,
+      expire_secs: None,
+      delete_manually: Some(false),
+      qr_code_format: None,
+    };
+    let file_name = format!("{}.txt", Faker.fake::<String>());
+    let multipart = create_multipart_request(&file_name, "data").await.unwrap();
+    let (file_path, _) = store(&ctx.state, &param, None, multipart).await.unwrap();
+    fetch(&ctx.state, &file_path.code, &file_path.file_name, None)
+      .await
+      .unwrap();
+    let result = fetch(&ctx.state, &file_path.code, &file_path.file_name, None).await;
+    assert_err!(result, |e: &ApiError| e.to_string()
+      == format!(
+        "resource not found: {}/{file_name} not found",
+        file_path.code
+      ));
+  }
+
+  #[test_context(StateTestContext)]
+  #[tokio::test]
+  async fn test_authorization_header_required_error(ctx: &mut StateTestContext) {
+    let secret = Secret::new(Faker.fake::<String>());
+    let param = UploadQueryParam {
+      max_download: None,
+      code_length: None,
+      expire_secs: None,
+      delete_manually: Some(true),
+      qr_code_format: None,
+    };
+    let file_name = format!("{}.txt", Faker.fake::<String>());
+    let multipart = create_multipart_request(&file_name, "data").await.unwrap();
+    let (file_path, _) = store(&ctx.state, &param, Some(secret), multipart)
+      .await
+      .unwrap();
+    let result = delete(&ctx.state, &file_path.code, &file_path.file_name, None).await;
+    assert_err!(result, |e: &ApiError| e.to_string()
+      == "Authorization header required.");
+    let result = fetch(&ctx.state, &file_path.code, &file_path.file_name, None).await;
+    assert_err!(result, |e: &ApiError| e.to_string()
+      == "Authorization header required.");
+  }
+
+  #[test_context(StateTestContext)]
+  #[tokio::test]
+  async fn test_secret_token_is_invalid_error(ctx: &mut StateTestContext) {
+    let mut secret = Secret::new(Faker.fake::<String>());
+    let param = UploadQueryParam {
+      max_download: None,
+      code_length: None,
+      expire_secs: None,
+      delete_manually: Some(true),
+      qr_code_format: None,
+    };
+    let file_name = format!("{}.txt", Faker.fake::<String>());
+    let multipart = create_multipart_request(&file_name, "data").await.unwrap();
+    let (file_path, _) = store(&ctx.state, &param, Some(secret), multipart)
+      .await
+      .unwrap();
+    secret = Secret::new(Faker.fake::<String>());
+    let result = delete(
+      &ctx.state,
+      &file_path.code,
+      &file_path.file_name,
+      Some(secret.clone()),
+    )
+    .await;
+    assert_err!(result, |e: &ApiError| e.to_string()
+      == "Secret token is invalid");
+
+    let result = fetch(
+      &ctx.state,
+      &file_path.code,
+      &file_path.file_name,
+      Some(secret),
+    )
+    .await;
+    assert_err!(result, |e: &ApiError| e.to_string()
+      == "Secret token is invalid");
+  }
+
+  #[test_context(StateTestContext)]
+  #[tokio::test]
+  async fn test_code_length(ctx: &mut StateTestContext) {
+    let code_length = 100;
+    let param = UploadQueryParam {
+      max_download: None,
+      code_length: Some(code_length),
+      expire_secs: None,
+      delete_manually: Some(false),
+      qr_code_format: None,
+    };
+    let file_name = format!("{}.txt", Faker.fake::<String>());
+    let multipart = create_multipart_request(&file_name, "data").await.unwrap();
+    let (file_path, _) = store(&ctx.state, &param, None, multipart).await.unwrap();
+    assert_eq!(file_path.code.len(), code_length);
+  }
+
+  #[test_context(StateTestContext)]
+  #[tokio::test]
+  async fn test_file_does_not_exist_error(ctx: &mut StateTestContext) {
+    let file_path = Faker.fake::<FilePath>();
+    let result = fetch(&ctx.state, &file_path.code, &file_path.file_name, None).await;
+    assert_err!(result, |e: &ApiError| e.to_string()
+      == format!(
+        "resource not found: {}/{} not found",
+        file_path.code, file_path.file_name
+      ));
+    let result = info(&ctx.state, &file_path.code, &file_path.file_name, None).await;
+    assert_err!(result, |e: &ApiError| e.to_string()
+      == format!(
+        "resource not found: {}/{} not found",
+        file_path.code, file_path.file_name
+      ));
   }
 }

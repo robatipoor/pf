@@ -7,7 +7,7 @@ use sdk::dto::response::MetaDataFileResponse;
 use serde::{Deserialize, Serialize};
 use sled::IVec;
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, fake::Dummy)]
 pub struct MetaDataFile {
   pub created_at: DateTime<Utc>,
   pub expire_date_time: DateTime<Utc>,

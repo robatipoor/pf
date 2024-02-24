@@ -3,7 +3,9 @@ use crate::error::{result::ApiResult, ApiError};
 #[derive(Debug, Clone, Eq, PartialEq, PartialOrd, Ord)]
 pub struct Secret(String);
 
-#[derive(Debug, serde::Serialize, serde::Deserialize, Clone, Eq, PartialEq, PartialOrd, Ord)]
+#[derive(
+  Debug, serde::Serialize, serde::Deserialize, Clone, Eq, PartialEq, PartialOrd, Ord, fake::Dummy,
+)]
 pub struct SecretHash(String);
 
 impl Secret {
