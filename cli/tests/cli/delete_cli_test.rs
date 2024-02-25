@@ -6,7 +6,7 @@ use crate::helper::CliTestContext;
 #[tokio::test]
 async fn test_delete_command(ctx: &mut CliTestContext) {
   let (url_path, _) = ctx.upload_dummy_file().await.unwrap();
-  let _out = Command::cargo_bin("cli")
+  Command::cargo_bin("cli")
     .unwrap()
     .args([
       "--server-addr",
@@ -16,6 +16,6 @@ async fn test_delete_command(ctx: &mut CliTestContext) {
       &url_path.to_string(),
     ])
     .assert()
-    .success()
-    .to_string();
+    .stdout("{\"message\":\"Ok\"}\n")
+    .success();
 }

@@ -4,9 +4,9 @@ use crate::helper::CliTestContext;
 
 #[test_context::test_context(CliTestContext)]
 #[tokio::test]
-async fn test_info_command(ctx: &mut CliTestContext) {
+async fn test_upload_and_info_command(ctx: &mut CliTestContext) {
   let (url_path, _) = ctx.upload_dummy_file().await.unwrap();
-  let _out = Command::cargo_bin("cli")
+  Command::cargo_bin("cli")
     .unwrap()
     .args([
       "--server-addr",
@@ -16,6 +16,5 @@ async fn test_info_command(ctx: &mut CliTestContext) {
       &url_path.to_string(),
     ])
     .assert()
-    .success()
-    .to_string();
+    .success();
 }

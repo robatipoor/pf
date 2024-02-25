@@ -6,7 +6,7 @@ use crate::helper::CliTestContext;
 #[tokio::test]
 async fn test_upload_command(ctx: &mut CliTestContext) {
   let (file, _) = ctx.create_dummy_file().await.unwrap();
-  let _out = Command::cargo_bin("cli")
+  Command::cargo_bin("cli")
     .unwrap()
     .args([
       "--server-addr",
@@ -14,8 +14,10 @@ async fn test_upload_command(ctx: &mut CliTestContext) {
       "upload",
       "--source-file",
       file.to_str().unwrap(),
+      "--progress-bar",
+      "--output",
+      "qr-code"
     ])
     .assert()
-    .success()
-    .to_string();
+    .success();
 }

@@ -34,7 +34,7 @@ impl FromStr for FileUrlPath {
     let input = input.trim_start_matches('/').split('/').collect::<Vec<_>>();
 
     if input.len() != 2 {
-      return Err(anyhow::anyhow!("The file path is invalid."));
+      return Err(anyhow::anyhow!("The file url path is invalid."));
     }
 
     let code = input[0].to_string();
