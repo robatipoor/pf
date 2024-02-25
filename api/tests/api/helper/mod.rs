@@ -80,7 +80,7 @@ impl ApiTestContext {
       max_download: max,
       code_length: len,
       expire_secs: exp,
-      delete_manually: del,
+      allow_manual_deletion: del,
       qr_code_format: qr,
     };
     let (_, resp) = self

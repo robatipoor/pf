@@ -4,6 +4,8 @@ max_upload_bytes_size = 1000_000_000 # 1GB
 default_code_length = 3
 # Default expiration time in seconds
 default_expire_secs = 7200
+# Allow manual deletion of files.
+allow_manual_deletion = true
 
 [server]
 # Communication protocol (e.g., "http" or "https")

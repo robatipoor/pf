@@ -17,7 +17,7 @@ pub struct UploadArguments {
   pub code_length: Option<usize>,
   pub progress_bar: bool,
   pub expire: Option<u64>,
-  pub delete_manually: Option<bool>,
+  pub allow_manual_deletion: Option<bool>,
   pub max_download: Option<u32>,
   pub output: UploadOutput,
   pub source_file: PathBuf,
@@ -46,7 +46,7 @@ pub async fn upload(args: UploadArguments) {
     max_download: args.max_download,
     code_length: args.code_length,
     expire_secs: args.expire,
-    delete_manually: args.delete_manually,
+    allow_manual_deletion: args.allow_manual_deletion,
     qr_code_format: None,
   };
   let client = CommandLineClient::new(args.server_addr);

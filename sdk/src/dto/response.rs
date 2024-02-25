@@ -18,6 +18,7 @@ impl MessageResponse {
 pub struct UploadResponse {
   pub expire_date_time: DateTime<Utc>,
   pub url: String,
+  #[serde(skip_serializing_if = "Option::is_none")]
   pub qr_code: Option<String>,
 }
 
@@ -25,7 +26,7 @@ pub struct UploadResponse {
 pub struct MetaDataFileResponse {
   pub created_at: DateTime<Utc>,
   pub expire_date_time: DateTime<Utc>,
-  pub delete_manually: bool,
+  pub allow_manual_deletion: bool,
   pub max_download: Option<u32>,
   pub count_downloads: u32,
 }

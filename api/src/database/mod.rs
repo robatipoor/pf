@@ -198,7 +198,7 @@ mod tests {
       created_at: Utc::now(),
       expire_date_time: Utc::now() + chrono::Duration::seconds(10),
       secret: None,
-      delete_manually: true,
+      allow_manual_deletion: true,
       max_download: None,
       count_downloads: 1,
     };
@@ -224,7 +224,7 @@ mod tests {
       created_at: Utc::now(),
       expire_date_time: Utc::now() + chrono::Duration::seconds(10),
       secret: None,
-      delete_manually: true,
+      allow_manual_deletion: true,
       max_download: None,
       count_downloads: 0,
     };
@@ -257,7 +257,7 @@ mod tests {
       created_at: Utc::now(),
       expire_date_time: Utc::now() + chrono::Duration::seconds(10),
       secret: None,
-      delete_manually: true,
+      allow_manual_deletion: true,
       max_download: None,
       count_downloads: 0,
     };
@@ -278,7 +278,7 @@ mod tests {
       created_at: Utc::now(),
       expire_date_time: Utc::now(),
       secret: None,
-      delete_manually: true,
+      allow_manual_deletion: true,
       max_download: None,
       count_downloads: 0,
     };
@@ -300,7 +300,7 @@ mod tests {
       created_at: Utc::now(),
       expire_date_time: Utc::now() + chrono::Duration::seconds(10),
       secret: None,
-      delete_manually: true,
+      allow_manual_deletion: true,
       max_download: None,
       count_downloads: 0,
     };
@@ -322,7 +322,7 @@ mod tests {
       created_at: Utc::now(),
       expire_date_time: Utc::now() + chrono::Duration::seconds(10),
       secret: None,
-      delete_manually: true,
+      allow_manual_deletion: true,
       max_download: None,
       count_downloads: 0,
     };
@@ -345,7 +345,7 @@ mod tests {
       created_at: Utc::now(),
       expire_date_time: Utc::now() + chrono::Duration::seconds(10),
       secret: None,
-      delete_manually: true,
+      allow_manual_deletion: true,
       max_download: None,
       count_downloads: 0,
     };

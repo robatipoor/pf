@@ -11,7 +11,7 @@ pub struct UploadQueryParam {
   #[garde(range(min = 1, max = 100_000_000))]
   pub expire_secs: Option<u64>,
   #[garde(skip)]
-  pub delete_manually: Option<bool>,
+  pub allow_manual_deletion: Option<bool>,
   #[garde(skip)]
   pub qr_code_format: Option<QrCodeFormat>,
 }

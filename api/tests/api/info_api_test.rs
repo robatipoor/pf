@@ -13,7 +13,7 @@ pub async fn test_info(ctx: &mut ApiTestContext) {
   let (status, resp) = ctx.info(&file.url_path, None).await.unwrap();
   let resp = unwrap!(resp);
   assert!(status.is_success(), "status: {status}");
-  assert!(resp.delete_manually);
+  assert!(resp.allow_manual_deletion);
 }
 
 #[test_context(ApiTestContext)]

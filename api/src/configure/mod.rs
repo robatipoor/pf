@@ -24,7 +24,7 @@ pub struct ApiConfig {
   pub max_upload_bytes_size: usize,
   pub default_code_length: usize,
   pub default_expire_secs: u64,
-  // TODO add default_delete_manually:bool
+  pub allow_manual_deletion: bool,
 }
 
 #[derive(Debug, Deserialize, Clone)]

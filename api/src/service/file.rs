@@ -43,7 +43,9 @@ pub async fn store(
   let meta = MetaDataFile {
     created_at: now,
     expire_date_time,
-    delete_manually: param.delete_manually.unwrap_or(true),
+    allow_manual_deletion: param
+      .allow_manual_deletion
+      .unwrap_or(state.config.allow_manual_deletion),
     max_download: param.max_download,
     secret,
     count_downloads: 0,
@@ -201,7 +203,7 @@ pub async fn delete(
     file_name: file_name.to_string(),
   };
   if let Some(meta) = state.db.fetch(&path)? {
-    if meta.delete_manually {
+    if meta.allow_manual_deletion {
       authorize_user(secret, &meta.secret)?;
       let file_path = state.config.fs.base_dir.join::<PathBuf>((&path).into());
       tokio::fs::remove_file(file_path).await?;
@@ -261,7 +263,7 @@ mod tests {
       max_download: None,
       code_length: None,
       expire_secs: None,
-      delete_manually: Some(false),
+      allow_manual_deletion: Some(false),
       qr_code_format: None,
     };
     let file_name = format!("{}.txt", Faker.fake::<String>());
@@ -279,7 +281,7 @@ mod tests {
       max_download: Some(1),
       code_length: None,
       expire_secs: None,
-      delete_manually: Some(false),
+      allow_manual_deletion: Some(false),
       qr_code_format: None,
     };
     let file_name = format!("{}.txt", Faker.fake::<String>());
@@ -304,7 +306,7 @@ mod tests {
       max_download: None,
       code_length: None,
       expire_secs: None,
-      delete_manually: Some(true),
+      allow_manual_deletion: Some(true),
       qr_code_format: None,
     };
     let file_name = format!("{}.txt", Faker.fake::<String>());
@@ -328,7 +330,7 @@ mod tests {
       max_download: None,
       code_length: None,
       expire_secs: None,
-      delete_manually: Some(true),
+      allow_manual_deletion: Some(true),
       qr_code_format: None,
     };
     let file_name = format!("{}.txt", Faker.fake::<String>());
@@ -366,7 +368,7 @@ mod tests {
       max_download: None,
       code_length: Some(code_length),
       expire_secs: None,
-      delete_manually: Some(false),
+      allow_manual_deletion: Some(false),
       qr_code_format: None,
     };
     let file_name = format!("{}.txt", Faker.fake::<String>());

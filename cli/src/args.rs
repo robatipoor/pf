@@ -40,7 +40,7 @@ pub enum SubCommand {
     #[clap(short, long)]
     max_download: Option<u32>,
     #[clap(short, long)]
-    delete_manually: Option<bool>,
+    allow_manual_deletion: Option<bool>,
     #[clap(default_value_t = UploadOutput::Json, short, long)]
     output: UploadOutput,
     #[clap(default_value_t = false, short, long)]

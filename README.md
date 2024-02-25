@@ -16,9 +16,12 @@ The service provides a convenient means of sharing files without the necessity f
 * Anonymous Uploads
 * File Expiration
 * Burn After Reading
+* Large File Support
 * QR code Generator
-* Command Line Interface (CLI)
+* Command Line Interface
+* ChaCha20-Poly1305 Encryption
 * Built-in TLS Server
+
 
 **Run Backend Service Locally**
 
@@ -82,7 +85,7 @@ $ curl -F "file=@{file_name}" 127.0.0.1:8080/upload\?max_download=10
 $ curl -F "file=@{file_name}" 127.0.0.1:8080/upload\?code_length=5
 
 # Upload a file and prevent manual deletion until expiration.
-$ curl -F "file=@{file_name}" 127.0.0.1:8080/upload\?delete_manually=false
+$ curl -F "file=@{file_name}" 127.0.0.1:8080/upload\?allow_manual_deletion=false
 
 # Get metadata for a file.
 $ curl -X GET http://127.0.0.1:8080/info/{code}/{file_name}
@@ -103,6 +106,9 @@ default_code_length = 3
 
 # Default expiration time in seconds
 default_expire_secs = 7200
+
+# Allow manual deletion of files.
+allow_manual_deletion = true
 
 # Server configuration section
 [server]
