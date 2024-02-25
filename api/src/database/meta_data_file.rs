@@ -12,7 +12,7 @@ pub struct MetaDataFile {
   pub created_at: DateTime<Utc>,
   pub expire_date_time: DateTime<Utc>,
   pub secret: Option<SecretHash>,
-  pub allow_manual_deletion: bool,
+  pub manual_deletion: bool,
   pub max_download: Option<u32>,
   pub count_downloads: u32,
 }
@@ -63,7 +63,7 @@ impl From<&MetaDataFile> for MetaDataFileResponse {
     MetaDataFileResponse {
       created_at: value.created_at,
       expire_date_time: value.expire_date_time,
-      allow_manual_deletion: value.allow_manual_deletion,
+      allow_manual_deletion: value.manual_deletion,
       max_download: value.max_download,
       count_downloads: value.count_downloads,
     }

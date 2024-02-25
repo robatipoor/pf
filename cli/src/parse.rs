@@ -57,8 +57,13 @@ pub fn parse_source_file(source_file: &str) -> anyhow::Result<PathBuf> {
 }
 
 pub fn parse_destination(destination: &str) -> anyhow::Result<PathBuf> {
-  let destination = PathBuf::from(destination).canonicalize()?;
-  Ok(destination)
+  let destination = PathBuf::from(destination);
+  if let Some(file_name) = destination.file_name() {
+    if let Some(parent) = destination.parent() {
+      return Ok(parent.canonicalize()?.join(file_name));
+    }
+  }
+  Ok(destination.canonicalize()?)
 }
 
 pub fn parse_file_url_path(file_path: &str) -> anyhow::Result<FileUrlPath> {

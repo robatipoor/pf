@@ -43,7 +43,7 @@ pub async fn store(
   let meta = MetaDataFile {
     created_at: now,
     expire_date_time,
-    allow_manual_deletion: param
+    manual_deletion: param
       .allow_manual_deletion
       .unwrap_or(state.config.allow_manual_deletion),
     max_download: param.max_download,
@@ -203,7 +203,7 @@ pub async fn delete(
     file_name: file_name.to_string(),
   };
   if let Some(meta) = state.db.fetch(&path)? {
-    if meta.allow_manual_deletion {
+    if meta.manual_deletion {
       authorize_user(secret, &meta.secret)?;
       let file_path = state.config.fs.base_dir.join::<PathBuf>((&path).into());
       tokio::fs::remove_file(file_path).await?;
