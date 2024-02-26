@@ -31,7 +31,9 @@ pub struct Args {
 
 #[derive(Subcommand, Debug)]
 pub enum SubCommand {
+  #[clap(about = "Ping the server to check connectivity")]
   Ping,
+  #[clap(about = "Upload a file to the server")]
   Upload {
     #[clap(short, long)]
     code_length: Option<usize>,
@@ -50,14 +52,17 @@ pub enum SubCommand {
     #[clap(long, value_parser = parse_key_nonce, help = HELP_ENCRYPT)]
     key_nonce: Option<KeyNonce>,
   },
+  #[clap(about = "Delete a file from the server")]
   Delete {
     #[arg(short, long, value_parser = parse_file_url_path)]
     url_path: FileUrlPath,
   },
+  #[clap(about = "Get information about a file on the server")]
   Info {
     #[arg(short, long, value_parser = parse_file_url_path)]
     url_path: FileUrlPath,
   },
+  #[clap(about = "Download a file from the server")]
   Download {
     #[clap(default_value_t = false, short, long)]
     progress_bar: bool,
@@ -68,6 +73,7 @@ pub enum SubCommand {
     #[clap(long, value_parser = parse_key_nonce, help = HELP_DECRYPT)]
     key_nonce: Option<KeyNonce>,
   },
+  #[clap(about = "Encrypt a file before uploading to the server")]
   Encrypt {
     #[clap(short, long, value_parser = parse_source_file)]
     source_file: PathBuf,
@@ -76,6 +82,7 @@ pub enum SubCommand {
     #[clap(long, value_parser = parse_key_nonce, help = HELP_ENCRYPT)]
     key_nonce: KeyNonce,
   },
+  #[clap(about = "Decrypt a file after downloading from the server")]
   Decrypt {
     #[clap(short, long, value_parser = parse_source_file)]
     source_file: PathBuf,

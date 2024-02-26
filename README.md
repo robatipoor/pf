@@ -30,7 +30,7 @@ The service provides a convenient means of sharing files without the necessity f
 $ git clone https://github.com/robatipoor/pf
 
 # Build the project
-$ cargo build --release
+$ cargo build --bin api --release
 
 # Run the backend on address 127.0.0.1:8080
 $ ./target/release/api --settings api/settings/base.toml
@@ -148,43 +148,38 @@ export PF__SERVER__HOST=127.0.0.1
 **PastFile Command Line Interface**
 
 ```sh
-# Clone the project
-$ git clone https://github.com/robatipoor/pf
+# Install CLI tool
+$ cargo install --path cli
 
-# Build the CLI tool
-$ cargo build --bin cli --release
+# Rename CLI tool from 'cli' to 'pf'
+$ mv ~/.cargo/bin/cli ~/.cargo/bin/pf
+
+# Define an alias in the shell profile for 'pf' with server address
+$ alias pf="pf --server-addr http://localhost:8080"
 
 # Upload a file and retrieve the corresponding download URL.
-$ ./target/release/cli --server-addr "http://localhost:8080" \
-upload --source-file ~/example-file.txt --progress-bar
+$ pf upload --source-file ~/example-file.txt --progress-bar
 
 # Upload a file with basic authentication and progress bar option.
-$ ./target/release/cli --server-addr "http://localhost:8080" \
---auth "username:password" upload --source-file ~/example-file.txt
+$ pf --auth "username:password" upload --source-file ~/example-file.txt
 
 # Upload a file with an expiration time of 10 minutes.
-$ ./target/release/cli --server-addr "http://localhost:8080" \
-upload --expire "10 minute" --source-file ~/example-file.txt
+$ pf upload --expire "10 minute" --source-file ~/example-file.txt
 
 # Upload a file and then display the QR code.
-$ ./target/release/cli --server-addr "http://localhost:8080" \
-upload --source-file ~/example-file.txt --output qr-code
+$ pf upload --source-file ~/example-file.txt --output qr-code
 
 # Download a file with progress bar option.
-$ ./target/release/cli --server-addr "http://localhost:8080" \
-download --destination ~/example-dir/ --url-path "{code}/{file_name}" --progress-bar
+$ pf download --destination ~/example-dir/ --url-path "{code}/{file_name}" --progress-bar
 
 # Download a file.
-$ ./target/release/cli --server-addr "http://localhost:8080" \
-download --destination ~/example-dir/ --url-path "{code}/{file_name}"
+$ pf download --destination ~/example-dir/ --url-path "{code}/{file_name}"
 
 # Get metadata for a file.
-$ ./target/release/cli --server-addr "http://localhost:8080" \
-info --url-path "{code}/{file_name}"
+$ pf info --url-path "{code}/{file_name}"
 
 # Delete a file.
-$ ./target/release/cli --server-addr "http://localhost:8080" \
-delete --url-path "{code}/{file_name}"
+$ pf delete --url-path "{code}/{file_name}"
 
 ```
 
@@ -197,6 +192,7 @@ $ ./test
 **Todo list**
 
 - [ ] Implement front-end application
+- [ ] Support Copy link
 
 **Check code formatting and typo at commit time**
 
