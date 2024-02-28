@@ -1,7 +1,7 @@
 use sdk::{
   dto::{
     request::UploadQueryParam,
-    response::{ApiResponseResult, BodyResponseError, MessageResponse},
+    response::{ApiResponseResult, BodyResponseError, MessageResponse, UploadResponse},
     FileUrlPath,
   },
   util::file::{add_extension, rm_extra_extension},
@@ -58,8 +58,15 @@ pub async fn upload(args: UploadArguments) {
     client.upload_from(&source_file, &param, args.auth).await
   }
   .unwrap();
+  show_upload_response(resp, args.output);
+  if args.key_nonce.is_some() {
+    tokio::fs::remove_file(source_file).await.unwrap();
+  };
+}
+
+fn show_upload_response(resp: ApiResponseResult<UploadResponse>, output: UploadOutput) {
   match resp {
-    ApiResponseResult::Ok(resp) => match args.output {
+    ApiResponseResult::Ok(resp) => match output {
       UploadOutput::Json => {
         println!("{}", serde_json::to_string(&resp).unwrap());
       }
@@ -76,9 +83,6 @@ pub async fn upload(args: UploadArguments) {
     },
     ApiResponseResult::Err(err) => print_response_err(&err),
   }
-  if args.key_nonce.is_some() {
-    tokio::fs::remove_file(source_file).await.unwrap();
-  };
 }
 
 pub async fn download(
