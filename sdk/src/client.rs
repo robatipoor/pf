@@ -91,7 +91,7 @@ impl PasteFileClient {
     let file_part =
       reqwest::multipart::Part::stream(reqwest::Body::wrap_stream(ReaderStream::new(reader)))
         .file_name(file_name.clone())
-        .mime_str(&content_type)?;
+        .mime_str(content_type)?;
     self.upload_file_part(file_part, query, auth).await
   }
 

@@ -30,7 +30,7 @@ async fn test_upload_and_download_command(ctx: &mut CliTestContext) {
       &ctx.server_addr,
       "download",
       "--url-path",
-      &url_path.to_string(),
+      url_path,
       "--destination",
       destination_dir.to_str().unwrap(),
     ])
