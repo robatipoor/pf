@@ -44,7 +44,7 @@ impl PasteFileClient {
   }
 
   #[logfn(Info)]
-  pub async fn upload_file(
+  pub async fn upload_file_part(
     &self,
     file_part: reqwest::multipart::Part,
     query: &UploadQueryParam,
@@ -74,7 +74,7 @@ impl PasteFileClient {
     let file_part = reqwest::multipart::Part::bytes(file)
       .file_name(file_name)
       .mime_str(content_type)?;
-    self.upload_file(file_part, query, auth).await
+    self.upload_file_part(file_part, query, auth).await
   }
 
   pub async fn upload_reader<R>(
@@ -92,11 +92,11 @@ impl PasteFileClient {
       reqwest::multipart::Part::stream(reqwest::Body::wrap_stream(ReaderStream::new(reader)))
         .file_name(file_name.clone())
         .mime_str(&content_type)?;
-    self.upload_file(file_part, query, auth).await
+    self.upload_file_part(file_part, query, auth).await
   }
 
   #[logfn(Info)]
-  pub async fn upload_from(
+  pub async fn upload_file(
     &self,
     source: &Path,
     query: &UploadQueryParam,
@@ -130,7 +130,7 @@ impl PasteFileClient {
   }
 
   #[logfn(Info)]
-  pub async fn download_into(
+  pub async fn download_file(
     &self,
     url_path: &FileUrlPath,
     auth: Option<(String, String)>,

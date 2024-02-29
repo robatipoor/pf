@@ -55,7 +55,7 @@ pub async fn upload(args: UploadArguments) {
       .upload_with_progress_bar(&source_file, &param, args.auth)
       .await
   } else {
-    client.upload_from(&source_file, &param, args.auth).await
+    client.upload_file(&source_file, &param, args.auth).await
   }
   .unwrap();
   show_upload_response(resp, args.output);
@@ -99,7 +99,7 @@ pub async fn download(
       .download_with_progress_bar(&url_path, auth, destination)
       .await
   } else {
-    client.download_into(&url_path, auth, destination).await
+    client.download_file(&url_path, auth, destination).await
   }
   .unwrap();
   match resp {

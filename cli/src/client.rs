@@ -58,7 +58,7 @@ impl CommandLineClient {
     let file_part = reqwest::multipart::Part::stream(reqwest::Body::wrap_stream(async_stream))
       .file_name(file_name.clone())
       .mime_str(&content_type)?;
-    self.upload_file(file_part, query, auth).await
+    self.upload_file_part(file_part, query, auth).await
   }
 
   pub async fn download_with_progress_bar(
