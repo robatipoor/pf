@@ -88,8 +88,8 @@ impl ApiTestContext {
       .upload(
         file_name.clone(),
         content_type,
-        &query,
         content.clone(),
+        &query,
         auth,
       )
       .await

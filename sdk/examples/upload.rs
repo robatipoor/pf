@@ -10,7 +10,7 @@ async fn main() {
     ..Default::default()
   };
   let (status, _result) = client
-    .upload("file".to_string(), "text", &query, file, None)
+    .upload("file".to_string(), "text", file, &query, None)
     .await
     .unwrap();
   assert!(status.is_success())

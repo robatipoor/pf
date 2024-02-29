@@ -13,7 +13,7 @@ use futures_util::StreamExt;
 use log_derive::logfn;
 use once_cell::sync::Lazy;
 use reqwest::StatusCode;
-use tokio::io::AsyncWriteExt;
+use tokio::io::{AsyncRead, AsyncWriteExt};
 use tokio_util::io::ReaderStream;
 
 pub static CLIENT: Lazy<reqwest::Client> = Lazy::new(|| {
@@ -67,13 +67,31 @@ impl PasteFileClient {
     &self,
     file_name: String,
     content_type: &str,
-    query: &UploadQueryParam,
     file: Vec<u8>,
+    query: &UploadQueryParam,
     auth: Option<(String, String)>,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<UploadResponse>)> {
     let file_part = reqwest::multipart::Part::bytes(file)
       .file_name(file_name)
       .mime_str(content_type)?;
+    self.upload_file(file_part, query, auth).await
+  }
+
+  pub async fn upload_reader<R>(
+    &self,
+    file_name: String,
+    content_type: &str,
+    reader: R,
+    query: &UploadQueryParam,
+    auth: Option<(String, String)>,
+  ) -> anyhow::Result<(StatusCode, ApiResponseResult<UploadResponse>)>
+  where
+    R: AsyncRead + Send + Unpin + 'static,
+  {
+    let file_part =
+      reqwest::multipart::Part::stream(reqwest::Body::wrap_stream(ReaderStream::new(reader)))
+        .file_name(file_name.clone())
+        .mime_str(&content_type)?;
     self.upload_file(file_part, query, auth).await
   }
 
@@ -87,11 +105,9 @@ impl PasteFileClient {
     let file_name = crate::util::file::get_file_name(source)?;
     let content_type = crate::util::file::get_content_type(source)?;
     let file = tokio::fs::File::open(source).await?;
-    let file_part =
-      reqwest::multipart::Part::stream(reqwest::Body::wrap_stream(ReaderStream::new(file)))
-        .file_name(file_name)
-        .mime_str(&content_type)?;
-    self.upload_file(file_part, query, auth).await
+    self
+      .upload_reader(file_name, &content_type, file, query, auth)
+      .await
   }
 
   #[logfn(Info)]

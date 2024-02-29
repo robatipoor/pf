@@ -12,7 +12,7 @@ pub async fn test_success_upload(ctx: &mut ApiTestContext) {
   let file = "hello".as_bytes().to_vec();
   let query: UploadQueryParam = Default::default();
   let (status, resp) = ctx
-    .upload(filename, content_type, &query, file, None)
+    .upload(filename, content_type, file, &query, None)
     .await
     .unwrap();
   assert_response_ok!(resp);
@@ -30,7 +30,7 @@ pub async fn test_upload_with_invalid_len_param_query(ctx: &mut ApiTestContext) 
     ..Default::default()
   };
   let (status, resp) = ctx
-    .upload(filename, content_type, &query, file, None)
+    .upload(filename, content_type, file, &query, None)
     .await
     .unwrap();
   assert_response_err!(resp, |e: &BodyResponseError| e.error_type
