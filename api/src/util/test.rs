@@ -14,7 +14,6 @@ pub struct StateTestContext {
   gc_task: tokio::task::JoinHandle<ApiResult>,
 }
 
-#[async_trait::async_trait]
 impl AsyncTestContext for StateTestContext {
   async fn setup() -> Self {
     Lazy::force(&INIT_SUBSCRIBER);

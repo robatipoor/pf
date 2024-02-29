@@ -9,7 +9,6 @@ reqwest = { workspace = true }
 futures-util = { workspace = true }
 anyhow = { workspace = true }
 assert_cmd = { workspace = true }
-async-trait = { workspace = true }
 async-stream = { workspace = true }
 clap = { workspace = true }
 fake = { workspace = true }

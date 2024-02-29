@@ -13,7 +13,6 @@ yew-hooks = { workspace = true }
 wasm-bindgen = { workspace = true }
 wasm-logger = { workspace = true }
 anyhow = { workspace = true }
-async-trait = { workspace = true }
 chrono = { workspace = true }
 fake = { workspace = true }
 futures-util = { workspace = true }

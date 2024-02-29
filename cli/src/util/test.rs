@@ -5,7 +5,6 @@ pub struct FileTestContext {
   pub temp_path: std::path::PathBuf,
 }
 
-#[async_trait::async_trait]
 impl AsyncTestContext for FileTestContext {
   async fn setup() -> Self {
     let temp_path = std::path::PathBuf::from(&format!("test_dir_{}", Faker.fake::<String>()));

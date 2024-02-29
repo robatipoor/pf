@@ -98,7 +98,6 @@ impl CliTestContext {
   }
 }
 
-#[async_trait::async_trait]
 impl AsyncTestContext for CliTestContext {
   async fn setup() -> Self {
     CliTestContext::new().await
