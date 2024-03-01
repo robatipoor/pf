@@ -24,6 +24,17 @@ pub struct UploadArguments {
   pub key_nonce: Option<KeyNonce>,
 }
 
+pub struct CopyArguments {
+  pub server_addr: String,
+  pub auth: Option<(String, String)>,
+  pub code_length: Option<usize>,
+  pub expire: Option<u64>,
+  pub allow_manual_deletion: Option<bool>,
+  pub max_download: Option<u32>,
+  pub output: UploadOutput,
+  pub key_nonce: Option<KeyNonce>,
+}
+
 pub async fn ping(server_addr: String) {
   let client = CommandLineClient::new(server_addr);
   let (_, resp) = client.health_check().await.unwrap();
@@ -38,7 +49,7 @@ pub async fn ping(server_addr: String) {
 pub async fn upload(args: UploadArguments) {
   let mut source_file = args.source_file;
   if let Some(key_nonce) = args.key_nonce.as_ref() {
-    source_file = crate::util::crypto::encrypt_file(key_nonce, &source_file)
+    source_file = crate::util::crypto::encrypt_upload_file(key_nonce, &source_file)
       .await
       .unwrap();
   }
@@ -63,6 +74,8 @@ pub async fn upload(args: UploadArguments) {
     tokio::fs::remove_file(source_file).await.unwrap();
   };
 }
+
+pub async fn copy(_args: CopyArguments) {}
 
 fn show_upload_response(resp: ApiResponseResult<UploadResponse>, output: UploadOutput) {
   match resp {
@@ -105,7 +118,7 @@ pub async fn download(
   match resp {
     ApiResponseResult::Ok(encrypt_source_file) => {
       if let Some(key_nonce) = key_nonce.as_ref() {
-        crate::util::crypto::decrypt_file(key_nonce, &encrypt_source_file)
+        crate::util::crypto::decrypt_download_file(key_nonce, &encrypt_source_file)
           .await
           .unwrap();
       }
@@ -144,7 +157,7 @@ pub async fn encrypt_file(key_nonce: &KeyNonce, source_file: &Path, mut destinat
       "bin",
     ));
   }
-  crate::util::crypto::encrypt(key_nonce, source_file, &destination)
+  crate::util::crypto::encrypt_file(key_nonce, source_file, destination)
     .await
     .unwrap();
 }
@@ -155,9 +168,9 @@ pub async fn decrypt_file(key_nonce: &KeyNonce, source_file: &Path, mut destinat
       .join(rm_extra_extension(PathBuf::from(source_file.file_name().unwrap())).unwrap());
   }
   if source_file == destination {
-    panic!("Please specify the destination file path.")
+    panic!("Please specify the valid destination file path.")
   }
-  crate::util::crypto::decrypt(key_nonce, source_file, &destination)
+  crate::util::crypto::decrypt_file(key_nonce, source_file, destination)
     .await
     .unwrap();
 }

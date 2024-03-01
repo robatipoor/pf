@@ -1,6 +1,6 @@
 use args::{Args, SubCommand};
 use clap::Parser;
-use command::UploadArguments;
+use command::{CopyArguments, UploadArguments};
 
 mod args;
 mod client;
@@ -40,6 +40,27 @@ async fn main() {
         key_nonce,
       };
       command::upload(args).await;
+    }
+    SubCommand::Copy {
+      code_length,
+      expire,
+      allow_manual_deletion,
+      max_download,
+      output,
+      key_nonce,
+    } => {
+      let server_addr = args.server_addr.expect("Server address should be set.");
+      let args = CopyArguments {
+        server_addr,
+        auth: args.auth,
+        code_length,
+        expire,
+        allow_manual_deletion,
+        max_download,
+        output,
+        key_nonce,
+      };
+      command::copy(args).await;
     }
     SubCommand::Download {
       progress_bar,

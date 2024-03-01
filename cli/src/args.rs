@@ -52,6 +52,21 @@ pub enum SubCommand {
     #[clap(long, value_parser = parse_key_nonce, help = HELP_ENCRYPT)]
     key_nonce: Option<KeyNonce>,
   },
+  #[clap(about = "Copy data from stdin to the server")]
+  Copy {
+    #[clap(short, long)]
+    code_length: Option<usize>,
+    #[clap(short, long,value_parser = parse_expire_time)]
+    expire: Option<u64>,
+    #[clap(short, long)]
+    max_download: Option<u32>,
+    #[clap(short, long)]
+    allow_manual_deletion: Option<bool>,
+    #[clap(default_value_t = UploadOutput::Json, short, long)]
+    output: UploadOutput,
+    #[clap(long, value_parser = parse_key_nonce, help = HELP_ENCRYPT)]
+    key_nonce: Option<KeyNonce>,
+  },
   #[clap(about = "Delete a file from the server")]
   Delete {
     #[arg(short, long, value_parser = parse_file_url_path)]
