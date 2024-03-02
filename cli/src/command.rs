@@ -11,6 +11,7 @@ use url::Url;
 
 use crate::{args::UploadOutput, client::CommandLineClient, util::crypto::KeyNonce};
 
+#[derive(Debug)]
 pub struct UploadArguments {
   pub server_addr: String,
   pub auth: Option<(String, String)>,
@@ -24,9 +25,11 @@ pub struct UploadArguments {
   pub key_nonce: Option<KeyNonce>,
 }
 
+#[derive(Debug)]
 pub struct CopyArguments {
   pub server_addr: String,
   pub auth: Option<(String, String)>,
+  pub file_name: String,
   pub code_length: Option<usize>,
   pub expire: Option<u64>,
   pub allow_manual_deletion: Option<bool>,
@@ -75,7 +78,17 @@ pub async fn upload(args: UploadArguments) {
   };
 }
 
-pub async fn copy(_args: CopyArguments) {}
+pub async fn copy(args: CopyArguments) {
+  let _client = CommandLineClient::new(args.server_addr);
+  let _param = UploadQueryParam {
+    max_download: args.max_download,
+    code_length: args.code_length,
+    expire_secs: args.expire,
+    allow_manual_deletion: args.allow_manual_deletion,
+    qr_code_format: None,
+  };
+  todo!()
+}
 
 fn show_upload_response(resp: ApiResponseResult<UploadResponse>, output: UploadOutput) {
   match resp {
@@ -126,6 +139,16 @@ pub async fn download(
     }
     ApiResponseResult::Err(err) => print_response_err(&err),
   }
+}
+
+pub async fn paste(
+  server_addr: String,
+  _auth: Option<(String, String)>,
+  _url_path: FileUrlPath,
+  _key_nonce: Option<KeyNonce>,
+) {
+  let _client = CommandLineClient::new(server_addr);
+  todo!()
 }
 
 pub async fn info(server_addr: String, url_path: FileUrlPath, auth: Option<(String, String)>) {

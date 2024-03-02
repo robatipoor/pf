@@ -55,6 +55,8 @@ pub enum SubCommand {
   #[clap(about = "Copy data from stdin to the server")]
   Copy {
     #[clap(short, long)]
+    file_name: String,
+    #[clap(short, long)]
     code_length: Option<usize>,
     #[clap(short, long,value_parser = parse_expire_time)]
     expire: Option<u64>,
@@ -85,6 +87,13 @@ pub enum SubCommand {
     url_path: FileUrlPath,
     #[clap(short, long, value_parser = parse_destination)]
     destination: PathBuf,
+    #[clap(long, value_parser = parse_key_nonce, help = HELP_DECRYPT)]
+    key_nonce: Option<KeyNonce>,
+  },
+  #[clap(about = "Paste a file from the server")]
+  Paste {
+    #[arg(short, long, value_parser = parse_file_url_path)]
+    url_path: FileUrlPath,
     #[clap(long, value_parser = parse_key_nonce, help = HELP_DECRYPT)]
     key_nonce: Option<KeyNonce>,
   },

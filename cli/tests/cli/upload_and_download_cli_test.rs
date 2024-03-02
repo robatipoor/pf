@@ -75,7 +75,7 @@ async fn test_upload_encrypt_and_download_decrypt_command(ctx: &mut CliTestConte
       &ctx.server_addr,
       "download",
       "--url-path",
-      &url_path.to_string(),
+      url_path,
       "--destination",
       destination_dir.to_str().unwrap(),
       "--key-nonce",
@@ -83,7 +83,7 @@ async fn test_upload_encrypt_and_download_decrypt_command(ctx: &mut CliTestConte
     ])
     .assert()
     .success();
-
+  // TODO check encrypt file is not exist
   let destination_file_path = destination_dir.join(file.file_name().unwrap());
   let actual_content = tokio::fs::read_to_string(destination_file_path)
     .await

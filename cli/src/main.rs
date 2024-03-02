@@ -42,6 +42,7 @@ async fn main() {
       command::upload(args).await;
     }
     SubCommand::Copy {
+      file_name,
       code_length,
       expire,
       allow_manual_deletion,
@@ -53,6 +54,7 @@ async fn main() {
       let args = CopyArguments {
         server_addr,
         auth: args.auth,
+        file_name,
         code_length,
         expire,
         allow_manual_deletion,
@@ -78,6 +80,13 @@ async fn main() {
         key_nonce,
       )
       .await;
+    }
+    SubCommand::Paste {
+      url_path,
+      key_nonce,
+    } => {
+      let server_addr = args.server_addr.expect("Server address should be set.");
+      command::paste(server_addr, args.auth, url_path, key_nonce).await;
     }
     SubCommand::Info { url_path } => {
       let server_addr = args.server_addr.expect("Server address should be set.");
