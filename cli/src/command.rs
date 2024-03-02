@@ -4,7 +4,10 @@ use sdk::{
     response::{ApiResponseResult, BodyResponseError, MessageResponse, UploadResponse},
     FileUrlPath,
   },
-  util::{crypto::KeyNonce, file::{add_extension, rm_extra_extension}},
+  util::{
+    crypto::KeyNonce,
+    file::{add_extension, rm_extra_extension},
+  },
 };
 use std::path::{Path, PathBuf};
 use url::Url;
