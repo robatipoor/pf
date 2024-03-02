@@ -3,7 +3,7 @@ use std::{path::PathBuf, str::FromStr};
 use anyhow::anyhow;
 use sdk::dto::FileUrlPath;
 
-use crate::util::crypto::{KeyNonce, KeyType, NonceType};
+use sdk::util::crypto::{KeyNonce, KeyType, NonceType};
 
 pub fn parse_key_nonce(input: &str) -> anyhow::Result<KeyNonce> {
   let pos = input

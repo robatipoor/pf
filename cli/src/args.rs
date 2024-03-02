@@ -1,14 +1,11 @@
 use clap::{Parser, Subcommand, ValueEnum};
-use sdk::dto::FileUrlPath;
+use sdk::{dto::FileUrlPath, util::crypto::KeyNonce};
 
 use std::path::PathBuf;
 
-use crate::{
-  parse::{
-    parse_auth, parse_destination, parse_expire_time, parse_file_url_path, parse_key_nonce,
-    parse_source_file,
-  },
-  util::crypto::KeyNonce,
+use crate::parse::{
+  parse_auth, parse_destination, parse_expire_time, parse_file_url_path, parse_key_nonce,
+  parse_source_file,
 };
 
 const HELP_ENCRYPT :&str = "The encrypt format should be `key:nonce`, with the key being 32 characters in length and the nonce being 19 characters.";

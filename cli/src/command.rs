@@ -4,12 +4,12 @@ use sdk::{
     response::{ApiResponseResult, BodyResponseError, MessageResponse, UploadResponse},
     FileUrlPath,
   },
-  util::file::{add_extension, rm_extra_extension},
+  util::{crypto::KeyNonce, file::{add_extension, rm_extra_extension}},
 };
 use std::path::{Path, PathBuf};
 use url::Url;
 
-use crate::{args::UploadOutput, client::CommandLineClient, util::crypto::KeyNonce};
+use crate::{args::UploadOutput, client::CommandLineClient};
 
 #[derive(Debug)]
 pub struct UploadArguments {
@@ -180,7 +180,7 @@ pub async fn encrypt_file(key_nonce: &KeyNonce, source_file: &Path, mut destinat
       "bin",
     ));
   }
-  crate::util::crypto::encrypt_file(key_nonce, source_file, destination)
+  sdk::util::crypto::encrypt_file(key_nonce, source_file, destination)
     .await
     .unwrap();
 }
@@ -193,7 +193,7 @@ pub async fn decrypt_file(key_nonce: &KeyNonce, source_file: &Path, mut destinat
   if source_file == destination {
     panic!("Please specify the valid destination file path.")
   }
-  crate::util::crypto::decrypt_file(key_nonce, source_file, destination)
+  sdk::util::crypto::decrypt_file(key_nonce, source_file, destination)
     .await
     .unwrap();
 }
