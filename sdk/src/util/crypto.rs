@@ -15,6 +15,9 @@ use tokio::{
   io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt},
 };
 
+pub const DECRYPT_BUFFER_LEN: usize = 500 + 16;
+pub const ENCRYPT_BUFFER_LEN: usize = 500;
+
 #[derive(Debug, Clone, Copy)]
 pub struct KeyType(GenericArray<u8, U32>);
 
@@ -96,13 +99,12 @@ where
   R: AsyncRead + Unpin,
   W: AsyncWrite + Unpin,
 {
-  const BUFFER_LEN: usize = 500;
-  let mut buffer = [0u8; BUFFER_LEN];
+  let mut buffer = [0u8; ENCRYPT_BUFFER_LEN];
   let mut stream_encryptor =
     EncryptorBE32::from_aead(XChaCha20Poly1305::new(key), (*nonce).as_ref().into());
   loop {
     let read_count = reader.read(&mut buffer).await?;
-    if read_count == BUFFER_LEN {
+    if read_count == ENCRYPT_BUFFER_LEN {
       let ciphertext = stream_encryptor
         .encrypt_next(buffer.as_slice())
         .map_err(|err| anyhow!("Encrypting file failed, Error: {err}"))?;
@@ -131,14 +133,13 @@ where
   R: AsyncRead + Unpin,
   W: AsyncWrite + Unpin,
 {
-  const BUFFER_LEN: usize = 500 + 16;
-  let mut buffer = [0u8; BUFFER_LEN];
+  let mut buffer = [0u8; DECRYPT_BUFFER_LEN];
   let mut stream_decryptor =
     DecryptorBE32::from_aead(XChaCha20Poly1305::new(key), nonce.as_ref().into());
 
   loop {
     let read_count = reader.read(&mut buffer).await?;
-    if read_count == BUFFER_LEN {
+    if read_count == DECRYPT_BUFFER_LEN {
       let plaintext = stream_decryptor
         .decrypt_next(buffer.as_slice())
         .map_err(|err| anyhow!("Decrypting file failed, Error: {err}"))?;
