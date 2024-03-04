@@ -21,7 +21,7 @@ use futures_util::{Stream, StreamExt, TryStreamExt};
 use log_derive::logfn;
 use once_cell::sync::Lazy;
 use reqwest::StatusCode;
-use tokio::io::{AsyncRead, AsyncReadExt, AsyncWriteExt};
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use tokio_util::io::{ReaderStream, StreamReader};
 
 pub static CLIENT: Lazy<reqwest::Client> = Lazy::new(|| {
@@ -158,21 +158,27 @@ impl PasteFileClient {
       .await
   }
 
-  pub async fn download_stream(
+  pub async fn download_and_write<W>(
     &self,
     url_path: &FileUrlPath,
     auth: Option<(String, String)>,
-  ) -> anyhow::Result<(
-    StatusCode,
-    ApiResponseResult<impl Stream<Item = Result<tokio_util::bytes::Bytes, reqwest::Error>>>,
-  )> {
+    mut writer: W,
+  ) -> anyhow::Result<(StatusCode, ApiResponseResult<()>)>
+  where
+    W: AsyncWrite + Unpin,
+  {
     let resp = self.download(url_path, auth).await?;
     let status = resp.status();
     if !status.is_success() {
       let error = resp.json::<BodyResponseError>().await?;
       return Ok((status, ApiResponseResult::Err(error)));
     }
-    Ok((status, ApiResponseResult::Ok(resp.bytes_stream())))
+    let mut stream = resp.bytes_stream();
+    while let Some(chunk) = stream.next().await {
+      let chunk = chunk?;
+      writer.write_all(&chunk).await?;
+    }
+    Ok((status, ApiResponseResult::Ok(())))
   }
 
   #[logfn(Info)]
@@ -204,26 +210,22 @@ impl PasteFileClient {
     Ok(resp)
   }
 
-  pub async fn download_decrypt(
+  pub async fn download_and_decrypt<W>(
     &self,
     KeyNonce { key, nonce }: &KeyNonce,
     url_path: &FileUrlPath,
     auth: Option<(String, String)>,
-    mut destination: PathBuf,
-  ) -> anyhow::Result<(StatusCode, ApiResponseResult<PathBuf>)> {
-    if destination.is_dir() {
-      destination.push(&url_path.file_name);
-    }
+    mut writer: W,
+  ) -> anyhow::Result<(StatusCode, ApiResponseResult<()>)>
+  where
+    W: AsyncWrite + Unpin,
+  {
     let resp = self.download(url_path, auth).await?;
     let status = resp.status();
     if !status.is_success() {
       let error = resp.json::<BodyResponseError>().await?;
       return Ok((status, ApiResponseResult::Err(error)));
     }
-    if let Some(parent) = destination.parent() {
-      tokio::fs::create_dir_all(parent).await?;
-    }
-    let mut writer = tokio::fs::File::create(&destination).await?;
     let stream = resp
       .bytes_stream()
       .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e));
@@ -249,7 +251,7 @@ impl PasteFileClient {
       }
     }
     writer.flush().await?;
-    Ok((status, ApiResponseResult::Ok(destination)))
+    Ok((status, ApiResponseResult::Ok(())))
   }
 
   #[logfn(Info)]

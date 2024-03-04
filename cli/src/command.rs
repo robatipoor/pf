@@ -164,12 +164,24 @@ pub async fn download(
 
 pub async fn paste(
   server_addr: String,
-  _auth: Option<(String, String)>,
-  _url_path: FileUrlPath,
+  auth: Option<(String, String)>,
+  url_path: FileUrlPath,
   key_nonce: Option<KeyNonce>,
 ) {
-  let _client = CommandLineClient::new(server_addr);
-  if let Some(_key_nonce) = key_nonce.as_ref() {}
+  let client = CommandLineClient::new(server_addr);
+  let stdout = tokio::io::stdout();
+  let (_, resp) = if let Some(key_nonce) = key_nonce.as_ref() {
+    client
+      .download_and_decrypt(key_nonce, &url_path, auth, stdout)
+      .await
+  } else {
+    client.download_and_write(&url_path, auth, stdout).await
+  }
+  .unwrap();
+
+  if let ApiResponseResult::Err(err) = resp {
+    print_response_err(&err)
+  }
 }
 
 pub async fn info(server_addr: String, url_path: FileUrlPath, auth: Option<(String, String)>) {
