@@ -51,6 +51,7 @@ async fn main() {
       key_nonce,
     } => {
       let server_addr = args.server_addr.expect("Server address should be set.");
+      let stdin = tokio::io::stdin();
       let args = CopyArguments {
         server_addr,
         auth: args.auth,
@@ -62,7 +63,7 @@ async fn main() {
         output,
         key_nonce,
       };
-      command::copy(args).await;
+      command::copy(stdin, args).await;
     }
     SubCommand::Download {
       progress_bar,
@@ -86,7 +87,8 @@ async fn main() {
       key_nonce,
     } => {
       let server_addr = args.server_addr.expect("Server address should be set.");
-      command::paste(server_addr, args.auth, url_path, key_nonce).await;
+      let stdout: tokio::io::Stdout = tokio::io::stdout();
+      command::paste(server_addr, args.auth, url_path, key_nonce, stdout).await;
     }
     SubCommand::Info { url_path } => {
       let server_addr = args.server_addr.expect("Server address should be set.");

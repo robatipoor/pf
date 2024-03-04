@@ -45,6 +45,7 @@ mod tests {
 
   use sdk::util::{
     crypto::{KeyType, NonceType},
+    random::generate_random_string,
     test::FileTestContext,
   };
 
@@ -54,8 +55,8 @@ mod tests {
   #[tokio::test]
   pub async fn test_encrypt_upload_file_and_decrypt_download_file(ctx: &mut FileTestContext) {
     let key_nonce = KeyNonce {
-      key: KeyType::new("01234567890123456789012345678912").unwrap(),
-      nonce: NonceType::new("1234567891213141516").unwrap(),
+      key: KeyType::new(&generate_random_string(32)).unwrap(),
+      nonce: NonceType::new(&generate_random_string(19)).unwrap(),
     };
     let contents: String = Faker.fake::<String>();
     let plaintext_file = ctx.temp_path.join("file.txt");

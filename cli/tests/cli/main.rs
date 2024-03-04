@@ -7,3 +7,4 @@ pub(crate) mod helper;
 pub(crate) mod info_cli_test;
 pub(crate) mod ping_cli_test;
 pub(crate) mod upload_and_download_cli_test;
+// pub(crate) mod copy_and_paste_cli_test;

@@ -1,6 +1,10 @@
 use fake::{Fake, Faker};
 use once_cell::sync::Lazy;
-use sdk::{dto::FileUrlPath, retry, util::dir::get_cargo_project_root};
+use sdk::{
+  dto::FileUrlPath,
+  retry,
+  util::{dir::get_cargo_project_root, random::generate_random_string},
+};
 
 use std::{
   io,
@@ -128,4 +132,12 @@ async fn ping(root_dir: &Path, server_addr: &str) -> Result<ExitStatus, io::Erro
     .spawn()?
     .wait()
     .await
+}
+
+pub fn generate_random_key_nonce() -> String {
+  format!(
+    "{}:{}",
+    generate_random_string(32),
+    generate_random_string(19)
+  )
 }

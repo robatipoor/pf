@@ -1,22 +1,23 @@
 use assert_cmd::Command;
+use fake::{Fake, Faker};
 
 use crate::helper::{generate_random_key_nonce, CliTestContext};
 
 #[test_context::test_context(CliTestContext)]
 #[tokio::test]
-async fn test_upload_and_download_command(ctx: &mut CliTestContext) {
+async fn test_copy_and_paste_command(ctx: &mut CliTestContext) {
   let (file, expected_content) = ctx.create_dummy_file().await.unwrap();
   let url_path = Command::cargo_bin("cli")
     .unwrap()
     .args([
       "--server-addr",
       &ctx.server_addr,
-      "upload",
+      "copy",
       "--source-file",
-      file.to_str().unwrap(),
       "--output",
       "url-path",
     ])
+    // .pipe_stdin(file)
     .output()
     .unwrap()
     .stdout;
@@ -46,8 +47,8 @@ async fn test_upload_and_download_command(ctx: &mut CliTestContext) {
 
 #[test_context::test_context(CliTestContext)]
 #[tokio::test]
-async fn test_upload_encrypt_and_download_decrypt_command(ctx: &mut CliTestContext) {
-  let key_nonce = generate_random_key_nonce();
+async fn test_copy_encrypt_and_paste_decrypt_command(ctx: &mut CliTestContext) {
+  let key_nonce = &generate_random_key_nonce();
   let (file, expected_content) = ctx.create_dummy_file().await.unwrap();
   let url_path = Command::cargo_bin("cli")
     .unwrap()
@@ -58,7 +59,7 @@ async fn test_upload_encrypt_and_download_decrypt_command(ctx: &mut CliTestConte
       "--source-file",
       file.to_str().unwrap(),
       "--key-nonce",
-      &key_nonce,
+      key_nonce,
       "--output",
       "url-path",
     ])
@@ -79,11 +80,10 @@ async fn test_upload_encrypt_and_download_decrypt_command(ctx: &mut CliTestConte
       "--destination",
       destination_dir.to_str().unwrap(),
       "--key-nonce",
-      &key_nonce,
+      key_nonce,
     ])
     .assert()
     .success();
-  // TODO check encrypt file is not exist
   let destination_file_path = destination_dir.join(file.file_name().unwrap());
   let actual_content = tokio::fs::read_to_string(destination_file_path)
     .await

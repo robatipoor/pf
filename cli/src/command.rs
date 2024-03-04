@@ -10,6 +10,7 @@ use sdk::{
   },
 };
 use std::path::{Path, PathBuf};
+use tokio::io::{AsyncRead, AsyncWrite};
 use url::Url;
 
 use crate::{args::UploadOutput, client::CommandLineClient};
@@ -81,7 +82,10 @@ pub async fn upload(args: UploadArguments) {
   };
 }
 
-pub async fn copy(args: CopyArguments) {
+pub async fn copy<R>(reader: R, args: CopyArguments)
+where
+  R: AsyncRead + Send + Unpin + 'static,
+{
   let client = CommandLineClient::new(args.server_addr);
   let param = UploadQueryParam {
     max_download: args.max_download,
@@ -90,21 +94,20 @@ pub async fn copy(args: CopyArguments) {
     allow_manual_deletion: args.allow_manual_deletion,
     qr_code_format: None,
   };
-  let stdin = tokio::io::stdin();
   let (_, resp) = if let Some(key_nonce) = args.key_nonce.as_ref() {
     client
       .upload_encrypt(
         key_nonce,
         args.file_name,
         "text/plain",
-        stdin,
+        reader,
         &param,
         args.auth,
       )
       .await
   } else {
     client
-      .upload_reader(args.file_name, "text/plain", stdin, &param, args.auth)
+      .upload_reader(args.file_name, "text/plain", reader, &param, args.auth)
       .await
   }
   .unwrap();
@@ -162,20 +165,22 @@ pub async fn download(
   }
 }
 
-pub async fn paste(
+pub async fn paste<W>(
   server_addr: String,
   auth: Option<(String, String)>,
   url_path: FileUrlPath,
   key_nonce: Option<KeyNonce>,
-) {
+  writer: W,
+) where
+  W: AsyncWrite + Unpin,
+{
   let client = CommandLineClient::new(server_addr);
-  let stdout = tokio::io::stdout();
   let (_, resp) = if let Some(key_nonce) = key_nonce.as_ref() {
     client
-      .download_and_decrypt(key_nonce, &url_path, auth, stdout)
+      .download_and_decrypt(key_nonce, &url_path, auth, writer)
       .await
   } else {
-    client.download_and_write(&url_path, auth, stdout).await
+    client.download_and_write(&url_path, auth, writer).await
   }
   .unwrap();
 

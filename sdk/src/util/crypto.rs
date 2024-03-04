@@ -165,7 +165,7 @@ mod tests {
   use fake::{Fake, Faker};
   use test_context::test_context;
 
-  use crate::util::test::FileTestContext;
+  use crate::util::{random::generate_random_string, test::FileTestContext};
 
   use super::*;
 
@@ -173,8 +173,8 @@ mod tests {
   #[tokio::test]
   pub async fn test_encrypt_file_and_decrypt_file(ctx: &mut FileTestContext) {
     let key_nonce = KeyNonce {
-      key: KeyType::new("01234567890123456789012345678912").unwrap(),
-      nonce: NonceType::new("1234567891213141516").unwrap(),
+      key: KeyType::new(&generate_random_string(32)).unwrap(),
+      nonce: NonceType::new(&generate_random_string(19)).unwrap(),
     };
     let contents = Faker.fake::<String>();
 

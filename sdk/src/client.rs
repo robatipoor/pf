@@ -17,8 +17,7 @@ use chacha20poly1305::{
   KeyInit, XChaCha20Poly1305,
 };
 
-use futures_util::{Stream, StreamExt, TryStreamExt};
-use log_derive::logfn;
+use futures_util::{StreamExt, TryStreamExt};
 use once_cell::sync::Lazy;
 use reqwest::StatusCode;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
@@ -45,13 +44,11 @@ impl PasteFileClient {
     }
   }
 
-  #[logfn(Info)]
   pub async fn health_check(&self) -> anyhow::Result<(StatusCode, ApiResponseResult)> {
     let resp = self.get(format!("{}/healthz", self.addr)).send().await?;
     Ok((resp.status(), resp.json().await?))
   }
 
-  #[logfn(Info)]
   pub async fn upload_file_part(
     &self,
     file_part: reqwest::multipart::Part,
@@ -70,7 +67,6 @@ impl PasteFileClient {
     Ok((resp.status(), resp.json().await?))
   }
 
-  #[logfn(Info)]
   pub async fn upload(
     &self,
     file_name: String,
@@ -143,7 +139,6 @@ impl PasteFileClient {
     self.upload_file_part(file_part, param, auth).await
   }
 
-  #[logfn(Info)]
   pub async fn upload_file(
     &self,
     source: &Path,
@@ -181,7 +176,6 @@ impl PasteFileClient {
     Ok((status, ApiResponseResult::Ok(())))
   }
 
-  #[logfn(Info)]
   pub async fn download_bytes(
     &self,
     url_path: &FileUrlPath,
@@ -196,7 +190,6 @@ impl PasteFileClient {
     Ok((status, ApiResponseResult::Ok(resp.bytes().await?.to_vec())))
   }
 
-  #[logfn(Info)]
   pub async fn download(
     &self,
     url_path: &FileUrlPath,
@@ -254,7 +247,6 @@ impl PasteFileClient {
     Ok((status, ApiResponseResult::Ok(())))
   }
 
-  #[logfn(Info)]
   pub async fn download_file(
     &self,
     url_path: &FileUrlPath,
@@ -282,7 +274,6 @@ impl PasteFileClient {
     Ok((status, ApiResponseResult::Ok(destination)))
   }
 
-  #[logfn(Info)]
   pub async fn info(
     &self,
     url_path: &FileUrlPath,
@@ -296,7 +287,6 @@ impl PasteFileClient {
     Ok((resp.status(), resp.json().await?))
   }
 
-  #[logfn(Info)]
   pub async fn delete(
     &self,
     url_path: &FileUrlPath,

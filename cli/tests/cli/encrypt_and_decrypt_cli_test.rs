@@ -1,12 +1,11 @@
+use crate::helper::{generate_random_key_nonce, CliTestContext};
 use assert_cmd::Command;
-
-use crate::helper::CliTestContext;
 
 #[test_context::test_context(CliTestContext)]
 #[tokio::test]
 async fn test_encrypt_and_decrypt_to_the_destination_file(ctx: &mut CliTestContext) {
   let (file, expected_content) = ctx.create_dummy_file().await.unwrap();
-  let key_nonce = "12345678901234567890123456789012:1234567890123456789";
+  let key_nonce = generate_random_key_nonce();
   Command::cargo_bin("cli")
     .unwrap()
     .args([
@@ -18,7 +17,7 @@ async fn test_encrypt_and_decrypt_to_the_destination_file(ctx: &mut CliTestConte
       "--destination",
       ctx.workspace.to_str().unwrap(),
       "--key-nonce",
-      key_nonce,
+      &key_nonce,
     ])
     .assert()
     .success();
@@ -34,7 +33,7 @@ async fn test_encrypt_and_decrypt_to_the_destination_file(ctx: &mut CliTestConte
       "--destination",
       destination_file_path.to_str().unwrap(),
       "--key-nonce",
-      key_nonce,
+      &key_nonce,
     ])
     .assert()
     .success();
@@ -49,7 +48,7 @@ async fn test_encrypt_and_decrypt_to_the_destination_file(ctx: &mut CliTestConte
 #[tokio::test]
 async fn test_encrypt_file_and_decrypt_to_the_destination_dir(ctx: &mut CliTestContext) {
   let (file, expected_content) = ctx.create_dummy_file().await.unwrap();
-  let key_nonce = "12345678901234567890123456789012:1234567890123456789";
+  let key_nonce = generate_random_key_nonce();
   Command::cargo_bin("cli")
     .unwrap()
     .args([
@@ -61,7 +60,7 @@ async fn test_encrypt_file_and_decrypt_to_the_destination_dir(ctx: &mut CliTestC
       "--destination",
       ctx.workspace.to_str().unwrap(),
       "--key-nonce",
-      key_nonce,
+      &key_nonce,
     ])
     .assert()
     .success();
@@ -78,7 +77,7 @@ async fn test_encrypt_file_and_decrypt_to_the_destination_dir(ctx: &mut CliTestC
       "--destination",
       destination_dir.to_str().unwrap(),
       "--key-nonce",
-      key_nonce,
+      &key_nonce,
     ])
     .assert()
     .success();
