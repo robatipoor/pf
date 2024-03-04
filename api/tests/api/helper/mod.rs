@@ -75,7 +75,7 @@ impl ApiTestContext {
     let file_name: String = format!("{}.txt", Faker.fake::<String>());
     let content_type = "text/plain";
     let content = Faker.fake::<String>().as_bytes().to_vec();
-    let query = UploadQueryParam {
+    let param = UploadQueryParam {
       max_download: max,
       code_length: len,
       expire_secs: exp,
@@ -88,7 +88,7 @@ impl ApiTestContext {
         file_name.clone(),
         content_type,
         content.clone(),
-        &query,
+        &param,
         auth,
       )
       .await

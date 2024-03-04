@@ -22,18 +22,18 @@ use crate::{
 
 pub async fn upload(
   State(state): State<ApiState>,
-  Query(query): Query<UploadQueryParam>,
+  Query(param): Query<UploadQueryParam>,
   headers: HeaderMap,
   multipart: Multipart,
 ) -> ApiResult<Json<UploadResponse>> {
-  query.validate(&())?;
+  param.validate(&())?;
   let secret = crate::util::http::parse_basic_auth(&headers)?;
   let (file_path, expire_date_time) =
-    service::file::store(&state, &query, secret, multipart).await?;
+    service::file::store(&state, &param, secret, multipart).await?;
   let url = FileUrlPath::from(file_path)
     .to_url(&state.config.server.get_domain())?
     .to_string();
-  let qr_code = generate_qr_code(query.qr_code_format, &url)?;
+  let qr_code = generate_qr_code(param.qr_code_format, &url)?;
   Ok(Json(UploadResponse {
     url,
     expire_date_time,

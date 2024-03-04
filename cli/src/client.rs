@@ -33,7 +33,7 @@ impl CommandLineClient {
   pub async fn upload_with_progress_bar(
     &self,
     source: &Path,
-    query: &UploadQueryParam,
+    param: &UploadQueryParam,
     auth: Option<(String, String)>,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<UploadResponse>)> {
     let file_name = sdk::util::file::get_file_name(source)?;
@@ -58,7 +58,7 @@ impl CommandLineClient {
     let file_part = reqwest::multipart::Part::stream(reqwest::Body::wrap_stream(async_stream))
       .file_name(file_name.clone())
       .mime_str(&content_type)?;
-    self.upload_file_part(file_part, query, auth).await
+    self.upload_file_part(file_part, param, auth).await
   }
 
   pub async fn download_with_progress_bar(

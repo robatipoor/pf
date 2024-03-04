@@ -54,14 +54,14 @@ impl PasteFileClient {
   pub async fn upload_file_part(
     &self,
     file_part: reqwest::multipart::Part,
-    query: &UploadQueryParam,
+    param: &UploadQueryParam,
     auth: Option<(String, String)>,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<UploadResponse>)> {
     let form = reqwest::multipart::Form::new().part("file", file_part);
     let mut builder = self
       .post(format!("{}/upload", self.addr))
       .multipart(form)
-      .query(query);
+      .query(param);
     if let Some((user, pass)) = auth {
       builder = builder.basic_auth(user, Some(pass));
     }
@@ -75,13 +75,13 @@ impl PasteFileClient {
     file_name: String,
     content_type: &str,
     file: Vec<u8>,
-    query: &UploadQueryParam,
+    param: &UploadQueryParam,
     auth: Option<(String, String)>,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<UploadResponse>)> {
     let file_part = reqwest::multipart::Part::bytes(file)
       .file_name(file_name)
       .mime_str(content_type)?;
-    self.upload_file_part(file_part, query, auth).await
+    self.upload_file_part(file_part, param, auth).await
   }
 
   pub async fn upload_encrypt<R>(
@@ -90,7 +90,7 @@ impl PasteFileClient {
     file_name: String,
     content_type: &str,
     mut reader: R,
-    query: &UploadQueryParam,
+    param: &UploadQueryParam,
     auth: Option<(String, String)>,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<UploadResponse>)>
   where
@@ -121,7 +121,7 @@ impl PasteFileClient {
     let file_part = reqwest::multipart::Part::stream(reqwest::Body::wrap_stream(async_stream))
       .file_name(file_name.clone())
       .mime_str(content_type)?;
-    self.upload_file_part(file_part, query, auth).await
+    self.upload_file_part(file_part, param, auth).await
   }
 
   pub async fn upload_reader<R>(
@@ -129,7 +129,7 @@ impl PasteFileClient {
     file_name: String,
     content_type: &str,
     reader: R,
-    query: &UploadQueryParam,
+    param: &UploadQueryParam,
     auth: Option<(String, String)>,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<UploadResponse>)>
   where
@@ -139,21 +139,21 @@ impl PasteFileClient {
       reqwest::multipart::Part::stream(reqwest::Body::wrap_stream(ReaderStream::new(reader)))
         .file_name(file_name.clone())
         .mime_str(content_type)?;
-    self.upload_file_part(file_part, query, auth).await
+    self.upload_file_part(file_part, param, auth).await
   }
 
   #[logfn(Info)]
   pub async fn upload_file(
     &self,
     source: &Path,
-    query: &UploadQueryParam,
+    param: &UploadQueryParam,
     auth: Option<(String, String)>,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<UploadResponse>)> {
     let file_name = crate::util::file::get_file_name(source)?;
     let content_type = crate::util::file::get_content_type(source)?;
     let file = tokio::fs::File::open(source).await?;
     self
-      .upload_reader(file_name, &content_type, file, query, auth)
+      .upload_reader(file_name, &content_type, file, param, auth)
       .await
   }
 

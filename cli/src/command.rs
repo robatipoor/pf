@@ -82,15 +82,33 @@ pub async fn upload(args: UploadArguments) {
 }
 
 pub async fn copy(args: CopyArguments) {
-  let _client = CommandLineClient::new(args.server_addr);
-  let _param = UploadQueryParam {
+  let client = CommandLineClient::new(args.server_addr);
+  let param = UploadQueryParam {
     max_download: args.max_download,
     code_length: args.code_length,
     expire_secs: args.expire,
     allow_manual_deletion: args.allow_manual_deletion,
     qr_code_format: None,
   };
-  todo!()
+  let stdin = tokio::io::stdin();
+  let (_, resp) = if let Some(key_nonce) = args.key_nonce.as_ref() {
+    client
+      .upload_encrypt(
+        key_nonce,
+        args.file_name,
+        "text/plain",
+        stdin,
+        &param,
+        args.auth,
+      )
+      .await
+  } else {
+    client
+      .upload_reader(args.file_name, "text/plain", stdin, &param, args.auth)
+      .await
+  }
+  .unwrap();
+  show_upload_response(resp, args.output);
 }
 
 fn show_upload_response(resp: ApiResponseResult<UploadResponse>, output: UploadOutput) {
@@ -148,10 +166,12 @@ pub async fn paste(
   server_addr: String,
   _auth: Option<(String, String)>,
   _url_path: FileUrlPath,
-  _key_nonce: Option<KeyNonce>,
+  key_nonce: Option<KeyNonce>,
 ) {
   let _client = CommandLineClient::new(server_addr);
-  todo!()
+  if let Some(_key_nonce) = key_nonce.as_ref() {
+  } else {
+  }
 }
 
 pub async fn info(server_addr: String, url_path: FileUrlPath, auth: Option<(String, String)>) {

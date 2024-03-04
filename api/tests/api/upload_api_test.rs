@@ -10,9 +10,9 @@ pub async fn test_success_upload(ctx: &mut ApiTestContext) {
   let filename = String::from("hello.txt");
   let content_type = "text/plain";
   let file = "hello".as_bytes().to_vec();
-  let query: UploadQueryParam = Default::default();
+  let param: UploadQueryParam = Default::default();
   let (status, resp) = ctx
-    .upload(filename, content_type, file, &query, None)
+    .upload(filename, content_type, file, &param, None)
     .await
     .unwrap();
   assert_response_ok!(resp);
@@ -25,12 +25,12 @@ pub async fn test_upload_with_invalid_len_param_query(ctx: &mut ApiTestContext) 
   let filename = String::from("hello.txt");
   let content_type = "text/plain";
   let file = "hello".as_bytes().to_vec();
-  let query = UploadQueryParam {
+  let param = UploadQueryParam {
     code_length: Some(2),
     ..Default::default()
   };
   let (status, resp) = ctx
-    .upload(filename, content_type, file, &query, None)
+    .upload(filename, content_type, file, &param, None)
     .await
     .unwrap();
   assert_response_err!(resp, |e: &BodyResponseError| e.error_type
