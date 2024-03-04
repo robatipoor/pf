@@ -169,9 +169,7 @@ pub async fn paste(
   key_nonce: Option<KeyNonce>,
 ) {
   let _client = CommandLineClient::new(server_addr);
-  if let Some(_key_nonce) = key_nonce.as_ref() {
-  } else {
-  }
+  if let Some(_key_nonce) = key_nonce.as_ref() {}
 }
 
 pub async fn info(server_addr: String, url_path: FileUrlPath, auth: Option<(String, String)>) {
