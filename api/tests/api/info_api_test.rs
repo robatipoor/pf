@@ -31,7 +31,7 @@ pub async fn test_get_info_when_file_exceed_max_dl(ctx: &mut ApiTestContext) {
   let file = ctx
     .upload_dummy_file(Some(1), None, None, None, None, None)
     .await;
-  let (status, _resp) = ctx.download(&file.url_path, None).await.unwrap();
+  let (status, _resp) = ctx.download_bytes(&file.url_path, None).await.unwrap();
   assert!(status.is_success());
   let (status, resp) = ctx.info(&file.url_path, None).await.unwrap();
   assert_response_err!(resp, |e: &BodyResponseError| e.error_type == "NOT_FOUND");

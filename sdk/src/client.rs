@@ -16,7 +16,8 @@ use chacha20poly1305::{
   aead::stream::{DecryptorBE32, EncryptorBE32},
   KeyInit, XChaCha20Poly1305,
 };
-use futures_util::{StreamExt, TryStreamExt};
+
+use futures_util::{Stream, StreamExt, TryStreamExt};
 use log_derive::logfn;
 use once_cell::sync::Lazy;
 use reqwest::StatusCode;
@@ -157,23 +158,50 @@ impl PasteFileClient {
       .await
   }
 
+  pub async fn download_stream(
+    &self,
+    url_path: &FileUrlPath,
+    auth: Option<(String, String)>,
+  ) -> anyhow::Result<(
+    StatusCode,
+    ApiResponseResult<impl Stream<Item = Result<tokio_util::bytes::Bytes, reqwest::Error>>>,
+  )> {
+    let resp = self.download(url_path, auth).await?;
+    let status = resp.status();
+    if !status.is_success() {
+      let error = resp.json::<BodyResponseError>().await?;
+      return Ok((status, ApiResponseResult::Err(error)));
+    }
+    Ok((status, ApiResponseResult::Ok(resp.bytes_stream())))
+  }
+
   #[logfn(Info)]
-  pub async fn download(
+  pub async fn download_bytes(
     &self,
     url_path: &FileUrlPath,
     auth: Option<(String, String)>,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<Vec<u8>>)> {
-    let mut builder = self.get(url_path.to_url(&self.addr)?);
-    if let Some((user, pass)) = auth {
-      builder = builder.basic_auth(user, Some(pass));
-    }
-    let resp = builder.send().await?;
+    let resp = self.download(url_path, auth).await?;
     let status = resp.status();
     if !status.is_success() {
       let error = resp.json::<BodyResponseError>().await?;
       return Ok((status, ApiResponseResult::Err(error)));
     }
     Ok((status, ApiResponseResult::Ok(resp.bytes().await?.to_vec())))
+  }
+
+  #[logfn(Info)]
+  pub async fn download(
+    &self,
+    url_path: &FileUrlPath,
+    auth: Option<(String, String)>,
+  ) -> anyhow::Result<reqwest::Response> {
+    let mut builder = self.get(url_path.to_url(&self.addr)?);
+    if let Some((user, pass)) = auth {
+      builder = builder.basic_auth(user, Some(pass));
+    }
+    let resp = builder.send().await?;
+    Ok(resp)
   }
 
   pub async fn download_decrypt(
@@ -186,11 +214,7 @@ impl PasteFileClient {
     if destination.is_dir() {
       destination.push(&url_path.file_name);
     }
-    let mut builder = self.get(url_path.to_url(&self.addr)?);
-    if let Some((user, pass)) = auth {
-      builder = builder.basic_auth(user, Some(pass));
-    }
-    let resp = builder.send().await?;
+    let resp = self.download(url_path, auth).await?;
     let status = resp.status();
     if !status.is_success() {
       let error = resp.json::<BodyResponseError>().await?;
@@ -238,11 +262,7 @@ impl PasteFileClient {
     if destination.is_dir() {
       destination.push(&url_path.file_name);
     }
-    let mut builder = self.get(url_path.to_url(&self.addr)?);
-    if let Some((user, pass)) = auth {
-      builder = builder.basic_auth(user, Some(pass));
-    }
-    let resp = builder.send().await?;
+    let resp = self.download(url_path, auth).await?;
     let status = resp.status();
     if !status.is_success() {
       let error = resp.json::<BodyResponseError>().await?;

@@ -9,7 +9,7 @@ async fn main() {
     code: "example-code".to_string(),
     file_name: "example_file_name.txt".to_string(),
   };
-  let (status, result) = client.download(&url_path, None).await.unwrap();
+  let (status, result) = client.download_bytes(&url_path, None).await.unwrap();
   assert!(status.is_success());
   let _ = std::str::from_utf8(&result.unwrap()).unwrap();
 }
