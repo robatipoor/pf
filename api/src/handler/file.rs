@@ -6,19 +6,17 @@ use axum::{
   Json,
 };
 use garde::Validate;
-use sdk::dto::{
-  request::{QrCodeFormat, UploadQueryParam},
-  response::{MessageResponse, MetaDataFileResponse, UploadResponse},
-  FileUrlPath,
+use sdk::{
+  dto::{
+    request::UploadQueryParam,
+    response::{MessageResponse, MetaDataFileResponse, UploadResponse},
+  },
+  util::url::create_url,
 };
 use tower::ServiceExt;
 use tower_http::services::fs::ServeFileSystemResponseBody;
 
-use crate::{
-  error::result::ApiResult,
-  server::ApiState,
-  service::{self},
-};
+use crate::{error::result::ApiResult, server::ApiState, service, util::qr_code::generate_qr_code};
 
 pub async fn upload(
   State(state): State<ApiState>,
@@ -30,30 +28,22 @@ pub async fn upload(
   let secret = crate::util::http::parse_basic_auth(&headers)?;
   let (file_path, expire_date_time) =
     service::file::store(&state, &param, secret, multipart).await?;
-  let url = FileUrlPath::from(file_path)
-    .to_url(&state.config.server.get_domain())?
-    .to_string();
-  let qr_code = generate_qr_code(param.qr_code_format, &url)?;
+  let url = create_url(
+    &state.config.server.get_domain(),
+    &file_path.code,
+    &file_path.file_name,
+  )?
+  .to_string();
+  let qr_code = if let Some(qr_code_format) = param.qr_code_format {
+    Some(generate_qr_code(qr_code_format, &url)?)
+  } else {
+    None
+  };
   Ok(Json(UploadResponse {
     url,
     expire_date_time,
     qr_code,
   }))
-}
-
-pub fn generate_qr_code(
-  qr_code_format: Option<QrCodeFormat>,
-  input: &str,
-) -> ApiResult<Option<String>> {
-  match qr_code_format {
-    Some(QrCodeFormat::Text) => Ok(Some(sdk::util::qr_code::generate_base64_text_qr_code(
-      input,
-    )?)),
-    Some(QrCodeFormat::Image) => Ok(Some(sdk::util::qr_code::generate_base64_png_qr_code(
-      input,
-    )?)),
-    None => Ok(None),
-  }
 }
 
 pub async fn download(

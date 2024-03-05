@@ -1,3 +1,4 @@
+use crate::util::url::create_url;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
@@ -17,7 +18,7 @@ impl FileUrlPath {
   }
 
   pub fn to_url(&self, base_url: &str) -> Result<url::Url, url::ParseError> {
-    url::Url::parse(&format!("{base_url}/{}/{}", self.code, self.file_name))
+    create_url(base_url, &self.code, &self.file_name)
   }
 }
 

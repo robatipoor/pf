@@ -5,3 +5,4 @@ pub mod qr_code;
 pub mod random;
 pub mod retry;
 pub mod test;
+pub mod url;
