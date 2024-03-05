@@ -173,6 +173,7 @@ impl PasteFileClient {
       let chunk = chunk?;
       writer.write_all(&chunk).await?;
     }
+    writer.flush().await?;
     Ok((status, ApiResponseResult::Ok(())))
   }
 

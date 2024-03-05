@@ -49,7 +49,7 @@ pub enum SubCommand {
     #[clap(long, value_parser = parse_key_nonce, help = HELP_ENCRYPT)]
     key_nonce: Option<KeyNonce>,
   },
-  #[clap(about = "Copy data from stdin to the server")]
+  #[clap(about = "Copy text data from standard input (stdin) to the server")]
   Copy {
     #[clap(short, long)]
     file_name: String,
@@ -87,7 +87,7 @@ pub enum SubCommand {
     #[clap(long, value_parser = parse_key_nonce, help = HELP_DECRYPT)]
     key_nonce: Option<KeyNonce>,
   },
-  #[clap(about = "Paste a file from the server")]
+  #[clap(about = "Retrieve text data from the server and paste it to standard output (stdout)")]
   Paste {
     #[arg(short, long, value_parser = parse_file_url_path)]
     url_path: FileUrlPath,
