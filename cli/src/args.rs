@@ -52,7 +52,7 @@ pub enum SubCommand {
   #[clap(about = "Copy text data from standard input (stdin) to the server")]
   Copy {
     #[clap(short, long)]
-    file_name: String,
+    file_name: Option<String>,
     #[clap(short, long)]
     code_length: Option<usize>,
     #[clap(short, long,value_parser = parse_expire_time)]

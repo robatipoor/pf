@@ -1,12 +1,15 @@
 use args::{Args, SubCommand};
 use clap::Parser;
 use command::{CopyArguments, UploadArguments};
+use sdk::util::random::generate_random_string;
 
 mod args;
 mod client;
 mod command;
 mod parse;
 mod util;
+
+const FILE_NAME_LENGTH: usize = 5;
 
 #[tokio::main]
 async fn main() {
@@ -55,7 +58,7 @@ async fn main() {
       let args = CopyArguments {
         server_addr,
         auth: args.auth,
-        file_name,
+        file_name: file_name.unwrap_or_else(|| generate_random_string(FILE_NAME_LENGTH)),
         code_length,
         expire,
         allow_manual_deletion,
