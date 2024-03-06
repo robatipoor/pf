@@ -121,6 +121,9 @@ host = "127.0.0.1"
 # Port number for the server
 port = 8080
 
+# Domain URL
+domain = "http://localhost:8080"
+
 # TLS key file path
 file_tls_key_path = "key.pem"
 

@@ -29,7 +29,7 @@ pub struct ApiConfig {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct ServerConfig {
-  pub domain: Option<String>,
+  pub domain: String,
   pub schema: UrlSchema,
   pub host: String,
   pub port: u16,
@@ -64,10 +64,6 @@ impl ServerConfig {
 
   pub fn get_socket_addr(&self) -> Result<SocketAddr, AddrParseError> {
     format!("{}:{}", self.host, self.port).parse()
-  }
-
-  pub fn get_domain(&self) -> String {
-    self.domain.clone().unwrap_or_else(|| self.get_http_addr())
   }
 
   pub fn get_tls_config(&self) -> anyhow::Result<tokio_rustls::rustls::ServerConfig> {

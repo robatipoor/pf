@@ -44,11 +44,11 @@ impl ApiServer {
   pub async fn run(self) -> ApiResult<()> {
     match self.state.config.server.schema {
       UrlSchema::Http => {
-        axum::serve(self.tcp, get_router(self.state)).await?;
+        axum::serve(self.tcp, get_router(self.state)?).await?;
       }
       UrlSchema::Https => {
         let config_server = self.state.config.server.get_tls_config()?;
-        axum_tls::serve(self.tcp, get_router(self.state), config_server).await;
+        axum_tls::serve(self.tcp, get_router(self.state)?, config_server).await;
       }
     }
     Ok(())
