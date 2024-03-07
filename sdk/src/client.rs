@@ -49,6 +49,11 @@ impl PasteFileClient {
     Ok((resp.status(), resp.json().await?))
   }
 
+  pub async fn index_page(&self) -> anyhow::Result<(StatusCode, String)> {
+    let resp = self.get(&self.addr).send().await?;
+    Ok((resp.status(), resp.text().await?))
+  }
+
   pub async fn upload_file_part(
     &self,
     file_part: reqwest::multipart::Part,

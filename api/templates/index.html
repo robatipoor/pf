@@ -6,8 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paste File</title>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
-    <script src="https://cdn.rawgit.com/jeromeetienne/jquery-qrcode/1.0/jquery.qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery.qrcode@1.0.3/jquery.qrcode.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -68,23 +67,31 @@
         <form accept-charset="UTF-8" action="{{ domain }}/upload" method="POST" enctype="multipart/form-data"
             target="_blank" id="ajaxForm">
             <div class="form-group">
-                <label for="codeLength" required="optional">Code length</label>
+                <label for="codeLength">Code length: </label>
                 <input type="number" name="codeLength" class="form-control" id="codeLength"
-                    aria-describedby="codeLengthHelp" placeholder="Enter code length">
+                    aria-describedby="codeLengthHelp" placeholder="Enter number length">
             </div>
             <div class="form-group">
-                <label for="expireTime">Expire Time</label>
+                <label for="expireTime">Expire time: </label>
                 <input type="number" name="expireTime" class="form-control" id="expireTime"
-                    placeholder="Enter expire time" required="optional">
+                    placeholder="Enter second number">
             </div>
             <div class="form-group">
-                <label for="maxDownload">Max download</label>
+                <label for="maxDownload">Maximum download: </label>
                 <input type="number" name="maxDownload" class="form-control" id="maxDownload"
-                    placeholder="Enter max download" required="optional">
+                    placeholder="Enter max number">
             </div>
             <div class="form-group">
-                <label for="allow_manual_deletion">Allow Manual Deletion</label>
-                <select class="form-control" id="allow_manual_deletion" name="platform" required="required">
+                <label for="Username">Username: </label>
+                <input type="text" name="Username" class="form-control" id="Username" placeholder="Enter username">
+            </div>
+            <div class="form-group">
+                <label for="Password">Password: </label>
+                <input type="password" name="Password" class="form-control" id="Password" placeholder="Enter password">
+            </div>
+            <div class="form-group">
+                <label for="allow_manual_deletion">Allow manual deletion: </label>
+                <select class="form-control" id="allow_manual_deletion" name="platform">
                     <option>True</option>
                     <option>False</option>
                 </select>
@@ -92,7 +99,7 @@
             <hr>
             <div class="form-group mt-3">
                 <label class="mr-2">File:</label>
-                <input type="file" name="file">
+                <input type="file" name="file" required="required">
             </div>
             <hr>
             <button type="submit" class="btn btn-primary">Upload</button>
@@ -101,10 +108,7 @@
     <div class="progress-bar">
         <div id="progress" class="progress">0%</div>
     </div>
-    <!-- <div>
-        <a id="result-url" href=""></a>
-    </div> -->
-    <div id="urlDisplay">
+    <div id="urlDisplay" class="success">
         <p>URL: <span><strong id="result-url"></strong></span></p>
         <button id="copyButton">Copy URL</button>
     </div>
@@ -120,7 +124,7 @@
                         if (evt.lengthComputable) {
                             var percentComplete = (evt.loaded / evt.total) * 100;
                             $('#progress')[0].style.width = percentComplete + '%';
-                            $('#progress')[0].innerHTML = percentComplete.toFixed(2) + '%';
+                            $('#progress')[0].innerHTML = percentComplete.toFixed(1) + '%';
                         }
                     }, false);
                     return xhr;
@@ -137,24 +141,21 @@
                     "Accept": "application/json"
                 },
                 success: function (response) {
+                    $('.success').addClass('is-active');
                     $('#result-url').empty();
                     $("#result-url").append(response.url);
                     $('#qrcode').empty();
-                    $('#qrcode').qrcode(response.url);
+                    $('#qrcode').qrcode({ width: 256, height: 256, text: response.url });
                 },
-            }).done(function () {
-                $('.success').addClass('is-active');
             }).fail(function () {
                 alert('An error occurred please try again later.')
             });
         });
-
         $("#copyButton").click(function (event) {
             event.preventDefault();
             navigator.clipboard.writeText($('#result-url').text()).then(() => { });
             alert('URL copied to clipboard!');
         });
-
     </script>
 
 </body>
