@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["sdk", "api", "cli", "app"]
+members = ["sdk", "api", "cli"]
 
 [workspace.package]
 authors = ["Mahdi <Mahdi.robatipoor@gmail.com>"]
@@ -77,16 +77,4 @@ tracing = "0.1.40"
 tracing-subscriber = "0.3.18"
 url = "2.5.0"
 garde = { version = "0.18.0", features = ["full"] }
-yew = { version = "0.21.0", features = ["csr"] }
-yew-router = "0.18.0"
-yew-hooks = "0.3.0"
-wasm-bindgen = "0.2.91"
-wasm-logger = "0.2.0"
-gloo = "0.11.0"
-js-sys = "0.3.68"
-web-sys = { version = "0.3.68", features = [
-  "XmlHttpRequest",
-  "XmlHttpRequestUpload",
-] }
-wasm-bindgen-futures = { version = "0.4.41" }
-wasm-streams = { version = "0.4.0" }
+askama = "0.12.1"

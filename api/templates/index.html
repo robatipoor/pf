@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>File Upload</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+    }
+    #uploadForm {
+        margin-bottom: 20px;
+    }
+    .progress-bar {
+        width: 100%;
+        background-color: #f1f1f1;
+        margin-bottom: 20px;
+    }
+    .progress {
+        width: 0%;
+        height: 30px;
+        background-color: #4caf50;
+        text-align: center;
+        line-height: 30px;
+        color: white;
+    }
+    #qrcode {
+        margin-top: 20px;
+    }
+</style>
+</head>
+<body>
+
+<h2>File Upload</h2>
+
+<form id="uploadForm" enctype="multipart/form-data">
+    <input type="file" name="file" id="fileInput">
+    <button type="button" onclick="uploadFile()">Upload</button>
+</form>
+
+<div class="progress-bar">
+    <div id="progress" class="progress">0%</div>
+</div>
+
+<div id="qrcode"></div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+<script src="https://cdn.rawgit.com/jeromeetienne/jquery-qrcode/1.0/jquery.qrcode.min.js"></script>
+
+<script>
+    function uploadFile() {
+        var fileInput = document.getElementById('fileInput');
+        var file = fileInput.files[0];
+        var formData = new FormData();
+        formData.append('file', file);
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '{{ domain }}/upload', true);
+        xhr.upload.onprogress = function (e) {
+            if (e.lengthComputable) {
+                var percentComplete = (e.loaded / e.total) * 100;
+                document.getElementById('progress').style.width = percentComplete + '%';
+                document.getElementById('progress').innerHTML = percentComplete.toFixed(2) + '%';
+            }
+        };
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                var response = xhr.responseText;
+                generateQRCode(response);
+            }
+        };
+        xhr.send(formData);
+    }
+
+    function generateQRCode(url) {
+        $('#qrcode').empty();
+        $('#qrcode').qrcode(url);
+    }
+</script>
+
+</body>
+</html>

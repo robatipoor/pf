@@ -42,3 +42,4 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 url = { workspace = true }
 garde = { workspace = true }
+askama = { workspace = true }

@@ -16,6 +16,7 @@ pub fn get_router(state: ApiState) -> ApiResult<Router> {
       .route("/info/:code/:file_name", get(handler::file::info))
       .route("/:code/:file_name", get(handler::file::download))
       .route("/:code/:file_name", delete(handler::file::delete))
+      .route("/", get(handler::index::page))
       .layer(cors_layer(&state.config.server.domain)?)
       .with_state(state),
   )

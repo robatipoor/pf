@@ -48,6 +48,8 @@ pub enum ApiError {
   MultipartError(#[from] axum::extract::multipart::MultipartError),
   #[error(transparent)]
   UrlError(#[from] url::ParseError),
+  #[error(transparent)]
+  TemplateError(#[from] askama::Error),
   #[error("lock error: {0}")]
   LockError(String),
   #[error("duration out of range error: {0}")]
@@ -142,6 +144,11 @@ impl ApiError {
       ),
       UrlError(err) => (
         "URL_ERROR",
+        err.to_string(),
+        StatusCode::INTERNAL_SERVER_ERROR,
+      ),
+      TemplateError(err) => (
+        "TEMPLATE_ERROR",
         err.to_string(),
         StatusCode::INTERNAL_SERVER_ERROR,
       ),
