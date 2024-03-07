@@ -1,85 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>File Upload</title>
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 20px;
-    }
-    #uploadForm {
-        margin-bottom: 20px;
-    }
-    .progress-bar {
-        width: 100%;
-        background-color: #f1f1f1;
-        margin-bottom: 20px;
-    }
-    .progress {
-        width: 0%;
-        height: 30px;
-        background-color: #4caf50;
-        text-align: center;
-        line-height: 30px;
-        color: white;
-    }
-    #qrcode {
-        margin-top: 20px;
-    }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paste File</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <script src="https://cdn.rawgit.com/jeromeetienne/jquery-qrcode/1.0/jquery.qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        #uploadForm {
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background-color: #f1f1f1;
+            margin-bottom: 20px;
+        }
+
+        .progress {
+            width: 0%;
+            height: 30px;
+            background-color: #4caf50;
+            text-align: center;
+            line-height: 30px;
+            color: white;
+        }
+
+        #qrcode {
+            margin-top: 20px;
+        }
+
+        h1 {
+            font-size: 20px;
+            margin-top: 24px;
+            margin-bottom: 24px;
+        }
+
+        img {
+            height: 40px;
+        }
+
+        .success {
+            display: none;
+            background: #E1F8ED;
+            padding: 20px;
+            margin-top: 16px;
+            margin-bottom: 16px;
+
+            &.is-active {
+                display: block;
+            }
+        }
+    </style>
 </head>
+
 <body>
+    <h2>Paste File</h2>
+    <div class="col-md-6 offset-md-3 mt-5">
+        <form accept-charset="UTF-8" action="{{ domain }}/upload" method="POST" enctype="multipart/form-data"
+            target="_blank" id="ajaxForm">
+            <div class="form-group">
+                <label for="codeLength" required="optional">Code length</label>
+                <input type="number" name="codeLength" class="form-control" id="codeLength"
+                    aria-describedby="codeLengthHelp" placeholder="Enter code length">
+            </div>
+            <div class="form-group">
+                <label for="expireTime">Expire Time</label>
+                <input type="number" name="expireTime" class="form-control" id="expireTime"
+                    placeholder="Enter expire time" required="optional">
+            </div>
+            <div class="form-group">
+                <label for="maxDownload">Max download</label>
+                <input type="number" name="maxDownload" class="form-control" id="maxDownload"
+                    placeholder="Enter max download" required="optional">
+            </div>
+            <div class="form-group">
+                <label for="allow_manual_deletion">Allow Manual Deletion</label>
+                <select class="form-control" id="allow_manual_deletion" name="platform" required="required">
+                    <option>True</option>
+                    <option>False</option>
+                </select>
+            </div>
+            <hr>
+            <div class="form-group mt-3">
+                <label class="mr-2">File:</label>
+                <input type="file" name="file">
+            </div>
+            <hr>
+            <button type="submit" class="btn btn-primary">Upload</button>
+        </form>
+    </div>
+    <div class="progress-bar">
+        <div id="progress" class="progress">0%</div>
+    </div>
+    <!-- <div>
+        <a id="result-url" href=""></a>
+    </div> -->
+    <div id="urlDisplay">
+        <p>URL: <span><strong id="result-url"></strong></span></p>
+        <button id="copyButton">Copy URL</button>
+    </div>
+    <div id="qrcode"></div>
+    <script>
+        $("#ajaxForm").submit(function (e) {
+            e.preventDefault();
+            var action = $(this).attr("action");
+            $.ajax({
+                xhr: function () {
+                    var xhr = new window.XMLHttpRequest();
+                    xhr.upload.addEventListener("progress", function (evt) {
+                        if (evt.lengthComputable) {
+                            var percentComplete = (evt.loaded / evt.total) * 100;
+                            $('#progress')[0].style.width = percentComplete + '%';
+                            $('#progress')[0].innerHTML = percentComplete.toFixed(2) + '%';
+                        }
+                    }, false);
+                    return xhr;
+                },
+                type: "POST",
+                url: action,
+                crossDomain: true,
+                data: new FormData(this),
+                dataType: "json",
+                contentType: "multipart/form-data",
+                processData: false,
+                contentType: false,
+                headers: {
+                    "Accept": "application/json"
+                },
+                success: function (response) {
+                    $('#result-url').empty();
+                    $("#result-url").append(response.url);
+                    $('#qrcode').empty();
+                    $('#qrcode').qrcode(response.url);
+                },
+            }).done(function () {
+                $('.success').addClass('is-active');
+            }).fail(function () {
+                alert('An error occurred please try again later.')
+            });
+        });
 
-<h2>File Upload</h2>
+        $("#copyButton").click(function (event) {
+            event.preventDefault();
+            navigator.clipboard.writeText($('#result-url').text()).then(() => { });
+            alert('URL copied to clipboard!');
+        });
 
-<form id="uploadForm" enctype="multipart/form-data">
-    <input type="file" name="file" id="fileInput">
-    <button type="button" onclick="uploadFile()">Upload</button>
-</form>
-
-<div class="progress-bar">
-    <div id="progress" class="progress">0%</div>
-</div>
-
-<div id="qrcode"></div>
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
-<script src="https://cdn.rawgit.com/jeromeetienne/jquery-qrcode/1.0/jquery.qrcode.min.js"></script>
-
-<script>
-    function uploadFile() {
-        var fileInput = document.getElementById('fileInput');
-        var file = fileInput.files[0];
-        var formData = new FormData();
-        formData.append('file', file);
-
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', '{{ domain }}/upload', true);
-        xhr.upload.onprogress = function (e) {
-            if (e.lengthComputable) {
-                var percentComplete = (e.loaded / e.total) * 100;
-                document.getElementById('progress').style.width = percentComplete + '%';
-                document.getElementById('progress').innerHTML = percentComplete.toFixed(2) + '%';
-            }
-        };
-        xhr.onload = function () {
-            if (xhr.status === 200) {
-                var response = xhr.responseText;
-                generateQRCode(response);
-            }
-        };
-        xhr.send(formData);
-    }
-
-    function generateQRCode(url) {
-        $('#qrcode').empty();
-        $('#qrcode').qrcode(url);
-    }
-</script>
+    </script>
 
 </body>
+
 </html>
