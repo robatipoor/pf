@@ -12,6 +12,7 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 20px;
+            text-align: center;
         }
 
         #uploadForm {
@@ -19,16 +20,21 @@
         }
 
         .progress-bar {
-            width: 100%;
+            display: none;
+            width: 50%;
             background-color: #f1f1f1;
             margin-bottom: 20px;
+            border: 3px solid green;
+            margin: auto;
+            &.is-active {
+                display: block;
+            }
         }
 
         .progress {
             width: 0%;
             height: 30px;
             background-color: #4caf50;
-            text-align: center;
             line-height: 30px;
             color: white;
         }
@@ -90,10 +96,17 @@
                 <input type="password" name="Password" class="form-control" id="Password" placeholder="Enter password">
             </div>
             <div class="form-group">
-                <label for="allow_manual_deletion">Allow manual deletion: </label>
-                <select class="form-control" id="allow_manual_deletion" name="platform">
+                <label for="allowManualDeletion">Allow manual deletion: </label>
+                <select class="form-control" id="allowManualDeletion" name="platform">
                     <option>True</option>
                     <option>False</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="input">Input: </label>
+                <select class="form-control" id="input" name="platform">
+                    <option>File</option>
+                    <option>Clipboard</option>
                 </select>
             </div>
             <hr>
@@ -116,6 +129,7 @@
     <script>
         $("#ajaxForm").submit(function (e) {
             e.preventDefault();
+            $('.progress-bar').addClass('is-active');
             var action = $(this).attr("action");
             $.ajax({
                 xhr: function () {
@@ -123,6 +137,7 @@
                     xhr.upload.addEventListener("progress", function (evt) {
                         if (evt.lengthComputable) {
                             var percentComplete = (evt.loaded / evt.total) * 100;
+
                             $('#progress')[0].style.width = percentComplete + '%';
                             $('#progress')[0].innerHTML = percentComplete.toFixed(1) + '%';
                         }
