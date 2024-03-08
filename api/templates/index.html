@@ -78,22 +78,22 @@
                     aria-describedby="codeLengthHelp" placeholder="Enter number length">
             </div>
             <div class="form-group">
-                <label for="expireTime">Expire time: </label>
-                <input type="number" name="expireTime" class="form-control" id="expireTime"
-                    placeholder="Enter second number">
+                <label for="expireSecs">Expire time: </label>
+                <input type="number" name="expireSecs" class="form-control" id="expireSecs"
+                    placeholder="Enter expire seconds">
             </div>
             <div class="form-group">
                 <label for="maxDownload">Maximum download: </label>
                 <input type="number" name="maxDownload" class="form-control" id="maxDownload"
-                    placeholder="Enter max number">
+                    placeholder="Enter max downloads">
             </div>
             <div class="form-group">
-                <label for="Username">Username: </label>
-                <input type="text" name="Username" class="form-control" id="Username" placeholder="Enter username">
+                <label for="username">Username: </label>
+                <input type="text" name="Username" class="form-control" id="username" placeholder="Enter username">
             </div>
             <div class="form-group">
-                <label for="Password">Password: </label>
-                <input type="password" name="Password" class="form-control" id="Password" placeholder="Enter password">
+                <label for="password">Password: </label>
+                <input type="password" name="Password" class="form-control" id="password" placeholder="Enter password">
             </div>
             <div class="form-group">
                 <label for="allowManualDeletion">Allow manual deletion: </label>
@@ -131,13 +131,13 @@
             e.preventDefault();
             $('.progress-bar').addClass('is-active');
             var action = $(this).attr("action");
+            var uploadUrl = createUploadURL(action);
             $.ajax({
                 xhr: function () {
                     var xhr = new window.XMLHttpRequest();
                     xhr.upload.addEventListener("progress", function (evt) {
                         if (evt.lengthComputable) {
                             var percentComplete = (evt.loaded / evt.total) * 100;
-
                             $('#progress')[0].style.width = percentComplete + '%';
                             $('#progress')[0].innerHTML = percentComplete.toFixed(1) + '%';
                         }
@@ -145,7 +145,7 @@
                     return xhr;
                 },
                 type: "POST",
-                url: action,
+                url: uploadUrl,
                 crossDomain: true,
                 data: new FormData(this),
                 dataType: "json",
@@ -171,6 +171,39 @@
             navigator.clipboard.writeText($('#result-url').text()).then(() => { });
             alert('URL copied to clipboard!');
         });
+
+        function createUploadURL(base_url) {
+            var result = base_url;
+            var codeLength = $('#codeLength').val();
+            var first = true;
+            var d = "&";
+            if (codeLength) {
+                if (first) {
+                    d = "?";
+                    first = false;
+                }
+                result += d + "code_length=" + codeLength;
+            }
+            var expireSecs = $('#expireSecs').val();
+            if (expireSecs) {
+                if (first) {
+                    d = "?";
+                    first = false;
+                } else {
+                    d = "&"
+                }
+                result += d + "expire_secs=" + expireSecs;
+            }
+            var maxDownload = $('#maxDownload').val();
+            if (maxDownload) {
+                if (first) {
+                    d = "?";
+                }
+                result += d + "max_download=" + maxDownload;
+            }
+            return result;
+        }
+
     </script>
 
 </body>
