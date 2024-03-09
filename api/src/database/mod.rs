@@ -1,13 +1,14 @@
 use crate::{
   configure::DatabaseConfig,
   error::{result::ApiResult, ApiError},
+  util::path::get_fs_path,
 };
 use chrono::{DateTime, Utc};
 use sled::IVec;
-use std::collections::BTreeSet;
 use std::sync::Arc;
 use std::sync::RwLock;
 use std::time::Duration;
+use std::{collections::BTreeSet, path::Path};
 use tokio::sync::Notify;
 
 use self::file_path::FilePath;
@@ -146,7 +147,7 @@ impl Database {
     Ok(meta)
   }
 
-  pub async fn purge(&self) -> ApiResult<Option<Duration>> {
+  pub async fn purge(&self, base_dir: &Path) -> ApiResult<Option<Duration>> {
     let mut paths_should_delete = vec![];
     let mut wakeup_next_time = None;
     match self.expires.write() {
@@ -168,21 +169,14 @@ impl Database {
         return Err(ApiError::LockError(err.to_string()));
       }
     }
-    self.remove_file(paths_should_delete).await?;
+    self.remove_file(base_dir, paths_should_delete).await?;
     Ok(wakeup_next_time)
   }
 
-  pub async fn remove_file(&self, paths: Vec<FilePath>) -> ApiResult {
+  pub async fn remove_file(&self, base_dir: &Path, paths: Vec<FilePath>) -> ApiResult {
     for file_path in paths {
-      let key = IVec::try_from(&file_path)?;
-      if let Some(_meta) = self
-        .inner
-        .remove(&key)?
-        .map(MetaDataFile::try_from)
-        .transpose()?
-      {
-        // TODO remove files in fs
-      }
+      self.inner.remove(&IVec::try_from(&file_path)?)?;
+      tokio::fs::remove_file(get_fs_path(base_dir, &file_path)).await?;
     }
     Ok(())
   }
@@ -271,17 +265,25 @@ mod tests {
   #[test_context(StateTestContext)]
   #[tokio::test]
   async fn test_store_file_and_expire_it(ctx: &mut StateTestContext) {
-    let path: FilePath = Faker.fake();
+    let file_path: FilePath = Faker.fake();
+    let fs_path = get_fs_path(&ctx.state.config.fs.base_dir, &file_path);
+    tokio::fs::create_dir(fs_path.parent().unwrap())
+      .await
+      .unwrap();
+    tokio::fs::write(&fs_path, Faker.fake::<String>())
+      .await
+      .unwrap();
     let mut meta: MetaDataFile = Faker.fake();
     meta.expire_date_time = Utc::now();
     ctx
       .state
       .db
-      .store(path.clone(), meta.clone())
+      .store(file_path.clone(), meta.clone())
       .await
       .unwrap();
     tokio::time::sleep(Duration::from_secs(1)).await;
-    assert!(!ctx.state.db.exist(&path).unwrap());
+    assert!(!ctx.state.db.exist(&file_path).unwrap());
+    assert!(!tokio::fs::try_exists(fs_path).await.unwrap());
   }
 
   #[test_context(StateTestContext)]

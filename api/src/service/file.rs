@@ -5,6 +5,7 @@ use crate::error::{
   result::{ApiResult, ToApiResult},
   ApiError,
 };
+use crate::util::path::get_fs_path;
 use crate::util::secret::{Secret, SecretHash};
 use anyhow::anyhow;
 use axum::extract::multipart::Field;
@@ -58,7 +59,7 @@ pub async fn store(
       }
       None => continue,
     };
-    let path = loop {
+    let file_path = loop {
       let code = sdk::util::random::generate_random_string(code_length);
       let path = FilePath {
         code,
@@ -76,33 +77,33 @@ pub async fn store(
       }
       code_length += 1;
     };
-    let file_path = state.config.fs.base_dir.join::<PathBuf>((&path).into());
-    if let Err(e) = store_stream(&file_path, field, state.config.max_upload_bytes_size).await {
-      state.db.delete(path).await?;
+    let fs_path = get_fs_path(&state.config.fs.base_dir, &file_path);
+    if let Err(e) = store_stream(&fs_path, field, state.config.max_upload_bytes_size).await {
+      state.db.delete(file_path).await?;
       return Err(e);
     }
     state.db.flush().await?;
-    return Ok((path, expire_date_time));
+    return Ok((file_path, expire_date_time));
   }
   Err(ApiError::BadRequestError(
     "The multipart/form-data body is empty.".to_string(),
   ))
 }
 
-pub async fn store_stream(file_path: &PathBuf, field: Field<'_>, max_size: usize) -> ApiResult<()> {
+pub async fn store_stream(fs_path: &PathBuf, field: Field<'_>, max_size: usize) -> ApiResult<()> {
   let body_reader =
     StreamReader::new(field.map_err(|err| std::io::Error::new(std::io::ErrorKind::Other, err)));
   futures_util::pin_mut!(body_reader);
-  if let Some(parent) = file_path.parent() {
+  if let Some(parent) = fs_path.parent() {
     tokio::fs::create_dir_all(parent).await?;
   }
-  let mut file = BufWriter::new(File::create(file_path).await?);
-  copy(file_path, &mut body_reader, &mut file, max_size).await?;
+  let mut file = BufWriter::new(File::create(fs_path).await?);
+  copy(fs_path, &mut body_reader, &mut file, max_size).await?;
   Ok(())
 }
 
 pub async fn copy(
-  file_path: &PathBuf,
+  fs_path: &PathBuf,
   mut reader: impl AsyncRead + Unpin,
   mut writer: impl AsyncWrite + Unpin,
   max_size: usize,
@@ -116,7 +117,7 @@ pub async fn copy(
     }
     bytes_size += bytes_read;
     if bytes_size > max_size {
-      return handle_payload_too_large(file_path, writer, max_size).await;
+      return handle_payload_too_large(fs_path, writer, max_size).await;
     }
     writer.write_all(&buffer).await?;
     buffer.clear();
@@ -219,7 +220,7 @@ pub async fn delete(
 }
 
 pub fn read_file(config: &ApiConfig, file_path: &FilePath) -> ServeFile {
-  ServeFile::new(config.fs.base_dir.join::<PathBuf>(file_path.into()))
+  ServeFile::new(get_fs_path(&config.fs.base_dir, &file_path))
 }
 
 pub fn authorize_user(secret: Option<Secret>, secret_hash: &Option<SecretHash>) -> ApiResult<()> {

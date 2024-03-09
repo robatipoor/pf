@@ -12,8 +12,9 @@ impl GarbageCollectorTask {
   }
 
   pub async fn run(self) -> ApiResult {
+    let base_dir = self.state.config.fs.base_dir.clone();
     loop {
-      match self.state.db.purge().await {
+      match self.state.db.purge(&base_dir).await {
         Ok(Some(d)) => {
           tokio::select! {
             _ = tokio::time::sleep(d) => {},
@@ -23,8 +24,8 @@ impl GarbageCollectorTask {
         Ok(None) => {
           self.state.db.waiting_for_notify().await;
         }
-        Err(e) => {
-          tracing::error!("Failed garbage collector task, Error: {e}");
+        Err(err) => {
+          tracing::error!("Failed garbage collector task, Error: {err}");
           self.state.db.waiting_for_notify().await;
         }
       }
