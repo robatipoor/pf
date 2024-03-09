@@ -199,20 +199,18 @@ pub async fn delete(
   file_name: &str,
   secret: Option<Secret>,
 ) -> ApiResult<()> {
-  let path = FilePath {
+  let file_path = FilePath {
     code: code.to_string(),
     file_name: file_name.to_string(),
   };
-  if let Some(meta) = state.db.fetch(&path)? {
+  if let Some(meta) = state.db.fetch(&file_path)? {
     if meta.manual_deletion {
       authorize_user(secret, &meta.secret)?;
-      let file_path = state.config.fs.base_dir.join::<PathBuf>((&path).into());
-      tokio::fs::remove_file(file_path).await?;
-      state.db.delete(path).await?;
-      state.db.flush().await?;
+      tokio::fs::remove_file(get_fs_path(&state.config.fs.base_dir, &file_path)).await?;
+      state.db.delete(file_path).await?;
     } else {
       return Err(ApiError::PermissionDeniedError(format!(
-        "{path} is not deletable"
+        "{file_path} is not deletable"
       )));
     }
   }

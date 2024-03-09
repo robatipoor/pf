@@ -22,11 +22,11 @@ pub async fn test_delete_exist_file(ctx: &mut ApiTestContext) {
 #[test_context(ApiTestContext)]
 #[tokio::test]
 pub async fn test_delete_not_exist_file(ctx: &mut ApiTestContext) {
-  let path = FileUrlPath {
+  let url_path = FileUrlPath {
     code: Faker.fake(),
     file_name: format!("{}.jpg", Faker.fake::<String>()),
   };
-  let (status, _) = ctx.delete(&path, None).await.unwrap();
+  let (status, _) = ctx.delete(&url_path, None).await.unwrap();
   assert!(status.is_success(), "status: {status}");
 }
 

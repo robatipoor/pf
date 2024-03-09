@@ -178,6 +178,7 @@ impl Database {
       self.inner.remove(&IVec::try_from(&file_path)?)?;
       tokio::fs::remove_file(get_fs_path(base_dir, &file_path)).await?;
     }
+    self.flush().await?;
     Ok(())
   }
 
@@ -206,15 +207,15 @@ mod tests {
   #[test_context(StateTestContext)]
   #[tokio::test]
   async fn test_store_file_and_fetch(ctx: &mut StateTestContext) {
-    let path: FilePath = Faker.fake();
+    let file_path: FilePath = Faker.fake();
     let meta: MetaDataFile = Faker.fake();
     ctx
       .state
       .db
-      .store(path.clone(), meta.clone())
+      .store(file_path.clone(), meta.clone())
       .await
       .unwrap();
-    let result = ctx.state.db.fetch(&path).unwrap().unwrap();
+    let result = ctx.state.db.fetch(&file_path).unwrap().unwrap();
     assert_eq!(result.created_at, meta.created_at);
     assert_eq!(result.expire_date_time, meta.expire_date_time);
     assert_eq!(result.secret, meta.secret);
@@ -225,12 +226,12 @@ mod tests {
   #[test_context(StateTestContext)]
   #[tokio::test]
   async fn test_store_and_update_file(ctx: &mut StateTestContext) {
-    let path: FilePath = Faker.fake();
+    let file_path: FilePath = Faker.fake();
     let meta: MetaDataFile = Faker.fake();
     ctx
       .state
       .db
-      .store(path.clone(), meta.clone())
+      .store(file_path.clone(), meta.clone())
       .await
       .unwrap();
     let mut updated_meta = meta.clone();
@@ -238,9 +239,9 @@ mod tests {
     ctx
       .state
       .db
-      .update(&path, meta.clone(), updated_meta)
+      .update(&file_path, meta.clone(), updated_meta)
       .unwrap();
-    let result = ctx.state.db.fetch(&path).unwrap().unwrap();
+    let result = ctx.state.db.fetch(&file_path).unwrap().unwrap();
     assert_eq!(result.created_at, meta.created_at);
     assert_eq!(result.expire_date_time, meta.expire_date_time);
     assert_eq!(result.secret, meta.secret);
@@ -251,15 +252,15 @@ mod tests {
   #[test_context(StateTestContext)]
   #[tokio::test]
   async fn test_store_file_and_check_it_existence(ctx: &mut StateTestContext) {
-    let path: FilePath = Faker.fake();
+    let file_path: FilePath = Faker.fake();
     let meta: MetaDataFile = Faker.fake();
     ctx
       .state
       .db
-      .store(path.clone(), meta.clone())
+      .store(file_path.clone(), meta.clone())
       .await
       .unwrap();
-    assert!(ctx.state.db.exist(&path).unwrap());
+    assert!(ctx.state.db.exist(&file_path).unwrap());
   }
 
   #[test_context(StateTestContext)]
@@ -289,47 +290,53 @@ mod tests {
   #[test_context(StateTestContext)]
   #[tokio::test]
   async fn test_store_file_and_successfully_delete_it(ctx: &mut StateTestContext) {
-    let path: FilePath = Faker.fake();
+    let file_path: FilePath = Faker.fake();
     let meta: MetaDataFile = Faker.fake();
     ctx
       .state
       .db
-      .store(path.clone(), meta.clone())
+      .store(file_path.clone(), meta.clone())
       .await
       .unwrap();
-    ctx.state.db.delete(path.clone()).await.unwrap().unwrap();
-    assert!(!ctx.state.db.exist(&path).unwrap());
+    ctx
+      .state
+      .db
+      .delete(file_path.clone())
+      .await
+      .unwrap()
+      .unwrap();
+    assert!(!ctx.state.db.exist(&file_path).unwrap());
   }
 
   #[test_context(StateTestContext)]
   #[tokio::test]
   async fn test_delete_file_that_does_not_exist(ctx: &mut StateTestContext) {
-    let mut path: FilePath = Faker.fake();
+    let mut file_path: FilePath = Faker.fake();
     let meta: MetaDataFile = Faker.fake();
     ctx
       .state
       .db
-      .store(path.clone(), meta.clone())
+      .store(file_path.clone(), meta.clone())
       .await
       .unwrap();
-    path.file_name = format!("{}.txt", Faker.fake::<String>());
-    let result = ctx.state.db.delete(path).await.unwrap();
+    file_path.file_name = format!("{}.txt", Faker.fake::<String>());
+    let result = ctx.state.db.delete(file_path).await.unwrap();
     assert!(result.is_none())
   }
 
   #[test_context(StateTestContext)]
   #[tokio::test]
   async fn test_fetch_file_that_does_not_exist(ctx: &mut StateTestContext) {
-    let mut path: FilePath = Faker.fake();
+    let mut file_path: FilePath = Faker.fake();
     let meta: MetaDataFile = Faker.fake();
     ctx
       .state
       .db
-      .store(path.clone(), meta.clone())
+      .store(file_path.clone(), meta.clone())
       .await
       .unwrap();
-    path.file_name = format!("{}.txt", Faker.fake::<String>());
-    let result = ctx.state.db.fetch(&path).unwrap();
+    file_path.file_name = format!("{}.txt", Faker.fake::<String>());
+    let result = ctx.state.db.fetch(&file_path).unwrap();
     assert!(result.is_none())
   }
 }
