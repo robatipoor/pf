@@ -183,8 +183,6 @@ pub async fn fetch(
     if meta_data.count_downloads >= max {
       state.db.delete(file_path.clone()).await?;
       return Err(ApiError::NotFoundError(format!("{file_path} not found")));
-    } else if meta_data.count_downloads + 1 == max {
-      // TODO set expire time
     }
   }
   let mut updated_meta_data = meta_data.clone();
