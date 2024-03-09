@@ -147,25 +147,44 @@ impl Database {
   }
 
   pub async fn purge(&self) -> ApiResult<Option<Duration>> {
+    let mut paths_should_delete = vec![];
+    let mut wakeup_next_time = None;
     match self.expires.write() {
       Ok(mut guard) => {
         let expires = &mut *guard;
         while let Some((expire_date, path)) = expires.iter().next().cloned() {
           let now = Utc::now();
           if expire_date < now {
-            self.inner.remove(&IVec::try_from(&path)?)?;
-            expires.remove(&(expire_date, path));
+            expires.remove(&(expire_date, path.clone()));
+            paths_should_delete.push(path);
           } else {
-            return Ok(Some((expire_date - now).to_std()?));
+            wakeup_next_time = Some((expire_date - now).to_std()?);
+            break;
           }
         }
       }
       Err(err) => {
-        tracing::error!("Failed to acquire expires lock: {err}");
+        tracing::error!("Failed to acquire expires lock, Error: {err}");
         return Err(ApiError::LockError(err.to_string()));
       }
     }
-    Ok(None)
+    self.remove_file(paths_should_delete).await?;
+    Ok(wakeup_next_time)
+  }
+
+  pub async fn remove_file(&self, paths: Vec<FilePath>) -> ApiResult {
+    for file_path in paths {
+      let key = IVec::try_from(&file_path)?;
+      if let Some(_meta) = self
+        .inner
+        .remove(&key)?
+        .map(MetaDataFile::try_from)
+        .transpose()?
+      {
+        // TODO remove files in fs
+      }
+    }
+    Ok(())
   }
 
   fn notify_gc(&self) {
@@ -194,14 +213,7 @@ mod tests {
   #[tokio::test]
   async fn test_store_file_and_fetch(ctx: &mut StateTestContext) {
     let path: FilePath = Faker.fake();
-    let meta = MetaDataFile {
-      created_at: Utc::now(),
-      expire_date_time: Utc::now() + chrono::Duration::seconds(10),
-      secret: None,
-      manual_deletion: true,
-      max_download: None,
-      count_downloads: 1,
-    };
+    let meta: MetaDataFile = Faker.fake();
     ctx
       .state
       .db
@@ -220,14 +232,7 @@ mod tests {
   #[tokio::test]
   async fn test_store_and_update_file(ctx: &mut StateTestContext) {
     let path: FilePath = Faker.fake();
-    let meta = MetaDataFile {
-      created_at: Utc::now(),
-      expire_date_time: Utc::now() + chrono::Duration::seconds(10),
-      secret: None,
-      manual_deletion: true,
-      max_download: None,
-      count_downloads: 0,
-    };
+    let meta: MetaDataFile = Faker.fake();
     ctx
       .state
       .db
@@ -253,14 +258,7 @@ mod tests {
   #[tokio::test]
   async fn test_store_file_and_check_it_existence(ctx: &mut StateTestContext) {
     let path: FilePath = Faker.fake();
-    let meta = MetaDataFile {
-      created_at: Utc::now(),
-      expire_date_time: Utc::now() + chrono::Duration::seconds(10),
-      secret: None,
-      manual_deletion: true,
-      max_download: None,
-      count_downloads: 0,
-    };
+    let meta: MetaDataFile = Faker.fake();
     ctx
       .state
       .db
@@ -274,14 +272,8 @@ mod tests {
   #[tokio::test]
   async fn test_store_file_and_expire_it(ctx: &mut StateTestContext) {
     let path: FilePath = Faker.fake();
-    let meta = MetaDataFile {
-      created_at: Utc::now(),
-      expire_date_time: Utc::now(),
-      secret: None,
-      manual_deletion: true,
-      max_download: None,
-      count_downloads: 0,
-    };
+    let mut meta: MetaDataFile = Faker.fake();
+    meta.expire_date_time = Utc::now();
     ctx
       .state
       .db
@@ -296,14 +288,7 @@ mod tests {
   #[tokio::test]
   async fn test_store_file_and_successfully_delete_it(ctx: &mut StateTestContext) {
     let path: FilePath = Faker.fake();
-    let meta = MetaDataFile {
-      created_at: Utc::now(),
-      expire_date_time: Utc::now() + chrono::Duration::seconds(10),
-      secret: None,
-      manual_deletion: true,
-      max_download: None,
-      count_downloads: 0,
-    };
+    let meta: MetaDataFile = Faker.fake();
     ctx
       .state
       .db
@@ -318,14 +303,7 @@ mod tests {
   #[tokio::test]
   async fn test_delete_file_that_does_not_exist(ctx: &mut StateTestContext) {
     let mut path: FilePath = Faker.fake();
-    let meta = MetaDataFile {
-      created_at: Utc::now(),
-      expire_date_time: Utc::now() + chrono::Duration::seconds(10),
-      secret: None,
-      manual_deletion: true,
-      max_download: None,
-      count_downloads: 0,
-    };
+    let meta: MetaDataFile = Faker.fake();
     ctx
       .state
       .db
@@ -341,14 +319,7 @@ mod tests {
   #[tokio::test]
   async fn test_fetch_file_that_does_not_exist(ctx: &mut StateTestContext) {
     let mut path: FilePath = Faker.fake();
-    let meta = MetaDataFile {
-      created_at: Utc::now(),
-      expire_date_time: Utc::now() + chrono::Duration::seconds(10),
-      secret: None,
-      manual_deletion: true,
-      max_download: None,
-      count_downloads: 0,
-    };
+    let meta: MetaDataFile = Faker.fake();
     ctx
       .state
       .db

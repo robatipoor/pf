@@ -21,7 +21,6 @@ impl GarbageCollectorTask {
           }
         }
         Ok(None) => {
-          // TODO remove unused files in fs
           self.state.db.waiting_for_notify().await;
         }
         Err(e) => {
