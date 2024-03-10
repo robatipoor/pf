@@ -1,5 +1,5 @@
 # PasteFile 📁 📥
-The service provides a convenient means of sharing files without the necessity for user accounts or a complicated setup. The accompanying code includes the server, encompassing everything you need to create your own instance.
+The service provides a convenient means of sharing files with easy setup. The code includes the server API and CLI client tool, encompassing everything you need to create your own instance.
 
 ![License](https://img.shields.io/github/license/robatipoor/pf)
 [![Lines Of Code](https://tokei.rs/b1/github/robatipoor/pf?category=code)](https://github.com/robatipoor/pf)
@@ -13,7 +13,6 @@ The service provides a convenient means of sharing files without the necessity f
 **Feature highlights**
 
 * Basic Authentication
-* Anonymous Uploads
 * File Expiration
 * Burn After Reading
 * Large File Support
@@ -56,6 +55,9 @@ $ docker run --name pf-api --rm -p 8080:8080 \
 **How to Use**
 
 ```sh
+# Open it in the default browser.
+$ open http://127.0.0.1:8080
+
 # Ping the server.
 $ curl -X GET http://127.0.0.1:8080/healthz
 
@@ -160,14 +162,14 @@ $ mv ~/.cargo/bin/cli ~/.cargo/bin/pf
 # Define an alias in the shell profile for 'pf' with server address
 $ alias pf="pf --server-addr http://localhost:8080"
 
-# Upload a file and retrieve the corresponding download URL.
-$ pf upload --source-file ~/example-file.txt --progress-bar
+# Encrypt and upload a file and retrieve the corresponding download URL.
+$ pf upload --source-file ~/example-file.txt --key-nonce "{key}:{nonce}" --progress-bar 
 
 # Upload a file with basic authentication and progress bar option.
 $ pf --auth "username:password" upload --source-file ~/example-file.txt
 
-# Upload a file with an expiration time of 10 minutes.
-$ pf upload --expire "10 minute" --source-file ~/example-file.txt
+# Upload a text with an expiration time of 10 minutes.
+$ echo 'Hello World!' | pf copy --expire "10 minute"
 
 # Upload a file and then display the QR code.
 $ pf upload --source-file ~/example-file.txt --output qr-code
@@ -175,8 +177,8 @@ $ pf upload --source-file ~/example-file.txt --output qr-code
 # Download a file with progress bar option.
 $ pf download --destination ~/example-dir/ --url-path "{code}/{file_name}" --progress-bar
 
-# Download a file.
-$ pf download --destination ~/example-dir/ --url-path "{code}/{file_name}"
+# Paste a file.
+$ pf paste --url-path "{code}/{file_name}" > my_file.txt
 
 # Get metadata for a file.
 $ pf info --url-path "{code}/{file_name}"

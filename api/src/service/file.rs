@@ -216,7 +216,7 @@ pub async fn delete(
 }
 
 pub fn read_file(config: &ApiConfig, file_path: &FilePath) -> ServeFile {
-  ServeFile::new(get_fs_path(&config.fs.base_dir, &file_path))
+  ServeFile::new(get_fs_path(&config.fs.base_dir, file_path))
 }
 
 pub fn authorize_user(secret: Option<Secret>, secret_hash: &Option<SecretHash>) -> ApiResult<()> {
