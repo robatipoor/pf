@@ -178,7 +178,6 @@ impl Database {
       self.inner.remove(&IVec::try_from(&file_path)?)?;
       tokio::fs::remove_file(get_fs_path(base_dir, &file_path)).await?;
     }
-    self.flush().await?;
     Ok(())
   }
 
