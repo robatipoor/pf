@@ -65,7 +65,10 @@ async fn test_upload_encrypt_and_download_decrypt_command(ctx: &mut CliTestConte
     .output()
     .unwrap()
     .stdout;
+  let encrypt_file = format!("{}.bin", file.to_str().unwrap());
+  assert!(!tokio::fs::try_exists(encrypt_file).await.unwrap());
   let url_path = std::str::from_utf8(&url_path).unwrap().trim();
+
   let destination_dir = ctx.workspace.join("destination_dir");
   tokio::fs::create_dir_all(&destination_dir).await.unwrap();
   Command::cargo_bin("cli")
@@ -83,7 +86,11 @@ async fn test_upload_encrypt_and_download_decrypt_command(ctx: &mut CliTestConte
     ])
     .assert()
     .success();
-  // TODO check encrypt file is not exist
+  let encrypt_file = destination_dir.join(format!(
+    "{}.bin",
+    file.file_name().unwrap().to_str().unwrap(),
+  ));
+  assert!(!tokio::fs::try_exists(encrypt_file).await.unwrap());
   let destination_file_path = destination_dir.join(file.file_name().unwrap());
   let actual_content = tokio::fs::read_to_string(destination_file_path)
     .await

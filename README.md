@@ -192,11 +192,6 @@ $ pf delete --url-path "{code}/{file_name}"
 $ ./test
 ```
 
-**Todo list**
-
-- [ ] Implement front-end application
-- [ ] Support Copy link
-
 **Check code formatting and typo at commit time**
 
 ```sh

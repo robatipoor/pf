@@ -45,4 +45,17 @@ impl FromStr for FileUrlPath {
   }
 }
 
-// TODO add tests
+#[cfg(test)]
+mod tests {
+
+  use super::*;
+
+  #[test]
+  fn test_from_str_file_url_path() {
+    FileUrlPath::from_str("/ABCD/filename").unwrap();
+    FileUrlPath::from_str("ABCD/filename.txt").unwrap();
+    assert!(FileUrlPath::from_str("//file").is_err());
+    assert!(FileUrlPath::from_str("file").is_err());
+    assert!(FileUrlPath::from_str("A/B/file").is_err());
+  }
+}
