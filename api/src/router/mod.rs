@@ -17,12 +17,12 @@ pub fn get_router(state: ApiState) -> ApiResult<Router> {
       .route("/:code/:file_name", get(handler::file::download))
       .route("/:code/:file_name", delete(handler::file::delete))
       .route("/", get(handler::index::page))
-      .layer(cors_layer(&state.config.server.domain)?)
+      .layer(cors_layer(&state.config.server.domain_name)?)
       .with_state(state),
   )
 }
 
-fn cors_layer(domain: &str) -> ApiResult<tower_http::cors::CorsLayer> {
+fn cors_layer(domain_name: &str) -> ApiResult<tower_http::cors::CorsLayer> {
   Ok(
     tower_http::cors::CorsLayer::new()
       .allow_methods([
@@ -31,7 +31,8 @@ fn cors_layer(domain: &str) -> ApiResult<tower_http::cors::CorsLayer> {
         hyper::Method::DELETE,
       ])
       .allow_origin(tower_http::cors::AllowOrigin::exact(
-        HeaderValue::from_str(domain).map_err(|e| anyhow!("Invalid domain url, Error: {e}"))?,
+        HeaderValue::from_str(domain_name)
+          .map_err(|e| anyhow!("Invalid domain url, Error: {e}"))?,
       ))
       .allow_headers([hyper::header::CONTENT_TYPE]),
   )

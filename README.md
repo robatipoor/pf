@@ -1,5 +1,5 @@
 # PasteFile 📁 📥
-The service provides a convenient means of sharing files with easy setup. The code includes the server API and CLI client tool, encompassing everything you need to create your own instance.
+The service provides a convenient and efficient way to share files. The code includes the server API and CLI client tool, encompassing everything you need to create your own instance.
 
 ![License](https://img.shields.io/github/license/robatipoor/pf)
 [![Lines Of Code](https://tokei.rs/b1/github/robatipoor/pf?category=code)](https://github.com/robatipoor/pf)
@@ -22,7 +22,7 @@ The service provides a convenient means of sharing files with easy setup. The co
 * Built-in TLS Server
 
 
-**Run Backend Service Locally**
+**Run API Service Locally**
 
 ```sh
 # Clone the project
@@ -37,7 +37,7 @@ $ ./target/release/api --settings api/settings/base.toml
 # Alternatively, Run backend with cargo
 $ cargo run --bin api
 ```
-**Run Backend Service via Docker**
+**Run API Service via Docker**
 
 ```sh
 # Build docker image
@@ -96,7 +96,7 @@ $ curl -X GET http://127.0.0.1:8080/info/{code}/{file_name}
 $ curl -X DELETE http://127.0.0.1:8080/{code}/{file_name}
 ```
 
-**Backend settings**
+**API settings**
 
 ```toml
 # api/settings/base.toml
@@ -123,8 +123,8 @@ host = "127.0.0.1"
 # Port number for the server
 port = 8080
 
-# Domain URL
-domain = "http://localhost:8080"
+# Domain name URL
+domain_name = "http://localhost:8080"
 
 # TLS key file path
 file_tls_key_path = "key.pem"
@@ -163,19 +163,16 @@ $ mv ~/.cargo/bin/cli ~/.cargo/bin/pf
 $ alias pf="pf --server-addr http://localhost:8080"
 
 # Encrypt and upload a file and retrieve the corresponding download URL.
-$ pf upload --source-file ~/example-file.txt --key-nonce "{key}:{nonce}" --progress-bar 
+$ pf upload --source-file ~/example-file.txt --key-nonce "{key}:{nonce}" --progress-bar
 
-# Upload a file with basic authentication and progress bar option.
-$ pf --auth "username:password" upload --source-file ~/example-file.txt
+# Download and decrypt a file.
+$ pf download --destination ~/example-dir/ --url-path "{code}/{file_name}" --key-nonce "{key}:{nonce}"
 
 # Upload a text with an expiration time of 10 minutes.
 $ echo 'Hello World!' | pf copy --expire "10 minute"
 
 # Upload a file and then display the QR code.
 $ pf upload --source-file ~/example-file.txt --output qr-code
-
-# Download a file with progress bar option.
-$ pf download --destination ~/example-dir/ --url-path "{code}/{file_name}" --progress-bar
 
 # Paste a file.
 $ pf paste --url-path "{code}/{file_name}" > my_file.txt

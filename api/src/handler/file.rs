@@ -29,7 +29,7 @@ pub async fn upload(
   let (file_path, expire_date_time) =
     service::file::store(&state, &param, secret, multipart).await?;
   let url = create_url(
-    &state.config.server.domain,
+    &state.config.server.domain_name,
     &file_path.code,
     &file_path.file_name,
   )?

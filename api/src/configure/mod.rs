@@ -29,7 +29,7 @@ pub struct ApiConfig {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct ServerConfig {
-  pub domain: String,
+  pub domain_name: String,
   pub schema: UrlSchema,
   pub host: String,
   pub port: u16,

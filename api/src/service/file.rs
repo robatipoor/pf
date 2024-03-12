@@ -1,6 +1,7 @@
 use crate::configure::ApiConfig;
 use crate::database::file_path::FilePath;
 use crate::database::meta_data_file::MetaDataFile;
+use crate::error::invalid_input_error;
 use crate::error::{
   result::{ApiResult, ToApiResult},
   ApiError,
@@ -37,7 +38,7 @@ pub async fn store(
     .expire_secs
     .unwrap_or(state.config.default_expire_secs) as i64;
   let now = Utc::now();
-  let expire_date_time = calc_expiration_date(now, expire_secs);
+  let expire_date_time = calc_expiration_date(now, expire_secs)?;
   let mut code_length = param
     .code_length
     .unwrap_or(state.config.default_code_length);
@@ -237,8 +238,10 @@ pub fn authorize_user(secret: Option<Secret>, secret_hash: &Option<SecretHash>) 
   Ok(())
 }
 
-pub fn calc_expiration_date(now: DateTime<Utc>, secs: i64) -> DateTime<Utc> {
-  now + chrono::Duration::seconds(secs)
+pub fn calc_expiration_date(now: DateTime<Utc>, expire_secs: i64) -> ApiResult<DateTime<Utc>> {
+  chrono::Duration::try_seconds(expire_secs)
+    .map(|s| now + s)
+    .ok_or_else(|| invalid_input_error("expire_secs", "Invalid expire seconds"))
 }
 
 #[cfg(test)]
