@@ -211,19 +211,35 @@ pub async fn delete(server_addr: String, url_path: FileUrlPath, auth: Option<(St
   }
 }
 
-pub async fn encrypt_file(key_nonce: &KeyNonce, source_file: &Path, mut destination: PathBuf) {
+pub async fn encrypt_file(
+  progress_bar: bool,
+  key_nonce: &KeyNonce,
+  source_file: &Path,
+  mut destination: PathBuf,
+) {
   if destination.is_dir() {
     destination = destination.join(add_extension(
       PathBuf::from(source_file.file_name().unwrap()),
       "bin",
     ));
   }
-  sdk::util::crypto::encrypt_file(key_nonce, source_file, destination)
-    .await
-    .unwrap();
+  if progress_bar {
+    crate::util::crypto::encrypt_file_with_progress_bar(key_nonce, source_file, destination)
+      .await
+      .unwrap();
+  } else {
+    sdk::util::crypto::encrypt_file(key_nonce, source_file, destination)
+      .await
+      .unwrap();
+  }
 }
 
-pub async fn decrypt_file(key_nonce: &KeyNonce, source_file: &Path, mut destination: PathBuf) {
+pub async fn decrypt_file(
+  progress_bar: bool,
+  key_nonce: &KeyNonce,
+  source_file: &Path,
+  mut destination: PathBuf,
+) {
   if destination.is_dir() {
     destination = destination
       .join(rm_extra_extension(PathBuf::from(source_file.file_name().unwrap())).unwrap());
@@ -231,9 +247,15 @@ pub async fn decrypt_file(key_nonce: &KeyNonce, source_file: &Path, mut destinat
   if source_file == destination {
     panic!("Please specify the valid destination file path.")
   }
-  sdk::util::crypto::decrypt_file(key_nonce, source_file, destination)
-    .await
-    .unwrap();
+  if progress_bar {
+    crate::util::crypto::decrypt_file_with_progress_bar(key_nonce, source_file, destination)
+      .await
+      .unwrap();
+  } else {
+    sdk::util::crypto::decrypt_file(key_nonce, source_file, destination)
+      .await
+      .unwrap();
+  }
 }
 
 fn print_response_err(err: &BodyResponseError) {

@@ -102,6 +102,7 @@ async fn main() {
       command::delete(server_addr, url_path, args.auth).await
     }
     SubCommand::Encrypt {
+      progress_bar,
       source_file,
       destination,
       key_nonce,
@@ -109,9 +110,10 @@ async fn main() {
       if destination.is_file() && destination == source_file {
         panic!("Destination file has an invalid path.")
       }
-      command::encrypt_file(&key_nonce, &source_file, destination).await;
+      command::encrypt_file(progress_bar, &key_nonce, &source_file, destination).await;
     }
     SubCommand::Decrypt {
+      progress_bar,
       source_file,
       destination,
       key_nonce,
@@ -119,7 +121,7 @@ async fn main() {
       if destination.is_file() && destination == source_file {
         panic!("Destination file has an invalid path.")
       }
-      command::decrypt_file(&key_nonce, &source_file, destination).await;
+      command::decrypt_file(progress_bar, &key_nonce, &source_file, destination).await;
     }
   };
 }

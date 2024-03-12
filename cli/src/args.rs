@@ -96,6 +96,8 @@ pub enum SubCommand {
   },
   #[clap(about = "Encrypt a file before uploading to the server")]
   Encrypt {
+    #[clap(default_value_t = false, short, long)]
+    progress_bar: bool,
     #[clap(short, long, value_parser = parse_source_file)]
     source_file: PathBuf,
     #[clap(short, long, value_parser = parse_destination)]
@@ -105,6 +107,8 @@ pub enum SubCommand {
   },
   #[clap(about = "Decrypt a file after downloading from the server")]
   Decrypt {
+    #[clap(default_value_t = false, short, long)]
+    progress_bar: bool,
     #[clap(short, long, value_parser = parse_source_file)]
     source_file: PathBuf,
     #[clap(short, long, value_parser = parse_destination)]
