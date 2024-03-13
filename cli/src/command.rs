@@ -56,9 +56,16 @@ pub async fn ping(server_addr: String) {
 pub async fn upload(args: UploadArguments) {
   let mut source_file = args.source_file;
   if let Some(key_nonce) = args.key_nonce.as_ref() {
-    source_file = crate::util::crypto::encrypt_upload_file(key_nonce, &source_file)
-      .await
-      .unwrap();
+    if args.progress_bar {
+      source_file =
+        crate::util::crypto::encrypt_upload_file_with_progress_bar(key_nonce, &source_file)
+          .await
+          .unwrap();
+    } else {
+      source_file = crate::util::crypto::encrypt_upload_file(key_nonce, &source_file)
+        .await
+        .unwrap();
+    }
   }
   let param = UploadQueryParam {
     max_download: args.max_download,
@@ -155,9 +162,18 @@ pub async fn download(
   match resp {
     ApiResponseResult::Ok(encrypt_source_file) => {
       if let Some(key_nonce) = key_nonce.as_ref() {
-        crate::util::crypto::decrypt_download_file(key_nonce, &encrypt_source_file)
+        if progress_bar {
+          crate::util::crypto::decrypt_download_file_with_progress_bar(
+            key_nonce,
+            &encrypt_source_file,
+          )
           .await
           .unwrap();
+        } else {
+          crate::util::crypto::decrypt_download_file(key_nonce, &encrypt_source_file)
+            .await
+            .unwrap();
+        }
       }
       println!("{}", serde_json::to_string(&MessageResponse::ok()).unwrap());
     }

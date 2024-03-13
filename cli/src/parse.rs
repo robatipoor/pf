@@ -59,8 +59,13 @@ pub fn parse_source_file(source_file: &str) -> anyhow::Result<PathBuf> {
 pub fn parse_destination(destination: &str) -> anyhow::Result<PathBuf> {
   let destination = PathBuf::from(destination);
   if let Some(file_name) = destination.file_name() {
-    if let Some(parent) = destination.parent() {
-      return Ok(parent.canonicalize()?.join(file_name));
+    match destination.parent() {
+      Some(parent) if !parent.as_os_str().is_empty() => {
+        return Ok(parent.canonicalize()?.join(file_name));
+      }
+      _ => {
+        return Ok(destination);
+      }
     }
   }
   Ok(destination.canonicalize()?)
@@ -68,4 +73,23 @@ pub fn parse_destination(destination: &str) -> anyhow::Result<PathBuf> {
 
 pub fn parse_file_url_path(file_path: &str) -> anyhow::Result<FileUrlPath> {
   FileUrlPath::from_str(file_path)
+}
+
+#[cfg(test)]
+mod tests {
+
+  use super::*;
+
+  #[test]
+  fn test_parse_destination() {
+    let result = parse_destination("file_name.txt").unwrap();
+    assert_eq!(PathBuf::from("file_name.txt"), result);
+    let result = parse_destination("//file_name.txt").unwrap();
+    assert_eq!(PathBuf::from("/file_name.txt"), result);
+    let result = parse_destination("./file_name.txt").unwrap();
+    assert_eq!(
+      std::env::current_dir().unwrap().join("file_name.txt"),
+      result
+    );
+  }
 }

@@ -53,6 +53,38 @@ pub async fn decrypt_download_file(
   Ok(())
 }
 
+pub async fn encrypt_upload_file_with_progress_bar(
+  key_nonce: &KeyNonce,
+  plaintext_file: impl AsRef<Path>,
+) -> anyhow::Result<PathBuf> {
+  let encrypted_file = add_extension(plaintext_file.as_ref(), "bin");
+  encrypt_file_with_progress_bar(key_nonce, plaintext_file, encrypted_file.as_path()).await?;
+  Ok(encrypted_file)
+}
+
+pub async fn decrypt_download_file_with_progress_bar(
+  key_nonce: &KeyNonce,
+  encrypted_file: impl AsRef<Path>,
+) -> anyhow::Result<()> {
+  let decrypted_file = rm_extra_extension(&encrypted_file).unwrap();
+  let destination_file =
+    add_parent_dir(&decrypted_file, &generate_random_string_with_prefix("tmp")).unwrap();
+  tokio::fs::create_dir(&destination_file.parent().unwrap())
+    .await
+    .unwrap();
+  decrypt_file_with_progress_bar(key_nonce, &encrypted_file, destination_file.as_path())
+    .await
+    .unwrap();
+  tokio::fs::remove_file(&encrypted_file).await.unwrap();
+  tokio::fs::rename(&destination_file, decrypted_file)
+    .await
+    .unwrap();
+  tokio::fs::remove_dir(destination_file.parent().unwrap())
+    .await
+    .unwrap();
+  Ok(())
+}
+
 pub async fn encrypt_file_with_progress_bar(
   key_nonce: &KeyNonce,
   plaintext_file: impl AsRef<Path>,
