@@ -142,6 +142,7 @@ where
         .encrypt_last(&buffer[..read_count])
         .map_err(|err| anyhow!("Encrypting file failed, Error: {err}"))?;
       writer.write_all(&ciphertext).await?;
+      pb.finish_with_message("Encrypt completed successfully.");
       break;
     }
   }
@@ -181,6 +182,7 @@ where
         .decrypt_last(&buffer[..read_count])
         .map_err(|err| anyhow!("Decrypting file failed, Error: {err}"))?;
       writer.write_all(&plaintext).await?;
+      pb.finish_with_message("Decrypt completed successfully.");
       break;
     }
   }

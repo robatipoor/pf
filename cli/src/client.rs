@@ -49,7 +49,7 @@ impl CommandLineClient {
                 uploaded += chunk.len() as u64;
                 pb.set_position(uploaded.min(total_size));
                 if uploaded >= total_size {
-                    pb.finish_with_message("File upload completed successfully.");
+                    pb.finish_with_message("Upload completed successfully.");
                 }
             }
             yield chunk;
@@ -96,7 +96,7 @@ impl CommandLineClient {
       downloaded += chunk.len() as u64;
       pb.set_position(downloaded.min(total_size));
     }
-    pb.finish_with_message("The download of the file has been completed successfully.");
+    pb.finish_with_message("Download completed successfully.");
     Ok((status, ApiResponseResult::Ok(destination)))
   }
 }
