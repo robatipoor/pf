@@ -54,7 +54,7 @@ chacha20poly1305 = { version = "0.10.1", features = ["stream"] }
 cuid2 = "0.1.2"
 fake = { version = "2.9.2", features = ['derive', 'uuid', 'chrono'] }
 futures-util = "0.3.30"
-indicatif = "0.17.8"
+indicatif = { version = "0.17.8", features = ["tokio"] }
 log = "0.4.21"
 mime_guess = "2.0.4"
 once_cell = { version = "1.19.0" }
