@@ -58,8 +58,8 @@ indicatif = "0.17.8"
 log = "0.4.21"
 mime_guess = "2.0.4"
 once_cell = { version = "1.19.0" }
-qrcode = "0.13"
-image = "0.24.9"
+qrcode = "0.14.0"
+image = "0.25.0"
 rand = "0.8.5"
 reqwest = { version = "0.11.25", default-features = false, features = [
   "json",

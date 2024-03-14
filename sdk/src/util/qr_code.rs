@@ -1,7 +1,7 @@
 use std::io::Cursor;
 
 use base64::{engine::general_purpose::STANDARD, Engine};
-use image::{ImageOutputFormat, Luma};
+use image::{ImageFormat, Luma};
 use qrcode::QrCode;
 
 pub fn generate_text_qr_code(input: &str) -> anyhow::Result<String> {
@@ -25,7 +25,7 @@ pub fn generate_base64_png_qr_code(input: &str) -> anyhow::Result<String> {
     .module_dimensions(20, 20)
     .build();
   let mut buff = Cursor::new(Vec::new());
-  qr_code.write_to(&mut buff, ImageOutputFormat::Png)?;
+  qr_code.write_to(&mut buff, ImageFormat::Png)?;
   Ok(STANDARD.encode(buff.into_inner()))
 }
 
