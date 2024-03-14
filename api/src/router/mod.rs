@@ -1,4 +1,4 @@
-use crate::{error::result::ApiResult, handler, server::ApiState};
+use crate::{configure::ServerConfig, error::result::ApiResult, handler, server::ApiState};
 use anyhow::anyhow;
 use axum::{
   extract::DefaultBodyLimit,
@@ -17,12 +17,21 @@ pub fn get_router(state: ApiState) -> ApiResult<Router> {
       .route("/:code/:file_name", get(handler::file::download))
       .route("/:code/:file_name", delete(handler::file::delete))
       .route("/", get(handler::index::page))
-      .layer(cors_layer(&state.config.server.domain_name)?)
+      .layer(cors_layer(&state.config.server)?)
       .with_state(state),
   )
 }
 
-fn cors_layer(domain_name: &str) -> ApiResult<tower_http::cors::CorsLayer> {
+fn cors_layer(config: &ServerConfig) -> ApiResult<tower_http::cors::CorsLayer> {
+  let domain = HeaderValue::from_str(&config.domain_name)
+    .map_err(|e| anyhow!("Invalid domain url, Error: {e}"))?;
+  let allow_origin = if let Some(ref public_addr) = config.public_addr {
+    let public_addr =
+      HeaderValue::from_str(public_addr).map_err(|e| anyhow!("Invalid public_addr, Error: {e}"))?;
+    tower_http::cors::AllowOrigin::list(vec![public_addr, domain])
+  } else {
+    tower_http::cors::AllowOrigin::exact(domain)
+  };
   Ok(
     tower_http::cors::CorsLayer::new()
       .allow_methods([
@@ -30,10 +39,7 @@ fn cors_layer(domain_name: &str) -> ApiResult<tower_http::cors::CorsLayer> {
         hyper::Method::POST,
         hyper::Method::DELETE,
       ])
-      .allow_origin(tower_http::cors::AllowOrigin::exact(
-        HeaderValue::from_str(domain_name)
-          .map_err(|e| anyhow!("Invalid domain url, Error: {e}"))?,
-      ))
+      .allow_origin(allow_origin)
       .allow_headers([hyper::header::CONTENT_TYPE]),
   )
 }
