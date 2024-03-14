@@ -15,7 +15,6 @@ use sdk::{
 use futures_util::StreamExt;
 use reqwest::StatusCode;
 use tokio::io::AsyncWriteExt;
-use tokio_util::io::ReaderStream;
 
 use crate::util::progress::progress_bar;
 
@@ -40,25 +39,16 @@ impl CommandLineClient {
     let content_type = sdk::util::file::get_content_type(source)?;
     let file = tokio::fs::File::open(source).await?;
     let total_size = file.metadata().await?.len();
-    let mut reader_stream = ReaderStream::new(file);
     let pb = progress_bar(total_size)?;
-    let mut uploaded = 0;
-    let async_stream = async_stream::stream! {
-        while let Some(chunk) = reader_stream.next().await {
-            if let Ok(chunk) = &chunk {
-                uploaded += chunk.len() as u64;
-                pb.set_position(uploaded.min(total_size));
-                if uploaded >= total_size {
-                    pb.finish_with_message("Upload completed successfully.");
-                }
-            }
-            yield chunk;
-        }
-    };
-    let file_part = reqwest::multipart::Part::stream(reqwest::Body::wrap_stream(async_stream))
-      .file_name(file_name.clone())
-      .mime_str(&content_type)?;
-    self.upload_file_part(file_part, param, auth).await
+    self
+      .upload_reader(
+        file_name,
+        &content_type,
+        pb.wrap_async_read(file),
+        param,
+        auth,
+      )
+      .await
   }
 
   pub async fn download_with_progress_bar(
