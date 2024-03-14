@@ -11,6 +11,7 @@ use std::{
 use self::env::get_env_source;
 
 pub mod args;
+pub mod cors;
 pub mod env;
 
 pub static CONFIG: Lazy<ApiConfig> =
