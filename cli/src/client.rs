@@ -41,7 +41,7 @@ impl CommandLineClient {
     let total_size = file.metadata().await?.len();
     let pb = progress_bar(total_size)?;
     self
-      .upload_reader(
+      .upload_from_reader(
         file_name,
         &content_type,
         pb.wrap_async_read(file),

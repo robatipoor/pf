@@ -126,7 +126,7 @@ impl PasteFileClient {
     self.upload_file_part(file_part, param, auth).await
   }
 
-  pub async fn upload_reader<R>(
+  pub async fn upload_from_reader<R>(
     &self,
     file_name: String,
     content_type: &str,
@@ -154,11 +154,11 @@ impl PasteFileClient {
     let content_type = crate::util::file::get_content_type(source)?;
     let file = tokio::fs::File::open(source).await?;
     self
-      .upload_reader(file_name, &content_type, file, param, auth)
+      .upload_from_reader(file_name, &content_type, file, param, auth)
       .await
   }
 
-  pub async fn download_and_write<W>(
+  pub async fn download_to_writer<W>(
     &self,
     url_path: &FileUrlPath,
     auth: Option<(String, String)>,

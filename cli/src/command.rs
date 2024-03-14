@@ -114,7 +114,7 @@ where
       .await
   } else {
     client
-      .upload_reader(args.file_name, "text/plain", reader, &param, args.auth)
+      .upload_from_reader(args.file_name, "text/plain", reader, &param, args.auth)
       .await
   }
   .unwrap();
@@ -196,7 +196,7 @@ pub async fn paste<W>(
       .download_and_decrypt(key_nonce, &url_path, auth, writer)
       .await
   } else {
-    client.download_and_write(&url_path, auth, writer).await
+    client.download_to_writer(&url_path, auth, writer).await
   }
   .unwrap();
 
