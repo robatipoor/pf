@@ -30,6 +30,7 @@ pub async fn decrypt_download_file(
     .await
     .unwrap();
   tokio::fs::remove_file(&encrypted_file).await.unwrap();
+  println!("{:?}------{:?}", destination_file, decrypted_file);
   tokio::fs::rename(&destination_file, decrypted_file)
     .await
     .unwrap();

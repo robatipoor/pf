@@ -150,11 +150,13 @@ pub async fn download(
   auth: Option<(String, String)>,
   progress_bar: bool,
   url_path: FileUrlPath,
-  destination: PathBuf,
+  mut destination: PathBuf,
   key_nonce: Option<KeyNonce>,
 ) {
   let client = CommandLineClient::new(server_addr);
-  // let destination = add_extension(destination, "bin");
+  if key_nonce.is_some() && destination.is_file() {
+    destination = add_extension(destination, "bin");
+  }
   let (_, resp) = if progress_bar {
     client
       .download_with_progress_bar(&url_path, auth, destination)
