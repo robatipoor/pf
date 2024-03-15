@@ -1,3 +1,4 @@
+pub mod assert;
 pub mod crypto;
 pub mod dir;
 pub mod file;

@@ -79,6 +79,7 @@ pub fn parse_file_url_path(file_path: &str) -> anyhow::Result<FileUrlPath> {
 mod tests {
 
   use super::*;
+  use sdk::assert_err;
 
   #[test]
   fn test_parse_destination() {
@@ -91,5 +92,25 @@ mod tests {
       std::env::current_dir().unwrap().join("file_name.txt"),
       result
     );
+    let result = parse_destination("/foo/bar/test.txt");
+    assert_err!(result);
+  }
+
+  #[test]
+  fn test_parse_key_nonce() {
+    let result = parse_key_nonce("test");
+    assert_err!(result);
+  }
+
+  #[test]
+  fn test_parse_auth() {
+    let result = parse_auth("test");
+    assert_err!(result);
+  }
+
+  #[test]
+  fn test_parse_source_file() {
+    let result = parse_source_file("foo/bar");
+    assert_err!(result);
   }
 }

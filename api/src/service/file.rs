@@ -248,12 +248,9 @@ pub fn calc_expiration_date(now: DateTime<Utc>, expire_secs: i64) -> ApiResult<D
 mod tests {
 
   use super::*;
-  use crate::{
-    assert_err,
-    util::{multipart::create_multipart_request, test::StateTestContext},
-  };
-
+  use crate::util::{multipart::create_multipart_request, test::StateTestContext};
   use fake::{Fake, Faker};
+  use sdk::assert_err;
   use test_context::test_context;
 
   #[test_context(StateTestContext)]

@@ -29,6 +29,14 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Push the Docker image with the release tag
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./api/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/pf-api:${{ github.ref_name}}
 
       - name: Push the latest Docker image
         uses: docker/build-push-action@v4
@@ -37,14 +45,6 @@ jobs:
           file: ./api/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/pf-api:latest
-
-      - name: Push the Docker image with the release tag
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: ./api/Dockerfile
-          push: true
-          tags: ghcr.io/${{ github.repository_owner }}/pf-api:${{ github.ref_name}}
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
