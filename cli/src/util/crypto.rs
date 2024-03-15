@@ -39,15 +39,6 @@ pub async fn decrypt_download_file(
   Ok(())
 }
 
-pub async fn encrypt_upload_file_with_progress_bar(
-  key_nonce: &KeyNonce,
-  plaintext_file: impl AsRef<Path>,
-) -> anyhow::Result<PathBuf> {
-  let encrypted_file = add_extension(plaintext_file.as_ref(), "bin");
-  encrypt_file_with_progress_bar(key_nonce, plaintext_file, encrypted_file.as_path()).await?;
-  Ok(encrypted_file)
-}
-
 pub async fn decrypt_download_file_with_progress_bar(
   key_nonce: &KeyNonce,
   encrypted_file: impl AsRef<Path>,
@@ -80,7 +71,15 @@ pub async fn encrypt_file_with_progress_bar(
   let writer = File::create(destination_file).await?;
   let total_size = reader.metadata().await?.len();
   let pb = progress_bar(total_size)?;
-  encrypt(key_nonce, pb.wrap_async_read(reader), writer).await?;
+  encrypt(
+    key_nonce,
+    pb.wrap_async_read(reader)
+      .with_finish(indicatif::ProgressFinish::WithMessage(
+        "Encrypt completed successfully.".into(),
+      )),
+    writer,
+  )
+  .await?;
   Ok(())
 }
 
@@ -93,7 +92,15 @@ pub async fn decrypt_file_with_progress_bar(
   let writer = File::create(destination_file).await?;
   let total_size = reader.metadata().await?.len();
   let pb = progress_bar(total_size)?;
-  decrypt(key_nonce, pb.wrap_async_read(reader), writer).await?;
+  decrypt(
+    key_nonce,
+    pb.wrap_async_read(reader)
+      .with_finish(indicatif::ProgressFinish::WithMessage(
+        "Decrypt completed successfully.".into(),
+      )),
+    writer,
+  )
+  .await?;
   Ok(())
 }
 

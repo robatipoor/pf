@@ -44,7 +44,10 @@ impl CommandLineClient {
       .upload_from_reader(
         file_name,
         &content_type,
-        pb.wrap_async_read(file),
+        pb.wrap_async_read(file)
+          .with_finish(indicatif::ProgressFinish::WithMessage(
+            "Upload completed successfully.".into(),
+          )),
         param,
         auth,
       )

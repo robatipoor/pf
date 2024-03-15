@@ -13,7 +13,9 @@ use std::path::{Path, PathBuf};
 use tokio::io::{AsyncRead, AsyncWrite};
 use url::Url;
 
-use crate::{args::UploadOutput, client::CommandLineClient};
+use crate::{
+  args::UploadOutput, client::CommandLineClient, util::crypto::encrypt_file_with_progress_bar,
+};
 
 #[derive(Debug)]
 pub struct UploadArguments {
@@ -57,10 +59,11 @@ pub async fn upload(args: UploadArguments) {
   let mut source_file = args.source_file;
   if let Some(key_nonce) = args.key_nonce.as_ref() {
     if args.progress_bar {
-      source_file =
-        crate::util::crypto::encrypt_upload_file_with_progress_bar(key_nonce, &source_file)
-          .await
-          .unwrap();
+      let encrypted_file = add_extension(&source_file, "bin");
+      encrypt_file_with_progress_bar(key_nonce, source_file, encrypted_file.as_path())
+        .await
+        .unwrap();
+      source_file = encrypted_file;
     } else {
       source_file = crate::util::crypto::encrypt_upload_file(key_nonce, &source_file)
         .await
@@ -151,6 +154,7 @@ pub async fn download(
   key_nonce: Option<KeyNonce>,
 ) {
   let client = CommandLineClient::new(server_addr);
+  // let destination = add_extension(destination, "bin");
   let (_, resp) = if progress_bar {
     client
       .download_with_progress_bar(&url_path, auth, destination)
