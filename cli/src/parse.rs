@@ -34,12 +34,13 @@ pub fn parse_expire_time(input: &str) -> anyhow::Result<u64> {
   }
   let value: u64 = words[0].parse()?;
   let multiplier = match words[1].to_lowercase().as_str() {
-    "second" | "sec" | "s" => value,
-    "minute" | "min" => value * 60,
-    "hour" | "h" => value * 3600,
-    "day" | "d" => value * 3600 * 24,
-    "month" => value * 3600 * 24 * 30,
-    "year" | "y" => value * 3600 * 24 * 30 * 12,
+    "second" | "sec" | "s" => 1,
+    "minute" | "min" => 60,
+    "hour" | "h" => 3600,
+    "day" | "d" => 3600 * 24,
+    "week" | "w" => 3600 * 24 * 7,
+    "month" => 3600 * 24 * 30,
+    "year" | "y" => 3600 * 24 * 30 * 12,
     _ => return Err(anyhow!("Invalid expire time format")),
   };
   Ok(value * multiplier)
@@ -79,7 +80,47 @@ pub fn parse_file_url_path(file_path: &str) -> anyhow::Result<FileUrlPath> {
 mod tests {
 
   use super::*;
-  use sdk::assert_err;
+  use fake::{Fake, Faker};
+  use sdk::{assert_err, util::random::generate_random_string};
+
+  #[test]
+  fn test_parse_key_nonce() {
+    let key = generate_random_string(32);
+    let nonce = generate_random_string(19);
+    parse_key_nonce(&format!("{key}:{nonce}")).unwrap();
+    let result = parse_key_nonce("key:nonce");
+    assert_err!(result);
+  }
+
+  #[test]
+  fn test_parse_auth() {
+    let username: String = Faker.fake();
+    let password: String = Faker.fake();
+    let (actual_user, actual_pass) = parse_auth(&format!("{username}:{password}")).unwrap();
+    assert_eq!(username, actual_user);
+    assert_eq!(password, actual_pass);
+    let result = parse_auth("test");
+    assert_err!(result);
+  }
+
+  #[test]
+  fn test_parse_expire_time() {
+    assert_eq!(parse_expire_time("1 s").unwrap(), 1);
+    assert_eq!(parse_expire_time("10 sec").unwrap(), 10);
+    assert_eq!(parse_expire_time("10 min").unwrap(), 600);
+    assert_eq!(parse_expire_time("10 day").unwrap(), 864000);
+    assert_eq!(parse_expire_time("1 week").unwrap(), 604800);
+    assert_eq!(parse_expire_time("1 hour").unwrap(), 3600);
+    assert_eq!(parse_expire_time("1 y").unwrap(), 31104000);
+    let result = parse_expire_time("125y");
+    assert_err!(result);
+  }
+
+  #[test]
+  fn test_parse_source_file() {
+    let result = parse_source_file("foo/bar/file.txt");
+    assert_err!(result);
+  }
 
   #[test]
   fn test_parse_destination() {
@@ -93,24 +134,6 @@ mod tests {
       result
     );
     let result = parse_destination("/foo/bar/test.txt");
-    assert_err!(result);
-  }
-
-  #[test]
-  fn test_parse_key_nonce() {
-    let result = parse_key_nonce("test");
-    assert_err!(result);
-  }
-
-  #[test]
-  fn test_parse_auth() {
-    let result = parse_auth("test");
-    assert_err!(result);
-  }
-
-  #[test]
-  fn test_parse_source_file() {
-    let result = parse_source_file("foo/bar");
     assert_err!(result);
   }
 }
