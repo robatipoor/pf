@@ -170,7 +170,7 @@ async fn test_upload_encrypt_and_download_decrypt_command_to_the_destination_fil
     .success();
   let encrypt_file = add_extension(&destination_file_path, "bin");
   assert!(!tokio::fs::try_exists(encrypt_file).await.unwrap());
-  let actual_content = tokio::fs::read_to_string(ctx.workspace.join("destination_file"))
+  let actual_content = tokio::fs::read_to_string(destination_file_path)
     .await
     .unwrap();
   assert_eq!(actual_content, expected_content);

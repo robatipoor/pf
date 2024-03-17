@@ -154,7 +154,7 @@ pub async fn download(
   key_nonce: Option<KeyNonce>,
 ) {
   let client = CommandLineClient::new(server_addr);
-  if key_nonce.is_some() && destination.is_file() {
+  if key_nonce.is_some() && destination.extension().is_some() {
     destination = add_extension(destination, "bin");
   }
   let (_, resp) = if progress_bar {
