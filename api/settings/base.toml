@@ -17,7 +17,7 @@ port = 8080
 # Domain name URL
 domain_name = "localhost:8080"
 # Public IP address
-public_addr = "192.168.100.130:8080"
+public_addr = "127.0.0.1:8080"
 # TLS key file path
 file_tls_key_path = "key.pem"
 # TLS certificate file path
