@@ -40,14 +40,15 @@ $ cargo run --bin api
 **Run API Service via Docker**
 
 ```sh
-# Build docker image
+# Pull the image from the github registry and run container
+$ docker run --name pf-api --rm -p 8080:8080 -d ghcr.io/robatipoor/pf-api:latest
+
+# Alternatively, if you need to configure the server with custom settings,
+# edit api/settings/base.toml and then build the Docker image.
 $ docker build -t pf-api:latest -f api/Dockerfile .
 
 # Run Docker container on address 0.0.0.0:8080
 $ docker run --name pf-api --rm -p 8080:8080 -d pf-api:latest
-
-# Alternatively, you can pull the image from the github registry and run container
-$ docker run --name pf-api --rm -p 8080:8080 -d ghcr.io/robatipoor/pf-api:latest
 ```
 
 **How to Use**
@@ -125,7 +126,7 @@ port = 8080
 domain_name = "localhost:8080"
 
 # Public IP address
-public_addr = "192.168.100.130:8080"
+public_addr = "192.168.1.1:8080"
 
 # TLS key file path
 file_tls_key_path = "key.pem"
@@ -163,10 +164,10 @@ $ mv ~/.cargo/bin/cli ~/.cargo/bin/pf
 # Define an alias in the shell profile for 'pf' with server address
 $ alias pf="pf --server-addr http://localhost:8080"
 
-# Copy a text content to the server with an expiration time of 10 minutes.
+# Copy text content to the server with an expiration time of 10 minutes.
 $ echo 'Hello World!' | pf copy --expire "10 minute"
 
-# Paste a text content to the file.
+# Paste text content into the file.
 $ pf paste --url-path "{code}/{file_name}" > my_file.txt
 
 # Encrypt and upload a file and retrieve the corresponding download URL.

@@ -24,9 +24,8 @@ use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use tokio_util::io::{ReaderStream, StreamReader};
 
 pub static CLIENT: Lazy<reqwest::Client> = Lazy::new(|| {
-  let disable_redirect = reqwest::redirect::Policy::custom(|attempt| attempt.stop());
   reqwest::Client::builder()
-    .redirect(disable_redirect)
+    .redirect(reqwest::redirect::Policy::custom(|attempt| attempt.stop()))
     .build()
     .unwrap()
 });
