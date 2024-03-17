@@ -10,7 +10,7 @@ pub struct IndexPage<'a> {
 
 pub async fn page(State(state): State<ApiState>) -> ApiResult<Html<String>> {
   let page = IndexPage {
-    domain: &state.config.server.domain_name,
+    domain: &state.config.server.get_domain_name(),
   };
   Ok(Html(page.render()?))
 }

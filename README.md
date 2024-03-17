@@ -122,7 +122,10 @@ host = "127.0.0.1"
 port = 8080
 
 # Domain name URL
-domain_name = "http://localhost:8080"
+domain_name = "localhost:8080"
+
+# Public IP address
+public_addr = "192.168.100.130:8080"
 
 # TLS key file path
 file_tls_key_path = "key.pem"

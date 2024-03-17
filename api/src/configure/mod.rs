@@ -30,13 +30,13 @@ pub struct ApiConfig {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct ServerConfig {
-  pub domain_name: String,
-  pub public_addr: Option<String>,
+  domain_name: String,
+  public_addr: Option<String>,
   pub schema: UrlSchema,
-  pub host: String,
+  host: String,
   pub port: u16,
-  pub file_tls_key_path: Option<String>,
-  pub file_tls_cert_path: Option<String>,
+  file_tls_key_path: Option<String>,
+  file_tls_cert_path: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Clone, strum::Display, Copy)]
@@ -62,6 +62,17 @@ pub struct FileSystemConfig {
 impl ServerConfig {
   pub fn get_http_addr(&self) -> String {
     format!("{}://{}:{}", self.schema, self.host, self.port)
+  }
+
+  pub fn get_domain_name(&self) -> String {
+    format!("{}://{}", self.schema, self.domain_name)
+  }
+
+  pub fn get_public_addr(&self) -> Option<String> {
+    self
+      .public_addr
+      .as_ref()
+      .map(|addr| format!("{}://{addr}", self.schema))
   }
 
   pub fn get_socket_addr(&self) -> Result<SocketAddr, AddrParseError> {

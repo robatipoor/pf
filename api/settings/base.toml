@@ -11,13 +11,13 @@ allow_manual_deletion = true
 # Communication protocol (e.g., "http" or "https")
 schema = "http"
 # Host IP address for the server
-host = "127.0.0.1"
+host = "0.0.0.0"
 # Port number for the server
 port = 8080
 # Domain name URL
-domain_name = "http://localhost:8080"
+domain_name = "localhost:8080"
 # Public IP address
-public_addr = "http://127.0.0.1:8080"
+public_addr = "192.168.100.130:8080"
 # TLS key file path
 file_tls_key_path = "key.pem"
 # TLS certificate file path
