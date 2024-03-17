@@ -160,20 +160,20 @@ $ mv ~/.cargo/bin/cli ~/.cargo/bin/pf
 # Define an alias in the shell profile for 'pf' with server address
 $ alias pf="pf --server-addr http://localhost:8080"
 
+# Copy a text content to the server with an expiration time of 10 minutes.
+$ echo 'Hello World!' | pf copy --expire "10 minute"
+
+# Paste a text content to the file.
+$ pf paste --url-path "{code}/{file_name}" > my_file.txt
+
 # Encrypt and upload a file and retrieve the corresponding download URL.
 $ pf upload --source-file ~/example-file.txt --key-nonce "{key}:{nonce}" --progress-bar
 
 # Download and decrypt a file.
 $ pf download --destination ~/example-dir/ --url-path "{code}/{file_name}" --key-nonce "{key}:{nonce}"
 
-# Upload a text with an expiration time of 10 minutes.
-$ echo 'Hello World!' | pf copy --expire "10 minute"
-
 # Upload a file and then display the QR code.
 $ pf upload --source-file ~/example-file.txt --output qr-code
-
-# Paste a file.
-$ pf paste --url-path "{code}/{file_name}" > my_file.txt
 
 # Get metadata for a file.
 $ pf info --url-path "{code}/{file_name}"
