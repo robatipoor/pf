@@ -1,7 +1,7 @@
 use sdk::{
   dto::{
     request::UploadQueryParam,
-    response::{ApiResponseResult, BodyResponseError, MessageResponse, UploadResponse},
+    response::{ApiResponseResult, BodyResponseError, UploadResponse},
     FileUrlPath,
   },
   util::{
@@ -159,29 +159,31 @@ pub async fn download(
   }
   let (_, resp) = if progress_bar {
     client
-      .download_with_progress_bar(&url_path, auth, destination)
+      .download_with_progress_bar(&url_path, auth, destination.clone())
       .await
   } else {
-    client.download_file(&url_path, auth, destination).await
+    client
+      .download_file(&url_path, auth, destination.clone())
+      .await
   }
   .unwrap();
   match resp {
     ApiResponseResult::Ok(encrypt_source_file) => {
       if let Some(key_nonce) = key_nonce.as_ref() {
         if progress_bar {
-          crate::util::crypto::decrypt_download_file_with_progress_bar(
+          destination = crate::util::crypto::decrypt_download_file_with_progress_bar(
             key_nonce,
             &encrypt_source_file,
           )
           .await
           .unwrap();
         } else {
-          crate::util::crypto::decrypt_download_file(key_nonce, &encrypt_source_file)
+          destination = crate::util::crypto::decrypt_download_file(key_nonce, &encrypt_source_file)
             .await
             .unwrap();
         }
       }
-      println!("{}", serde_json::to_string(&MessageResponse::ok()).unwrap());
+      println!("{}", serde_json::json!({"output":destination}));
     }
     ApiResponseResult::Err(err) => print_response_err(&err),
   }

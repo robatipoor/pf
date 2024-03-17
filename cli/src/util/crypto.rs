@@ -19,7 +19,7 @@ pub async fn encrypt_upload_file(
 pub async fn decrypt_download_file(
   key_nonce: &KeyNonce,
   encrypted_file: impl AsRef<Path>,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<PathBuf> {
   let decrypted_file = rm_extra_extension(&encrypted_file).unwrap();
   let destination_file =
     add_parent_dir(&decrypted_file, &generate_random_string_with_prefix("tmp")).unwrap();
@@ -30,20 +30,19 @@ pub async fn decrypt_download_file(
     .await
     .unwrap();
   tokio::fs::remove_file(&encrypted_file).await.unwrap();
-  println!("{:?}------{:?}", destination_file, decrypted_file);
-  tokio::fs::rename(&destination_file, decrypted_file)
+  tokio::fs::rename(&destination_file, &decrypted_file)
     .await
     .unwrap();
   tokio::fs::remove_dir(destination_file.parent().unwrap())
     .await
     .unwrap();
-  Ok(())
+  Ok(decrypted_file)
 }
 
 pub async fn decrypt_download_file_with_progress_bar(
   key_nonce: &KeyNonce,
   encrypted_file: impl AsRef<Path>,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<PathBuf> {
   let decrypted_file = rm_extra_extension(&encrypted_file).unwrap();
   let destination_file =
     add_parent_dir(&decrypted_file, &generate_random_string_with_prefix("tmp")).unwrap();
@@ -54,13 +53,13 @@ pub async fn decrypt_download_file_with_progress_bar(
     .await
     .unwrap();
   tokio::fs::remove_file(&encrypted_file).await.unwrap();
-  tokio::fs::rename(&destination_file, decrypted_file)
+  tokio::fs::rename(&destination_file, &decrypted_file)
     .await
     .unwrap();
   tokio::fs::remove_dir(destination_file.parent().unwrap())
     .await
     .unwrap();
-  Ok(())
+  Ok(decrypted_file)
 }
 
 pub async fn encrypt_file_with_progress_bar(
