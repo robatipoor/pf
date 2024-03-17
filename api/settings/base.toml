@@ -11,7 +11,7 @@ allow_manual_deletion = true
 # Communication protocol (e.g., "http" or "https")
 schema = "http"
 # Host IP address for the server
-host = "0.0.0.0"
+host = "127.0.0.1"
 # Port number for the server
 port = 8080
 # Domain name URL
