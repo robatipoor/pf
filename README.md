@@ -44,12 +44,10 @@ $ cargo run --bin api
 $ docker build -t pf-api:latest -f api/Dockerfile .
 
 # Run Docker container on address 0.0.0.0:8080
-$ docker run --name pf-api --rm -p 8080:8080 \
--e PF__SERVER__HOST='0.0.0.0' -d pf-api:latest
+$ docker run --name pf-api --rm -p 8080:8080 -d pf-api:latest
 
 # Alternatively, you can pull the image from the github registry and run container
-$ docker run --name pf-api --rm -p 8080:8080 \
--e PF__SERVER__HOST='0.0.0.0' -d ghcr.io/robatipoor/pf-api:latest
+$ docker run --name pf-api --rm -p 8080:8080 -d ghcr.io/robatipoor/pf-api:latest
 ```
 
 **How to Use**

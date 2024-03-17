@@ -26,6 +26,7 @@ COPY --from=builder /workspace/target/release/api .
 EXPOSE 8080
 
 ENV RUST_LOG info
+ENV PF__SERVER__HOST '0.0.0.0'
 
 # run the binary
 ENTRYPOINT ["./api","--settings","settings/base.toml"]
