@@ -24,7 +24,7 @@
             width: 50%;
             background-color: #f1f1f1;
             margin-bottom: 20px;
-            border: 3px solid green;
+            border: 3px solid rgb(255, 255, 255);
             margin: auto;
             &.is-active {
                 display: block;
@@ -55,7 +55,7 @@
 
         .success {
             display: none;
-            background: #E1F8ED;
+            background: #ffffff;
             padding: 20px;
             margin-top: 16px;
             margin-bottom: 16px;
@@ -72,49 +72,47 @@
     <div class="col-md-6 offset-md-3 mt-5">
         <form accept-charset="UTF-8" action="{{ domain }}/upload" method="POST" enctype="multipart/form-data"
             target="_blank" id="ajaxForm">
-            <div class="form-group">
+            <div class="form-group mr-3">
                 <label for="codeLength">Code length: </label>
                 <input type="number" name="codeLength" class="form-control" id="codeLength"
                     aria-describedby="codeLengthHelp" placeholder="Enter number length">
             </div>
-            <div class="form-group">
+            <br>
+            <div class="form-group mr-3">
                 <label for="expireSecs">Expire time: </label>
                 <input type="number" name="expireSecs" class="form-control" id="expireSecs"
                     placeholder="Enter expire seconds">
             </div>
-            <div class="form-group">
+            <br>
+            <div class="form-group mr-3">
                 <label for="maxDownload">Maximum download: </label>
                 <input type="number" name="maxDownload" class="form-control" id="maxDownload"
                     placeholder="Enter max downloads">
             </div>
-            <div class="form-group">
+            <br>
+            <div class="form-group mr-3">
                 <label for="username">Username: </label>
                 <input type="text" name="Username" class="form-control" id="username" placeholder="Enter username">
             </div>
-            <div class="form-group">
+            <br>
+            <div class="form-group mr-3">
                 <label for="password">Password: </label>
                 <input type="password" name="Password" class="form-control" id="password" placeholder="Enter password">
             </div>
-            <div class="form-group">
+            <br>
+            <div class="form-group mr-3">
                 <label for="allowManualDeletion">Allow manual deletion: </label>
                 <select class="form-control" id="allowManualDeletion" name="platform">
                     <option>True</option>
                     <option>False</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label for="input">Input: </label>
-                <select class="form-control" id="input" name="platform">
-                    <option>File</option>
-                    <option>Clipboard</option>
-                </select>
-            </div>
-            <hr>
-            <div class="form-group mt-3">
-                <label class="mr-2">File:</label>
+            <br>
+            <div class="form-group mr-3">
+                <label>File: </label>
                 <input type="file" name="file" required="required">
             </div>
-            <hr>
+            <br>
             <button type="submit" class="btn btn-primary">Upload</button>
         </form>
     </div>
@@ -122,8 +120,8 @@
         <div id="progress" class="progress">0%</div>
     </div>
     <div id="urlDisplay" class="success">
-        <p>URL: <span><strong id="result-url"></strong></span></p>
-        <button id="copyButton">Copy URL</button>
+        <p><span><strong id="result-url"></strong></span></p>
+        <button id="copyButton">Copy to clipboard</button>
     </div>
     <div id="qrcode"></div>
     <script>
