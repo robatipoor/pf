@@ -43,8 +43,7 @@ $ cargo run --bin api
 # Pull the image from the github registry and run container
 $ docker run --name pf-api --rm -p 8080:8080 -d ghcr.io/robatipoor/pf-api:latest
 
-# Alternatively, if you need to configure the server with custom settings,
-# edit api/settings/base.toml and then build the Docker image.
+# Alternatively, build your own Docker image.
 $ docker build -t pf-api:latest -f api/Dockerfile .
 
 # Run Docker container on address 0.0.0.0:8080
