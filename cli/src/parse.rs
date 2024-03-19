@@ -57,6 +57,14 @@ pub fn parse_source_file(source_file: &str) -> anyhow::Result<PathBuf> {
   }
 }
 
+pub fn parse_file_name(file_name: &str) -> anyhow::Result<PathBuf> {
+  let source_file = PathBuf::from(file_name);
+  if source_file.extension().is_none() {
+    return Err(anyhow!("The file name should include an extension."));
+  }
+  Ok(source_file)
+}
+
 pub fn parse_destination(destination: &str) -> anyhow::Result<PathBuf> {
   let destination = PathBuf::from(destination);
   if let Some(file_name) = destination.file_name() {

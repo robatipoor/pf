@@ -68,12 +68,12 @@ async fn main() {
         file_name.unwrap_or_else(|| add_extension(generate_random_string(FILE_NAME_LENGTH), "txt"))
       }
       .file_name()
-      .expect("Invalid file name")
+      .unwrap()
       .to_str()
       .unwrap()
       .to_owned();
 
-      let content_type = get_content_type(&file_name).expect("Unknown content type");
+      let content_type = get_content_type(&file_name).unwrap();
       let args = CopyArguments {
         server_addr,
         auth: args.auth,
