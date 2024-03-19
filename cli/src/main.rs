@@ -1,7 +1,10 @@
 use args::{Args, SubCommand};
 use clap::Parser;
 use command::{CopyArguments, UploadArguments};
-use sdk::util::random::generate_random_string;
+use sdk::util::{
+  file::{add_extension, get_content_type},
+  random::generate_random_string,
+};
 
 mod args;
 mod client;
@@ -55,10 +58,27 @@ async fn main() {
     } => {
       let server_addr = args.server_addr.expect("Server address should be set.");
       let stdin = tokio::io::stdin();
+      let file_name = if key_nonce.is_some() {
+        add_extension(
+          file_name
+            .unwrap_or_else(|| add_extension(generate_random_string(FILE_NAME_LENGTH), "txt")),
+          "bin",
+        )
+      } else {
+        file_name.unwrap_or_else(|| add_extension(generate_random_string(FILE_NAME_LENGTH), "txt"))
+      }
+      .file_name()
+      .expect("Invalid file name")
+      .to_str()
+      .unwrap()
+      .to_owned();
+
+      let content_type = get_content_type(&file_name).expect("Unknown content type");
       let args = CopyArguments {
         server_addr,
         auth: args.auth,
-        file_name: file_name.unwrap_or_else(|| generate_random_string(FILE_NAME_LENGTH)),
+        file_name,
+        content_type,
         code_length,
         expire,
         allow_manual_deletion,

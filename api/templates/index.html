@@ -65,11 +65,40 @@
                 display: block;
             }
         }
+
+        .topnav {
+            background-color: #9e9797;
+            overflow: hidden;
+        }
+
+        .topnav a {
+            float: left;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            font-size: 17px;
+        }
+
+        .topnav a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+
+        .topnav a.active {
+            background-color: #161616;
+            color: white;
+        }
     </style>
 </head>
 
 <body>
     <h2>Paste File</h2>
+    <!-- <div class="topnav">
+        <a class="active" href="#copy">Copy</a>
+        <a href="#upload">Upload</a>
+        <a href="#download">Download</a>
+    </div> -->
     <div class="col-md-6 offset-md-3 mt-5">
         <form accept-charset="UTF-8" action="{{ domain }}/upload" method="POST" enctype="multipart/form-data"
             target="_blank" id="ajaxForm">

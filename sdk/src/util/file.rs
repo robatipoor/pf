@@ -10,7 +10,7 @@ pub fn get_file_name(path: &Path) -> anyhow::Result<String> {
     .ok_or_else(|| anyhow!("The source path must include the file name."))
 }
 
-pub fn get_content_type(path: &Path) -> anyhow::Result<String> {
+pub fn get_content_type(path: impl AsRef<Path>) -> anyhow::Result<String> {
   mime_guess::from_path(path)
     .first()
     .map(|meme| meme.essence_str().to_owned())

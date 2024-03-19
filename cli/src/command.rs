@@ -36,6 +36,7 @@ pub struct CopyArguments {
   pub server_addr: String,
   pub auth: Option<(String, String)>,
   pub file_name: String,
+  pub content_type: String,
   pub code_length: Option<usize>,
   pub expire: Option<u64>,
   pub allow_manual_deletion: Option<bool>,
@@ -109,7 +110,7 @@ where
       .upload_encrypt(
         key_nonce,
         args.file_name,
-        "text/plain",
+        &args.content_type,
         reader,
         &param,
         args.auth,
@@ -117,7 +118,13 @@ where
       .await
   } else {
     client
-      .upload_from_reader(args.file_name, "text/plain", reader, &param, args.auth)
+      .upload_from_reader(
+        args.file_name,
+        &args.content_type,
+        reader,
+        &param,
+        args.auth,
+      )
       .await
   }
   .unwrap();
