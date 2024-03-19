@@ -26,6 +26,7 @@
             margin-bottom: 20px;
             border: 3px solid rgb(255, 255, 255);
             margin: auto;
+
             &.is-active {
                 display: block;
             }
@@ -127,9 +128,22 @@
     <script>
         $("#ajaxForm").submit(function (e) {
             e.preventDefault();
+            var username = $("#username").val();
+            var password = $("#password").val();
+            var headers = { "Accept": "application/json" };
+            if (username && password) {
+                headers['Authorization'] = createBasicAuthHeader(username, password);
+            } else if (username && !password) {
+                alert('Please set password');
+                return;
+            } else if (!username && password) {
+                alert('Please set username');
+                return;
+            }
             $('.progress-bar').addClass('is-active');
             var action = $(this).attr("action");
             var uploadUrl = createUploadURL(action);
+
             $.ajax({
                 xhr: function () {
                     var xhr = new window.XMLHttpRequest();
@@ -150,9 +164,7 @@
                 contentType: "multipart/form-data",
                 processData: false,
                 contentType: false,
-                headers: {
-                    "Accept": "application/json"
-                },
+                headers: headers,
                 success: function (response) {
                     $('.success').addClass('is-active');
                     $('#result-url').empty();
@@ -161,14 +173,19 @@
                     $('#qrcode').qrcode({ width: 256, height: 256, text: response.url });
                 },
             }).fail(function () {
-                alert('An error occurred please try again later.')
+                alert('An error occurred please try again later.');
             });
         });
+
         $("#copyButton").click(function (event) {
             event.preventDefault();
             navigator.clipboard.writeText($('#result-url').text()).then(() => { });
             alert('URL copied to clipboard!');
         });
+
+        function createBasicAuthHeader(username, password) {
+            return "Basic " + btoa(username + ':' + password);
+        }
 
         function createUploadURL(base_url) {
             var result = base_url;
@@ -201,9 +218,7 @@
             }
             return result;
         }
-
     </script>
-
 </body>
 
 </html>
