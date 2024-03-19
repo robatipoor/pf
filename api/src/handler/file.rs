@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use axum::{
   body::Body,
   extract::{Multipart, Path, Query, State},
@@ -53,7 +54,12 @@ pub async fn download(
 ) -> ApiResult<Response<ServeFileSystemResponseBody>> {
   let secret = crate::util::http::parse_basic_auth(req.headers())?;
   let file = service::file::fetch(&state, &code, &file_name, secret).await?;
-  Ok(file.oneshot(req).await.unwrap())
+  Ok(
+    file
+      .oneshot(req)
+      .await
+      .map_err(|e| anyhow!("Download file failed, Error: {e}"))?,
+  )
 }
 
 pub async fn info(

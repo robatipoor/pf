@@ -15,6 +15,8 @@ async fn main() -> ApiResult {
   let args = api::configure::args::Args::parse();
   // Read API configuration
   let config = api::configure::ApiConfig::read(args.settings, get_env_source(ENV_PREFIX))?;
+  // Validate settings
+  config.validate()?;
   // Force initialization of subscriber
   Lazy::force(&INIT_SUBSCRIBER);
   // Create base directory if it doesn't exist

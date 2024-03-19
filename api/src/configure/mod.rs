@@ -1,4 +1,7 @@
-use crate::constant::ENV_PREFIX;
+use crate::{
+  constant::ENV_PREFIX,
+  error::{result::ApiResult, ApiError},
+};
 use config::Environment;
 use once_cell::sync::Lazy;
 use sdk::util::dir::get_cargo_project_root;
@@ -109,6 +112,26 @@ impl ApiConfig {
       .build()?
       .try_deserialize()
   }
+
+  pub fn validate(&self) -> ApiResult {
+    if self.default_code_length < 2 {
+      return Err(ApiError::ConfigError(config::ConfigError::Message(
+        "The default_code_length should be greater than 2.".to_string(),
+      )));
+    }
+    if self.server.domain_name.starts_with("http") {
+      return Err(ApiError::ConfigError(config::ConfigError::Message(
+        "The domain_name should not start with 'http://' or 'https://'.".to_string(),
+      )));
+    }
+    if self.server.port > 49151 || self.server.port < 1024 {
+      return Err(ApiError::ConfigError(config::ConfigError::Message(
+        "The port number is invalid.".to_string(),
+      )));
+    }
+    // TODO
+    Ok(())
+  }
 }
 
 fn get_basic_settings_path(file_src: Option<PathBuf>) -> std::io::Result<PathBuf> {
@@ -133,7 +156,8 @@ mod tests {
   use super::*;
 
   #[test]
-  fn test_read_config() {
-    ApiConfig::read(None, get_env_source("TEST_PF")).unwrap();
+  fn test_read_and_validate_config() {
+    let config = ApiConfig::read(None, get_env_source("TEST_PF")).unwrap();
+    config.validate().unwrap();
   }
 }
