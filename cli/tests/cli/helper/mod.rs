@@ -47,7 +47,7 @@ impl CliTestContext {
     let port = find_free_port().await.unwrap();
     let server_addr = format!("http://127.0.0.1:{port}");
 
-    let child = tokio::process::Command::new("target/debug/api")
+    let child = tokio::process::Command::new("target/debug/pf-api")
       .args(["--settings", "api/settings/base.toml"])
       .env("PF__SERVER__PORT", port.to_string())
       .env("PF__DB__PATH_DIR", db_path)
@@ -84,7 +84,7 @@ impl CliTestContext {
 
   pub async fn upload_dummy_file(&self) -> anyhow::Result<(FileUrlPath, String)> {
     let (file, content) = self.create_dummy_file().await?;
-    let output = tokio::process::Command::new("target/debug/cli")
+    let output = tokio::process::Command::new("target/debug/pf-cli")
       .args([
         "--server-addr",
         &self.server_addr,
@@ -125,7 +125,7 @@ async fn find_free_port() -> anyhow::Result<u16> {
 }
 
 async fn ping(root_dir: &Path, server_addr: &str) -> Result<ExitStatus, io::Error> {
-  tokio::process::Command::new("target/debug/cli")
+  tokio::process::Command::new("target/debug/pf-cli")
     .args(["--server-addr", server_addr, "ping"])
     .current_dir(root_dir)
     .stderr(Stdio::null())

@@ -7,7 +7,7 @@ use crate::helper::{generate_random_key_nonce, CliTestContext};
 #[tokio::test]
 async fn test_upload_and_download_command_with_progress_bar(ctx: &mut CliTestContext) {
   let (file, expected_content) = ctx.create_dummy_file().await.unwrap();
-  let url_path = Command::cargo_bin("cli")
+  let url_path = Command::cargo_bin("pf-cli")
     .unwrap()
     .args([
       "--server-addr",
@@ -25,7 +25,7 @@ async fn test_upload_and_download_command_with_progress_bar(ctx: &mut CliTestCon
   let url_path = std::str::from_utf8(&url_path).unwrap().trim();
   let destination_dir = ctx.workspace.join("destination_dir");
   tokio::fs::create_dir_all(&destination_dir).await.unwrap();
-  Command::cargo_bin("cli")
+  Command::cargo_bin("pf-cli")
     .unwrap()
     .args([
       "--server-addr",
@@ -51,7 +51,7 @@ async fn test_upload_and_download_command_with_progress_bar(ctx: &mut CliTestCon
 #[tokio::test]
 async fn test_upload_and_download_command_to_the_destination_dir(ctx: &mut CliTestContext) {
   let (file, expected_content) = ctx.create_dummy_file().await.unwrap();
-  let url_path = Command::cargo_bin("cli")
+  let url_path = Command::cargo_bin("pf-cli")
     .unwrap()
     .args([
       "--server-addr",
@@ -68,7 +68,7 @@ async fn test_upload_and_download_command_to_the_destination_dir(ctx: &mut CliTe
   let url_path = std::str::from_utf8(&url_path).unwrap().trim();
   let destination_dir = ctx.workspace.join("destination_dir");
   tokio::fs::create_dir_all(&destination_dir).await.unwrap();
-  Command::cargo_bin("cli")
+  Command::cargo_bin("pf-cli")
     .unwrap()
     .args([
       "--server-addr",
@@ -96,7 +96,7 @@ async fn test_upload_encrypt_and_download_decrypt_command_to_the_destination_dir
 ) {
   let key_nonce = generate_random_key_nonce();
   let (file, expected_content) = ctx.create_dummy_file().await.unwrap();
-  let url_path = Command::cargo_bin("cli")
+  let url_path = Command::cargo_bin("pf-cli")
     .unwrap()
     .args([
       "--server-addr",
@@ -118,7 +118,7 @@ async fn test_upload_encrypt_and_download_decrypt_command_to_the_destination_dir
 
   let destination_dir = ctx.workspace.join("destination_dir");
   tokio::fs::create_dir_all(&destination_dir).await.unwrap();
-  Command::cargo_bin("cli")
+  Command::cargo_bin("pf-cli")
     .unwrap()
     .args([
       "--server-addr",
@@ -150,7 +150,7 @@ async fn test_upload_encrypt_and_download_decrypt_command_to_the_destination_dir
 async fn test_upload_and_download_command_to_the_destination_file(ctx: &mut CliTestContext) {
   let (url_path, expected_content) = ctx.upload_dummy_file().await.unwrap();
   let destination_file_path = ctx.workspace.join("destination_file.text");
-  Command::cargo_bin("cli")
+  Command::cargo_bin("pf-cli")
     .unwrap()
     .args([
       "--server-addr",
@@ -177,7 +177,7 @@ async fn test_upload_encrypt_and_download_decrypt_command_to_the_destination_fil
 ) {
   let key_nonce = generate_random_key_nonce();
   let (file, expected_content) = ctx.create_dummy_file().await.unwrap();
-  let url_path = Command::cargo_bin("cli")
+  let url_path = Command::cargo_bin("pf-cli")
     .unwrap()
     .args([
       "--server-addr",
@@ -197,7 +197,7 @@ async fn test_upload_encrypt_and_download_decrypt_command_to_the_destination_fil
   assert!(!tokio::fs::try_exists(encrypt_file).await.unwrap());
   let url_path = std::str::from_utf8(&url_path).unwrap().trim();
   let destination_file_path = ctx.workspace.join("destination_file.txt");
-  Command::cargo_bin("cli")
+  Command::cargo_bin("pf-cli")
     .unwrap()
     .args([
       "--server-addr",

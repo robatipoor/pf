@@ -6,7 +6,7 @@ use crate::helper::CliTestContext;
 #[tokio::test]
 async fn test_delete_command(ctx: &mut CliTestContext) {
   let (url_path, _) = ctx.upload_dummy_file().await.unwrap();
-  Command::cargo_bin("cli")
+  Command::cargo_bin("pf-cli")
     .unwrap()
     .args([
       "--server-addr",

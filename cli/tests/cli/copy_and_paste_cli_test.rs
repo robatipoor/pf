@@ -6,7 +6,7 @@ use crate::helper::{generate_random_key_nonce, CliTestContext};
 #[tokio::test]
 async fn test_copy_and_paste_command(ctx: &mut CliTestContext) {
   let (file, expected_content) = ctx.create_dummy_file().await.unwrap();
-  let url_path = Command::cargo_bin("cli")
+  let url_path = Command::cargo_bin("pf-cli")
     .unwrap()
     .args([
       "--server-addr",
@@ -23,7 +23,7 @@ async fn test_copy_and_paste_command(ctx: &mut CliTestContext) {
     .unwrap()
     .stdout;
   let url_path = std::str::from_utf8(&url_path).unwrap().trim();
-  let actual_content = Command::cargo_bin("cli")
+  let actual_content = Command::cargo_bin("pf-cli")
     .unwrap()
     .args([
       "--server-addr",
@@ -44,7 +44,7 @@ async fn test_copy_and_paste_command(ctx: &mut CliTestContext) {
 async fn test_copy_encrypt_and_paste_decrypt_command(ctx: &mut CliTestContext) {
   let key_nonce = generate_random_key_nonce();
   let (file, expected_content) = ctx.create_dummy_file().await.unwrap();
-  let url_path = Command::cargo_bin("cli")
+  let url_path = Command::cargo_bin("pf-cli")
     .unwrap()
     .args([
       "--server-addr",
@@ -63,7 +63,7 @@ async fn test_copy_encrypt_and_paste_decrypt_command(ctx: &mut CliTestContext) {
     .unwrap()
     .stdout;
   let url_path = std::str::from_utf8(&url_path).unwrap().trim();
-  let actual_content = Command::cargo_bin("cli")
+  let actual_content = Command::cargo_bin("pf-cli")
     .unwrap()
     .args([
       "--server-addr",

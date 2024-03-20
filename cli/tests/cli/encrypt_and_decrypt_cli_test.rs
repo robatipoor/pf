@@ -6,7 +6,7 @@ use assert_cmd::Command;
 async fn test_encrypt_and_decrypt_to_the_destination_file(ctx: &mut CliTestContext) {
   let (file, expected_content) = ctx.create_dummy_file().await.unwrap();
   let key_nonce = generate_random_key_nonce();
-  Command::cargo_bin("cli")
+  Command::cargo_bin("pf-cli")
     .unwrap()
     .args([
       "--server-addr",
@@ -22,7 +22,7 @@ async fn test_encrypt_and_decrypt_to_the_destination_file(ctx: &mut CliTestConte
     .assert()
     .success();
   let destination_file_path = ctx.workspace.join("destination_file.txt");
-  Command::cargo_bin("cli")
+  Command::cargo_bin("pf-cli")
     .unwrap()
     .args([
       "--server-addr",
@@ -49,7 +49,7 @@ async fn test_encrypt_and_decrypt_to_the_destination_file(ctx: &mut CliTestConte
 async fn test_encrypt_and_decrypt_with_progress_bar(ctx: &mut CliTestContext) {
   let (file, expected_content) = ctx.create_dummy_file().await.unwrap();
   let key_nonce = generate_random_key_nonce();
-  Command::cargo_bin("cli")
+  Command::cargo_bin("pf-cli")
     .unwrap()
     .args([
       "--server-addr",
@@ -66,7 +66,7 @@ async fn test_encrypt_and_decrypt_with_progress_bar(ctx: &mut CliTestContext) {
     .assert()
     .success();
   let destination_file_path = ctx.workspace.join("destination_file.txt");
-  Command::cargo_bin("cli")
+  Command::cargo_bin("pf-cli")
     .unwrap()
     .args([
       "--server-addr",
@@ -94,7 +94,7 @@ async fn test_encrypt_and_decrypt_with_progress_bar(ctx: &mut CliTestContext) {
 async fn test_encrypt_file_and_decrypt_to_the_destination_dir(ctx: &mut CliTestContext) {
   let (file, expected_content) = ctx.create_dummy_file().await.unwrap();
   let key_nonce = generate_random_key_nonce();
-  Command::cargo_bin("cli")
+  Command::cargo_bin("pf-cli")
     .unwrap()
     .args([
       "--server-addr",
@@ -111,7 +111,7 @@ async fn test_encrypt_file_and_decrypt_to_the_destination_dir(ctx: &mut CliTestC
     .success();
   let destination_dir = ctx.workspace.join("destination_dir");
   tokio::fs::create_dir_all(&destination_dir).await.unwrap();
-  Command::cargo_bin("cli")
+  Command::cargo_bin("pf-cli")
     .unwrap()
     .args([
       "--server-addr",

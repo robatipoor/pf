@@ -6,7 +6,7 @@ use crate::helper::CliTestContext;
 #[tokio::test]
 async fn test_upload_command(ctx: &mut CliTestContext) {
   let (file, _) = ctx.create_dummy_file().await.unwrap();
-  Command::cargo_bin("cli")
+  Command::cargo_bin("pf-cli")
     .unwrap()
     .args([
       "--server-addr",

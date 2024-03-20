@@ -7,7 +7,7 @@ use crate::helper::CliTestContext;
 async fn test_download_command_to_the_destination_file(ctx: &mut CliTestContext) {
   let (url_path, expected_content) = ctx.upload_dummy_file().await.unwrap();
   let destination_file_path = ctx.workspace.join("destination_file.txt");
-  Command::cargo_bin("cli")
+  Command::cargo_bin("pf-cli")
     .unwrap()
     .args([
       "--server-addr",
@@ -32,7 +32,7 @@ async fn test_download_command_to_the_destination_dir(ctx: &mut CliTestContext) 
   let (url_path, expected_content) = ctx.upload_dummy_file().await.unwrap();
   let destination_dir = ctx.workspace.join("destination_dir");
   tokio::fs::create_dir_all(&destination_dir).await.unwrap();
-  Command::cargo_bin("cli")
+  Command::cargo_bin("pf-cli")
     .unwrap()
     .args([
       "--server-addr",
