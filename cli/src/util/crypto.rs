@@ -1,5 +1,5 @@
 use super::progress::progress_bar;
-use sdk::util::{
+use pf_sdk::util::{
   crypto::{decrypt, decrypt_file, encrypt, encrypt_file, KeyNonce},
   file::{add_extension, add_parent_dir, rm_extra_extension},
   random::generate_random_string_with_prefix,
@@ -110,7 +110,7 @@ mod tests {
   use fake::{Fake, Faker};
   use test_context::test_context;
 
-  use sdk::util::{
+  use pf_sdk::util::{
     crypto::{KeyType, NonceType},
     random::generate_random_string,
     test::FileTestContext,

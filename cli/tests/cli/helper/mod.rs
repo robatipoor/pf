@@ -1,6 +1,6 @@
 use fake::{Fake, Faker};
 use once_cell::sync::Lazy;
-use sdk::{
+use pf_sdk::{
   dto::FileUrlPath,
   retry,
   util::{dir::get_cargo_project_root, random::generate_random_string},

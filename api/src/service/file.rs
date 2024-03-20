@@ -13,7 +13,7 @@ use axum::extract::multipart::Field;
 use axum::extract::Multipart;
 use chrono::{DateTime, Utc};
 use futures_util::TryStreamExt;
-use sdk::dto::request::UploadQueryParam;
+use pf_sdk::dto::request::UploadQueryParam;
 use std::path::PathBuf;
 use tokio::fs::File;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, BufWriter};
@@ -61,7 +61,7 @@ pub async fn store(
       None => continue,
     };
     let file_path = loop {
-      let code = sdk::util::random::generate_random_string(code_length);
+      let code = pf_sdk::util::random::generate_random_string(code_length);
       let path = FilePath {
         code,
         file_name: file_name.to_string(),
@@ -250,7 +250,7 @@ mod tests {
   use super::*;
   use crate::util::{multipart::create_multipart_request, test::StateTestContext};
   use fake::{Fake, Faker};
-  use sdk::assert_err;
+  use pf_sdk::assert_err;
   use test_context::test_context;
 
   #[test_context(StateTestContext)]

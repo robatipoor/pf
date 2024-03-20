@@ -1,9 +1,9 @@
 use std::{path::PathBuf, str::FromStr};
 
 use anyhow::anyhow;
-use sdk::dto::FileUrlPath;
+use pf_sdk::dto::FileUrlPath;
 
-use sdk::util::crypto::{KeyNonce, KeyType, NonceType};
+use pf_sdk::util::crypto::{KeyNonce, KeyType, NonceType};
 
 pub fn parse_key_nonce(input: &str) -> anyhow::Result<KeyNonce> {
   let pos = input
@@ -89,7 +89,7 @@ mod tests {
 
   use super::*;
   use fake::{Fake, Faker};
-  use sdk::{assert_err, util::random::generate_random_string};
+  use pf_sdk::{assert_err, util::random::generate_random_string};
 
   #[test]
   fn test_parse_key_nonce() {

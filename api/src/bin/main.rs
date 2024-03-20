@@ -1,20 +1,20 @@
-use api::{
+use clap::Parser;
+use futures_util::FutureExt;
+use once_cell::sync::Lazy;
+use pf_api::{
   configure::env::get_env_source,
   constant::ENV_PREFIX,
   error::result::ApiResult,
   server::{worker::GarbageCollectorTask, ApiServer},
   util::{self, tracing::INIT_SUBSCRIBER},
 };
-use clap::Parser;
-use futures_util::FutureExt;
-use once_cell::sync::Lazy;
 
 #[tokio::main]
 async fn main() -> ApiResult {
   // Parse command-line arguments
-  let args = api::configure::args::Args::parse();
+  let args = pf_api::configure::args::Args::parse();
   // Read API configuration
-  let config = api::configure::ApiConfig::read(args.settings, get_env_source(ENV_PREFIX))?;
+  let config = pf_api::configure::ApiConfig::read(args.settings, get_env_source(ENV_PREFIX))?;
   // Validate settings
   config.validate()?;
   // Force initialization of subscriber

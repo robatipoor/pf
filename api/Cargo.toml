@@ -1,14 +1,14 @@
 [package]
-name = "api"
+name = "pf-api"
 version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name = "api"
+name = "pf-api"
 path = "src/bin/main.rs"
 
 [dependencies]
-sdk = { path = "../sdk" }
+pf-sdk  = { path = "../sdk" }
 anyhow = { workspace = true }
 argon2 = { workspace = true }
 clap = { workspace = true }

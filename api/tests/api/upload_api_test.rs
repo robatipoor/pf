@@ -1,5 +1,5 @@
 use crate::{assert_response_err, assert_response_ok};
-use sdk::dto::{request::UploadQueryParam, response::BodyResponseError};
+use pf_sdk::dto::{request::UploadQueryParam, response::BodyResponseError};
 use test_context::test_context;
 
 use crate::helper::ApiTestContext;

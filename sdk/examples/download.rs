@@ -1,4 +1,4 @@
-use sdk::{client::PasteFileClient, dto::FileUrlPath};
+use pf_sdk::{client::PasteFileClient, dto::FileUrlPath};
 
 const SERVER_URL: &str = "127.0.0.1:8080";
 

@@ -1,7 +1,7 @@
 use args::{Args, SubCommand};
 use clap::Parser;
 use command::{CopyArguments, UploadArguments};
-use sdk::util::{
+use pf_sdk::util::{
   file::{add_extension, get_content_type},
   random::generate_random_string,
 };

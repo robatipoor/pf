@@ -3,7 +3,7 @@ use std::{
   path::{Path, PathBuf},
 };
 
-use sdk::{
+use pf_sdk::{
   client::PasteFileClient,
   dto::{
     request::UploadQueryParam,
@@ -35,8 +35,8 @@ impl CommandLineClient {
     param: &UploadQueryParam,
     auth: Option<(String, String)>,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<UploadResponse>)> {
-    let file_name = sdk::util::file::get_file_name(source)?;
-    let content_type = sdk::util::file::get_content_type(source)?;
+    let file_name = pf_sdk::util::file::get_file_name(source)?;
+    let content_type = pf_sdk::util::file::get_content_type(source)?;
     let file = tokio::fs::File::open(source).await?;
     let total_size = file.metadata().await?.len();
     let pb = progress_bar(total_size)?;

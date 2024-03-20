@@ -1,5 +1,5 @@
 use assert_cmd::Command;
-use sdk::util::file::add_extension;
+use pf_sdk::util::file::add_extension;
 
 use crate::helper::{generate_random_key_nonce, CliTestContext};
 

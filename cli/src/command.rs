@@ -1,4 +1,4 @@
-use sdk::{
+use pf_sdk::{
   dto::{
     request::UploadQueryParam,
     response::{ApiResponseResult, BodyResponseError, UploadResponse},
@@ -138,7 +138,7 @@ fn show_upload_response(resp: ApiResponseResult<UploadResponse>, output: UploadO
         println!("{}", serde_json::to_string(&resp).unwrap());
       }
       UploadOutput::QrCode => {
-        let qr_code = sdk::util::qr_code::generate_text_qr_code(&resp.url).unwrap();
+        let qr_code = pf_sdk::util::qr_code::generate_text_qr_code(&resp.url).unwrap();
         println!("{qr_code}");
       }
       UploadOutput::Url => {
@@ -259,7 +259,7 @@ pub async fn encrypt_file(
       .await
       .unwrap();
   } else {
-    sdk::util::crypto::encrypt_file(key_nonce, source_file, destination)
+    pf_sdk::util::crypto::encrypt_file(key_nonce, source_file, destination)
       .await
       .unwrap();
   }
@@ -283,7 +283,7 @@ pub async fn decrypt_file(
       .await
       .unwrap();
   } else {
-    sdk::util::crypto::decrypt_file(key_nonce, source_file, destination)
+    pf_sdk::util::crypto::decrypt_file(key_nonce, source_file, destination)
       .await
       .unwrap();
   }

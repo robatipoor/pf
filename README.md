@@ -29,13 +29,13 @@ The service provides a convenient and efficient way to share files. The code inc
 $ git clone https://github.com/robatipoor/pf
 
 # Build the project
-$ cargo build --bin api --release
+$ cargo build --bin pf-api --release
 
 # Run the backend on address 127.0.0.1:8080
-$ ./target/release/api --settings api/settings/base.toml
+$ ./target/release/pf-api --settings api/settings/base.toml
 
 # Alternatively, Run backend with cargo
-$ cargo run --bin api
+$ cargo run --bin pf-api
 ```
 **Run API Service via Docker**
 
@@ -157,11 +157,8 @@ export PF__SERVER__HOST=127.0.0.1
 # Install CLI tool
 $ cargo install --path cli
 
-# Rename CLI tool from 'cli' to 'pf'
-$ mv ~/.cargo/bin/cli ~/.cargo/bin/pf
-
 # Define an alias in the shell profile for 'pf' with server address
-$ alias pf="pf --server-addr http://localhost:8080"
+$ alias pf="pf-cli --server-addr http://localhost:8080"
 
 # Copy text content to the server with an expiration time of 10 minutes.
 $ echo 'Hello World!' | pf copy --expire "10 minute"
