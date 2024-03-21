@@ -94,12 +94,80 @@
 
 <body>
     <h2>Paste File</h2>
-    <!-- <div class="topnav">
-        <a class="active" href="#copy">Copy</a>
-        <a href="#upload">Upload</a>
-        <a href="#download">Download</a>
-    </div> -->
-    <div class="col-md-6 offset-md-3 mt-5">
+    <div class="topnav">
+        <a id="upload" class="active" href="#upload">Upload</a>
+        <a id="copy" href="#copy">Copy</a>
+        <a id="download" href="#download">Download</a>
+    </div>
+    <br>
+
+    <div id="copyForm" class="col-md-6 offset-md-3 mt-5" style="display:none">
+        <form accept-charset="UTF-8" action="{{ domain }}/upload" method="POST" enctype="multipart/form-data"
+            target="_blank" id="ajaxForm">
+            <div class="form-group mr-3">
+                <label for="codeLength">Code length: </label>
+                <input type="number" name="codeLength" class="form-control" id="codeLength"
+                    aria-describedby="codeLengthHelp" placeholder="Enter number length">
+            </div>
+            <br>
+            <div class="form-group mr-3">
+                <label for="expireSecs">Expire time: </label>
+                <input type="number" name="expireSecs" class="form-control" id="expireSecs"
+                    placeholder="Enter expire seconds">
+            </div>
+            <br>
+            <div class="form-group mr-3">
+                <label for="maxDownload">Maximum download: </label>
+                <input type="number" name="maxDownload" class="form-control" id="maxDownload"
+                    placeholder="Enter max downloads">
+            </div>
+            <br>
+            <div class="form-group mr-3">
+                <label for="username">Username: </label>
+                <input type="text" name="Username" class="form-control" id="username" placeholder="Enter username">
+            </div>
+            <br>
+            <div class="form-group mr-3">
+                <label for="password">Password: </label>
+                <input type="password" name="Password" class="form-control" id="password" placeholder="Enter password">
+            </div>
+            <br>
+            <div class="form-group mr-3">
+                <label for="allowManualDeletion">Allow manual deletion: </label>
+                <select class="form-control" id="allowManualDeletion" name="platform">
+                    <option>True</option>
+                    <option>False</option>
+                </select>
+            </div>
+            <div class="form-group mr-3">
+                <p><label for="textInput">Text:</label></p>
+                <textarea id="textInput" name="textInput" rows="20" cols="80"></textarea>
+            </div>
+            <br>
+            <button type="submit" class="btn btn-primary">Upload</button>
+        </form>
+    </div>
+
+    <div id="downloadForm" class="col-md-6 offset-md-3 mt-5" style="display:none">
+        <div class="form-group mr-3">
+            <label for="username">Username: </label>
+            <input type="text" name="Username" class="form-control" id="username" placeholder="Enter username">
+        </div>
+        <br>
+        <div class="form-group mr-3">
+            <label for="password">Password: </label>
+            <input type="password" name="Password" class="form-control" id="password" placeholder="Enter password">
+        </div>
+        <br>
+        <div class="form-group mr-3">
+            <label for="downloadUrl">URL: </label>
+            <input type="text" name="downloadUrl" class="form-control" id="downloadUrl" placeholder="Enter url">
+        </div>
+        <br>
+        <button class="btn btn-primary">Download</button>
+    </div>
+
+    <div id="uploadForm" class="col-md-6 offset-md-3 mt-5">
         <form accept-charset="UTF-8" action="{{ domain }}/upload" method="POST" enctype="multipart/form-data"
             target="_blank" id="ajaxForm">
             <div class="form-group mr-3">
@@ -155,6 +223,25 @@
     </div>
     <div id="qrcode"></div>
     <script>
+        $("#copy").click(function (event) {
+            event.preventDefault();
+            // $('#copyForm').addClass('is-active');
+            $("#copyForm").show();
+            $('#uploadForm').hide();
+            $('#downloadForm').hide();
+        });
+        $("#upload").click(function (event) {
+            event.preventDefault();
+            $("#uploadForm").show();
+            $('#copyForm').hide();
+            $('#downloadForm').hide();
+        });
+        $("#download").click(function (event) {
+            event.preventDefault();
+            $("#downloadForm").show();
+            $('#copyForm').hide();
+            $('#uploadForm').hide();
+        });
         $("#ajaxForm").submit(function (e) {
             e.preventDefault();
             var username = $("#username").val();
