@@ -20,6 +20,7 @@ The service provides a convenient and efficient way to share files. The code inc
 * Command Line Interface
 * ChaCha20-Poly1305 Encryption
 * Built-in TLS Server
+* Flexible Length URL
 
 
 **Run API Service Locally**
@@ -46,7 +47,7 @@ $ docker run --name pf-api --rm -p 8080:8080 -d ghcr.io/robatipoor/pf-api:latest
 # Alternatively, build your own Docker image.
 $ docker build -t pf-api:latest -f api/Dockerfile .
 
-# Run Docker container on address 0.0.0.0:8080
+# Run Docker container on address localhost:8080
 $ docker run --name pf-api --rm -p 8080:8080 -d pf-api:latest
 ```
 
