@@ -119,10 +119,22 @@ impl ApiConfig {
         "The default_code_length should be greater than 2.".to_string(),
       )));
     }
+    if self.server.host.starts_with("http") {
+      return Err(ApiError::ConfigError(config::ConfigError::Message(
+        "The host should not start with 'http://' or 'https://'.".to_string(),
+      )));
+    }
     if self.server.domain_name.starts_with("http") {
       return Err(ApiError::ConfigError(config::ConfigError::Message(
         "The domain_name should not start with 'http://' or 'https://'.".to_string(),
       )));
+    }
+    if let Some(addr) = self.server.public_addr.as_ref() {
+      if addr.starts_with("http") {
+        return Err(ApiError::ConfigError(config::ConfigError::Message(
+          "The public_addr should not start with 'http://' or 'https://'.".to_string(),
+        )));
+      }
     }
     if self.server.port > 49151 || self.server.port < 1024 {
       return Err(ApiError::ConfigError(config::ConfigError::Message(

@@ -95,7 +95,7 @@ pub async fn upload(args: UploadArguments) {
 
 pub async fn copy<R>(reader: R, args: CopyArguments)
 where
-  R: AsyncRead + Send + Unpin + 'static,
+  R: AsyncRead + Send + Sync + Unpin + 'static ,
 {
   let client = CommandLineClient::new(args.server_addr);
   let param = UploadQueryParam {

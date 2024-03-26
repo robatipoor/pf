@@ -95,7 +95,7 @@ impl PasteFileClient {
     auth: Option<(String, String)>,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<UploadResponse>)>
   where
-    R: AsyncRead + Send + Unpin + 'static,
+    R: AsyncRead + Send + Sync + Unpin + 'static,
   {
     let mut buffer = [0u8; ENCRYPT_BUFFER_LEN];
     let mut stream_encryptor =
@@ -134,7 +134,7 @@ impl PasteFileClient {
     auth: Option<(String, String)>,
   ) -> anyhow::Result<(StatusCode, ApiResponseResult<UploadResponse>)>
   where
-    R: AsyncRead + Send + Unpin + 'static,
+    R: AsyncRead + Send + Unpin + 'static + Sync,
   {
     let file_part =
       reqwest::multipart::Part::stream(reqwest::Body::wrap_stream(ReaderStream::new(reader)))
