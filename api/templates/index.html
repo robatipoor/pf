@@ -173,7 +173,7 @@
             <input type="text" name="downloadUrl" class="form-control" id="downloadUrl" placeholder="Enter url">
         </div>
         <br>
-        <button class="btn btn-primary">Download</button>
+        <button id="downloadFile" class="btn btn-primary">Download</button>
     </div>
 
     <div id="uploadFormDiv" class="col-md-6 offset-md-3 mt-5">
@@ -375,6 +375,34 @@
             }).fail(function () {
                 alert('An error occurred please try again later.');
             });
+        });
+
+        $("#downloadFile").click(function (e) {
+            e.preventDefault();
+            var username = $("#username").val();
+            var password = $("#password").val();
+            var headers = { "Accept": "application/json" };
+            if (username && password) {
+                headers['Authorization'] = createBasicAuthHeader(username, password);
+            } else if (username && !password) {
+                alert('Please set password');
+                return;
+            } else if (!username && password) {
+                alert('Please set username');
+                return;
+            }
+            var url = $("#downloadUrl").val();
+            var request = new XMLHttpRequest();
+            request.open("GET", url);
+            request.responseType = "blob";
+            request.onload = function () {
+                var a = document.createElement("a");
+                a.href = URL.createObjectURL(this.response);
+                a.download = this.response.name;
+                document.body.appendChild(a);
+                a.click();
+            }
+            request.send();
         });
 
         $("#copyButton").click(function (event) {
