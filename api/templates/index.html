@@ -32,6 +32,15 @@
             }
         }
 
+        .qr-code {
+            display: none;
+            margin: auto;
+
+            &.is-active {
+                display: block;
+            }
+        }
+
         .progress {
             width: 0%;
             height: 30px;
@@ -94,16 +103,16 @@
 
 <body>
     <h2>Paste File</h2>
-    <!-- <div class="topnav">
+    <div class="topnav">
         <a id="upload" class="active" href="#upload">Upload</a>
         <a id="copy" href="#copy">Copy</a>
         <a id="download" href="#download">Download</a>
     </div>
-    <br> -->
+    <br>
 
-    <div id="copyForm" class="col-md-6 offset-md-3 mt-5" style="display:none">
+    <div id="copyFormDiv" class="col-md-6 offset-md-3 mt-5" style="display:none">
         <form accept-charset="UTF-8" action="{{ domain }}/upload" method="POST" enctype="multipart/form-data"
-            target="_blank" id="ajaxForm">
+            target="_blank" id="copyForm">
             <div class="form-group mr-3">
                 <label for="codeLength">Code length: </label>
                 <input type="number" name="codeLength" class="form-control" id="codeLength"
@@ -148,7 +157,7 @@
         </form>
     </div>
 
-    <div id="downloadForm" class="col-md-6 offset-md-3 mt-5" style="display:none">
+    <div id="downloadFormDiv" class="col-md-6 offset-md-3 mt-5" style="display:none">
         <div class="form-group mr-3">
             <label for="username">Username: </label>
             <input type="text" name="Username" class="form-control" id="username" placeholder="Enter username">
@@ -167,9 +176,9 @@
         <button class="btn btn-primary">Download</button>
     </div>
 
-    <div id="uploadForm" class="col-md-6 offset-md-3 mt-5">
+    <div id="uploadFormDiv" class="col-md-6 offset-md-3 mt-5">
         <form accept-charset="UTF-8" action="{{ domain }}/upload" method="POST" enctype="multipart/form-data"
-            target="_blank" id="ajaxForm">
+            target="_blank" id="uploadForm">
             <div class="form-group mr-3">
                 <label for="codeLength">Code length: </label>
                 <input type="number" name="codeLength" class="form-control" id="codeLength"
@@ -221,27 +230,102 @@
         <p><span><strong id="result-url"></strong></span></p>
         <button id="copyButton">Copy to clipboard</button>
     </div>
-    <div id="qrcode"></div>
+    <div id="qrcode" class="qr-code"></div>
     <script>
         $("#copy").click(function (event) {
             event.preventDefault();
-            $("#copyForm").show();
-            $('#uploadForm').hide();
-            $('#downloadForm').hide();
+            $("#copyFormDiv").show();
+            $('#uploadFormDiv').hide();
+            $('#downloadFormDiv').hide();
+            $('.progress-bar').removeClass('is-active');
+            $('.success').removeClass('is-active');
+            $('.qr-code').removeClass('is-active');
         });
+
         $("#upload").click(function (event) {
             event.preventDefault();
-            $("#uploadForm").show();
-            $('#copyForm').hide();
-            $('#downloadForm').hide();
+            $("#uploadFormDiv").show();
+            $('#copyFormDiv').hide();
+            $('#downloadFormDiv').hide();
+            $('.progress-bar').removeClass('is-active');
+            $('.success').removeClass('is-active');
+            $('.qr-code').removeClass('is-active');
         });
+
         $("#download").click(function (event) {
             event.preventDefault();
-            $("#downloadForm").show();
-            $('#copyForm').hide();
-            $('#uploadForm').hide();
+            $("#downloadFormDiv").show();
+            $('#copyFormDiv').hide();
+            $('#uploadFormDiv').hide();
+            $('.progress-bar').removeClass('is-active');
+            $('.success').removeClass('is-active');
+            $('.qr-code').removeClass('is-active');
         });
-        $("#ajaxForm").submit(function (e) {
+
+        $("#copyForm").submit(function (e) {
+            e.preventDefault();
+            const fileNameLength = 5;
+            var username = $("#username").val();
+            var password = $("#password").val();
+            var headers = { "Accept": "application/json" };
+            if (username && password) {
+                headers['Authorization'] = createBasicAuthHeader(username, password);
+            } else if (username && !password) {
+                alert('Please set password');
+                return;
+            } else if (!username && password) {
+                alert('Please set username');
+                return;
+            }
+            $('.progress-bar').addClass('is-active');
+            var action = $(this).attr("action");
+            var uploadUrl = createUploadURL(action);
+            var textData = $("#textInput").val();
+            if (!textData) {
+                alert('Please set text');
+                return;
+            }
+            var formData = new FormData();
+            var blobData = new Blob([textData], {
+                type: 'text/plain'
+            });
+            var filename = generateRandomString(fileNameLength).concat(".txt");
+            formData.append('file', blobData, filename);
+            $.ajax({
+                xhr: function () {
+                    var xhr = new window.XMLHttpRequest();
+                    xhr.upload.addEventListener("progress", function (evt) {
+                        if (evt.lengthComputable) {
+                            var percentComplete = (evt.loaded / evt.total) * 100;
+                            $('#progress')[0].style.width = percentComplete + '%';
+                            $('#progress')[0].innerHTML = percentComplete.toFixed(1) + '%';
+                        }
+                    }, false);
+                    return xhr;
+                },
+                type: "POST",
+                url: uploadUrl,
+                crossDomain: true,
+                data: formData,
+                dataType: "json",
+                contentType: "multipart/form-data",
+                processData: false,
+                contentType: false,
+                headers: headers,
+                success: function (response) {
+                    $('.success').addClass('is-active');
+                    $('#result-url').empty();
+                    $("#result-url").append(response.url);
+                    $('#qrcode').empty();
+                    $('.qr-code').addClass('is-active');
+                    $('#qrcode').qrcode({ width: 256, height: 256, text: response.url });
+                },
+            }).fail(function () {
+                alert('An error occurred please try again later.');
+            });
+        });
+
+        $("#uploadForm").submit(function (e) {
             e.preventDefault();
             var username = $("#username").val();
             var password = $("#password").val();
@@ -285,6 +369,7 @@
                     $('#result-url').empty();
                     $("#result-url").append(response.url);
                     $('#qrcode').empty();
+                    $('.qr-code').addClass('is-active');
                     $('#qrcode').qrcode({ width: 256, height: 256, text: response.url });
                 },
             }).fail(function () {
@@ -330,6 +415,18 @@
                     d = "?";
                 }
                 result += d + "max_download=" + maxDownload;
+            }
+            return result;
+        }
+
+        function generateRandomString(length) {
+            let result = '';
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            const charactersLength = characters.length;
+            let counter = 0;
+            while (counter < length) {
+                result += characters.charAt(Math.floor(Math.random() * charactersLength));
+                counter += 1;
             }
             return result;
         }
