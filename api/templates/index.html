@@ -174,7 +174,8 @@
         <br>
         <div class="form-group mr-3">
             <label for="downloadUrl">File URL: </label>
-            <input size="50" type="text" name="downloadUrl" class="form-control" id="downloadUrl" placeholder="Enter url">
+            <input size="50" type="text" name="downloadUrl" class="form-control" id="downloadUrl"
+                placeholder="Enter url">
         </div>
         <br>
         <button id="downloadFile" class="btn btn-primary">Download</button>
@@ -278,18 +279,7 @@
         $("#copyForm").submit(function (e) {
             e.preventDefault();
             const fileNameLength = 5;
-            var username = $("#username").val();
-            var password = $("#password").val();
-            var headers = { "Accept": "application/json" };
-            if (username && password) {
-                headers['Authorization'] = createBasicAuthHeader(username, password);
-            } else if (username && !password) {
-                alert('Please set password');
-                return;
-            } else if (!username && password) {
-                alert('Please set username');
-                return;
-            }
+            const headers = createHeaders();
             $('.progress-bar').addClass('is-active');
             var action = $(this).attr("action");
             var uploadUrl = createUploadURL(action);
@@ -326,12 +316,7 @@
                 contentType: false,
                 headers: headers,
                 success: function (response) {
-                    $('.success').addClass('is-active');
-                    $('#result-url').empty();
-                    $("#result-url").append(response.url);
-                    $('#qrcode').empty();
-                    $('.qr-code').addClass('is-active');
-                    $('#qrcode').qrcode({ width: 256, height: 256, text: response.url });
+                    showUploadResponse(response)
                 },
             }).fail(function () {
                 alert('An error occurred please try again later.');
@@ -340,18 +325,7 @@
 
         $("#uploadForm").submit(function (e) {
             e.preventDefault();
-            var username = $("#username").val();
-            var password = $("#password").val();
-            var headers = { "Accept": "application/json" };
-            if (username && password) {
-                headers['Authorization'] = createBasicAuthHeader(username, password);
-            } else if (username && !password) {
-                alert('Please set password');
-                return;
-            } else if (!username && password) {
-                alert('Please set username');
-                return;
-            }
+            const headers = createHeaders();
             $('.progress-bar').addClass('is-active');
             var action = $(this).attr("action");
             var uploadUrl = createUploadURL(action);
@@ -378,12 +352,7 @@
                 contentType: false,
                 headers: headers,
                 success: function (response) {
-                    $('.success').addClass('is-active');
-                    $('#result-url').empty();
-                    $("#result-url").append(response.url);
-                    $('#qrcode').empty();
-                    $('.qr-code').addClass('is-active');
-                    $('#qrcode').qrcode({ width: 256, height: 256, text: response.url });
+                    showUploadResponse(response)
                 },
             }).fail(function () {
                 alert('An error occurred please try again later.');
@@ -392,18 +361,7 @@
 
         $("#downloadFile").click(function (e) {
             e.preventDefault();
-            var username = $("#username").val();
-            var password = $("#password").val();
-            var headers = { "Accept": "application/json" };
-            if (username && password) {
-                headers['Authorization'] = createBasicAuthHeader(username, password);
-            } else if (username && !password) {
-                alert('Please set password');
-                return;
-            } else if (!username && password) {
-                alert('Please set username');
-                return;
-            }
+            const headers = createHeaders();
             var url = $("#downloadUrl").val();
             var request = new XMLHttpRequest();
             request.open("GET", url);
@@ -423,6 +381,31 @@
             navigator.clipboard.writeText($('#result-url').text()).then(() => { });
             alert('URL copied to clipboard!');
         });
+
+        function showUploadResponse(response) {
+            $('.success').addClass('is-active');
+            $('#result-url').empty();
+            $("#result-url").append(response.url);
+            $('#qrcode').empty();
+            $('.qr-code').addClass('is-active');
+            $('#qrcode').qrcode({ width: 256, height: 256, text: response.url });
+        }
+
+        function createHeaders() {
+            var username = $("#username").val();
+            var password = $("#password").val();
+            var headers = { "Accept": "application/json" };
+            if (username && password) {
+                headers['Authorization'] = createBasicAuthHeader(username, password);
+            } else if (username && !password) {
+                alert('Please set password');
+                return;
+            } else if (!username && password) {
+                alert('Please set username');
+                return;
+            }
+            return headers;
+        }
 
         function createBasicAuthHeader(username, password) {
             return "Basic " + btoa(username + ':' + password);
