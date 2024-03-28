@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install lld clang -y
 
 COPY . .
 
-RUN cargo build --bin api --release
+RUN cargo build --bin pf-api --release
 
 # deploy stage
 FROM debian:bookworm-slim
@@ -20,7 +20,7 @@ WORKDIR /workspace
 COPY api/settings settings
 
 # copy binary and configuration files
-COPY --from=builder /workspace/target/release/api .
+COPY --from=builder /workspace/target/release/pf-api .
 
 # expose port
 EXPOSE 8080
@@ -29,4 +29,4 @@ ENV RUST_LOG info
 ENV PF__SERVER__HOST '0.0.0.0'
 
 # run the binary
-ENTRYPOINT ["./api","--settings","settings/base.toml"]
+ENTRYPOINT ["./pf-api","--settings","settings/base.toml"]
