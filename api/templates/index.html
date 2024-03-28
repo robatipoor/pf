@@ -396,6 +396,10 @@
         $("#downloadFile").click(function (e) {
             e.preventDefault();
             var url = $("#urlDownloadFile").val();
+            if (!url.startsWith("{{ domain }}")) {
+                alert('Please set valid URL');
+                return;
+            }
             var request = new XMLHttpRequest();
             request.open("GET", url);
             request.setRequestHeader("Accept", "application/json");
