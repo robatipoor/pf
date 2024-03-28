@@ -76,17 +76,16 @@
         }
 
         .topnav {
-            background-color: #9e9797;
+            text-align: center;
+            background-color: #ffffff;
             overflow: hidden;
         }
 
         .topnav a {
-            float: left;
-            color: #f2f2f2;
-            text-align: center;
-            padding: 14px 16px;
+            color: #000000;
+            padding: 12px 14px;
             text-decoration: none;
-            font-size: 17px;
+            font-size: 20px;
         }
 
         .topnav a:hover {
@@ -132,7 +131,7 @@
             <br>
             <div class="form-group mr-3">
                 <label for="maxDownload">Maximum download: </label>
-                <input type="number" name="maxDownload" class="form-control" id="maxDownload"
+                <input size="12" type="number" name="maxDownload" class="form-control" id="maxDownload"
                     placeholder="Enter max downloads">
             </div>
             <br>
@@ -175,7 +174,7 @@
         <br>
         <div class="form-group mr-3">
             <label for="downloadUrl">File URL: </label>
-            <input type="text" name="downloadUrl" class="form-control" id="downloadUrl" placeholder="Enter url">
+            <input size="50" type="text" name="downloadUrl" class="form-control" id="downloadUrl" placeholder="Enter url">
         </div>
         <br>
         <button id="downloadFile" class="btn btn-primary">Download</button>
@@ -198,7 +197,7 @@
             <br>
             <div class="form-group mr-3">
                 <label for="maxDownload">Maximum download: </label>
-                <input type="number" name="maxDownload" class="form-control" id="maxDownload"
+                <input size="12" type="number" name="maxDownload" class="form-control" id="maxDownload"
                     placeholder="Enter max downloads">
             </div>
             <br>
@@ -412,7 +411,7 @@
             request.onload = function () {
                 var a = document.createElement("a");
                 a.href = URL.createObjectURL(this.response);
-                a.download = this.response.name;
+                a.download = "filename";
                 document.body.appendChild(a);
                 a.click();
             }
