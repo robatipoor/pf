@@ -16,7 +16,6 @@ use test_context::AsyncTestContext;
 use tracing::info;
 
 static SETUP: Lazy<()> = Lazy::new(|| {
-  tracing_subscriber::fmt().init();
   std::process::Command::new("cargo")
     .arg("build")
     .arg("-q")

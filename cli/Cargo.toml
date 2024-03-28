@@ -19,7 +19,6 @@ tokio = { workspace = true }
 tokio-util = { workspace = true }
 tracing = { workspace = true }
 url = { workspace = true }
-tracing-subscriber = { workspace = true }
 base64 = { workspace = true }
 cuid2 = { workspace = true }
 indicatif = { workspace = true }
