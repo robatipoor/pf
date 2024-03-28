@@ -285,9 +285,9 @@
         $("#copyForm").submit(function (e) {
             e.preventDefault();
             const fileNameLength = 5;
-            var username = $("#usernameCopyForm").val();
-            var password = $("#passwordCopyForm").val();
-            var headers = { "Accept": "application/json" };
+            const username = $("#usernameCopyForm").val();
+            const password = $("#passwordCopyForm").val();
+            let headers = { "Accept": "application/json" };
             if (username && password) {
                 headers['Authorization'] = createBasicAuthHeader(username, password);
             } else if (username && !password) {
@@ -298,21 +298,21 @@
                 return;
             }
             $('.progress-bar').addClass('is-active');
-            var action = $(this).attr("action");
-            var codeLength = $("#codeLengthCopyForm").val();
-            var expireSecs = $("#expireSecsCopyForm").val();
-            var maxDownload = $("#maxDownloadCopyForm").val();
-            var uploadUrl = createUploadURL(action, codeLength, expireSecs, maxDownload);
-            var textData = $("#textInputCopyForm").val();
+            const action = $(this).attr("action");
+            const codeLength = $("#codeLengthCopyForm").val();
+            const expireSecs = $("#expireSecsCopyForm").val();
+            const maxDownload = $("#maxDownloadCopyForm").val();
+            const uploadUrl = createUploadURL(action, codeLength, expireSecs, maxDownload);
+            const textData = $("#textInputCopyForm").val();
             if (!textData) {
                 alert('Please set text');
                 return;
             }
-            var formData = new FormData();
-            var blobData = new Blob([textData], {
+            let formData = new FormData();
+            const blobData = new Blob([textData], {
                 type: 'text/plain'
             });
-            var filename = generateRandomString(fileNameLength).concat(".txt");
+            const filename = generateRandomString(fileNameLength).concat(".txt");
             formData.append('file', blobData, filename);
             $.ajax({
                 xhr: function () {
@@ -345,13 +345,12 @@
 
         $("#uploadForm").submit(function (e) {
             e.preventDefault();
-            var username = $("#usernameUploadForm").val();
-            var password = $("#passwordUploadForm").val();
-            var headers = { "Accept": "application/json" };
+            const username = $("#usernameUploadForm").val();
+            const password = $("#passwordUploadForm").val();
+            let headers = { "Accept": "application/json" };
             if (username && password) {
                 headers['Authorization'] = createBasicAuthHeader(username, password);
             } else if (username && !password) {
-                console.log(password);
                 alert('Please set password');
                 return;
             } else if (!username && password) {
@@ -359,11 +358,11 @@
                 return;
             }
             $('.progress-bar').addClass('is-active');
-            var action = $(this).attr("action");
-            var codeLength = $("#codeLengthUploadForm").val();
-            var expireSecs = $("#expireSecsUploadForm").val();
-            var maxDownload = $("#maxDownloadUploadForm").val();
-            var uploadUrl = createUploadURL(action, codeLength, expireSecs, maxDownload);
+            const action = $(this).attr("action");
+            const codeLength = $("#codeLengthUploadForm").val();
+            const expireSecs = $("#expireSecsUploadForm").val();
+            const maxDownload = $("#maxDownloadUploadForm").val();
+            const uploadUrl = createUploadURL(action, codeLength, expireSecs, maxDownload);
             $.ajax({
                 xhr: function () {
                     var xhr = new window.XMLHttpRequest();
@@ -395,16 +394,16 @@
 
         $("#downloadFile").click(function (e) {
             e.preventDefault();
-            var url = $("#urlDownloadFile").val();
+            const url = $("#urlDownloadFile").val();
             if (!url.startsWith("{{ domain }}")) {
                 alert('Please set valid URL');
                 return;
             }
-            var request = new XMLHttpRequest();
+            let request = new XMLHttpRequest();
             request.open("GET", url);
             request.setRequestHeader("Accept", "application/json");
-            var username = $("#usernameDownloadFile").val();
-            var password = $("#passwordDownloadFile").val();
+            const username = $("#usernameDownloadFile").val();
+            const password = $("#passwordDownloadFile").val();
             if (username && password) {
                 request.setRequestHeader("Authorization", createBasicAuthHeader(username, password));
             } else if (username && !password) {
@@ -416,7 +415,7 @@
             }
             request.responseType = "blob";
             request.onload = function () {
-                var a = document.createElement("a");
+                let a = document.createElement("a");
                 a.href = URL.createObjectURL(this.response);
                 a.download = getFileName(url);
                 document.body.appendChild(a);
@@ -450,9 +449,9 @@
         }
 
         function createUploadURL(base_url, codeLength, expireSecs, maxDownload) {
-            var result = base_url;
-            var first = true;
-            var d = "&";
+            let result = base_url;
+            let first = true;
+            let d = "&";
             if (codeLength) {
                 if (first) {
                     d = "?";

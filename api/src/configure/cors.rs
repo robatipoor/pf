@@ -20,6 +20,6 @@ pub fn cors_layer(config: &ServerConfig) -> ApiResult<tower_http::cors::CorsLaye
         hyper::Method::DELETE,
       ])
       .allow_origin(allow_origin)
-      .allow_headers([hyper::header::CONTENT_TYPE]),
+      .allow_headers([hyper::header::CONTENT_TYPE, hyper::header::AUTHORIZATION]),
   )
 }
