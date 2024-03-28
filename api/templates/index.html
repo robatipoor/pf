@@ -98,6 +98,11 @@
             background-color: #161616;
             color: white;
         }
+
+        .topnav a:focus {
+            background-color: #161616;
+            color: white;
+        }
     </style>
 </head>
 
@@ -169,7 +174,7 @@
         </div>
         <br>
         <div class="form-group mr-3">
-            <label for="downloadUrl">URL: </label>
+            <label for="downloadUrl">File URL: </label>
             <input type="text" name="downloadUrl" class="form-control" id="downloadUrl" placeholder="Enter url">
         </div>
         <br>
@@ -237,6 +242,9 @@
             $("#copyFormDiv").show();
             $('#uploadFormDiv').hide();
             $('#downloadFormDiv').hide();
+            $('#copy').addClass('active');
+            $('#upload').removeClass('active');
+            $('#download').removeClass('active');
             $('.progress-bar').removeClass('is-active');
             $('.success').removeClass('is-active');
             $('.qr-code').removeClass('is-active');
@@ -247,6 +255,9 @@
             $("#uploadFormDiv").show();
             $('#copyFormDiv').hide();
             $('#downloadFormDiv').hide();
+            $('#upload').addClass('active');
+            $('#copy').removeClass('active');
+            $('#download').removeClass('active');
             $('.progress-bar').removeClass('is-active');
             $('.success').removeClass('is-active');
             $('.qr-code').removeClass('is-active');
@@ -257,6 +268,9 @@
             $("#downloadFormDiv").show();
             $('#copyFormDiv').hide();
             $('#uploadFormDiv').hide();
+            $('#download').addClass('active');
+            $('#copy').removeClass('active');
+            $('#upload').removeClass('active');
             $('.progress-bar').removeClass('is-active');
             $('.success').removeClass('is-active');
             $('.qr-code').removeClass('is-active');
