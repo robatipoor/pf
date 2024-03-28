@@ -119,62 +119,66 @@
             target="_blank" id="copyForm">
             <div class="form-group mr-3">
                 <label for="codeLength">Code length: </label>
-                <input type="number" min="3" max="100" name="codeLength" class="form-control" id="codeLength"
+                <input type="number" min="3" max="100" name="codeLength" class="form-control" id="codeLengthCopyForm"
                     aria-describedby="codeLengthHelp" placeholder="Enter number length">
             </div>
             <br>
             <div class="form-group mr-3">
                 <label for="expireSecs">Expire time: </label>
-                <input type="number" min="1" name="expireSecs" class="form-control" id="expireSecs"
+                <input type="number" min="1" name="expireSecs" class="form-control" id="expireSecsCopyForm"
                     placeholder="Enter expire seconds">
             </div>
             <br>
             <div class="form-group mr-3">
                 <label for="maxDownload">Maximum download: </label>
-                <input size="12" type="number" min="1" name="maxDownload" class="form-control" id="maxDownload"
+                <input size="12" type="number" min="1" name="maxDownload" class="form-control" id="maxDownloadCopyForm"
                     placeholder="Enter max downloads">
             </div>
             <br>
             <div class="form-group mr-3">
                 <label for="username">Username: </label>
-                <input type="text" maxlength="100" name="Username" class="form-control" id="username" placeholder="Enter username">
+                <input type="text" maxlength="100" name="Username" class="form-control" id="usernameCopyForm"
+                    placeholder="Enter username">
             </div>
             <br>
             <div class="form-group mr-3">
                 <label for="password">Password: </label>
-                <input type="password" maxlength="100" name="Password" class="form-control" id="password" placeholder="Enter password">
+                <input type="password" maxlength="100" name="Password" class="form-control" id="passwordCopyForm"
+                    placeholder="Enter password">
             </div>
             <br>
             <div class="form-group mr-3">
                 <label for="allowManualDeletion">Allow manual deletion: </label>
-                <select class="form-control" id="allowManualDeletion" name="platform">
+                <select class="form-control" id="allowManualDeletionCopyForm" name="platform">
                     <option>True</option>
                     <option>False</option>
                 </select>
             </div>
             <div class="form-group mr-3">
                 <p><label for="textInput">Text:</label></p>
-                <textarea id="textInput" name="textInput" rows="20" cols="80"></textarea>
+                <textarea id="textInputCopyForm" name="textInput" rows="20" cols="80"></textarea>
             </div>
             <br>
             <button type="submit" class="btn btn-primary">Upload</button>
         </form>
     </div>
 
-    <div id="downloadFormDiv" class="col-md-6 offset-md-3 mt-5" style="display:none">
+    <div id="downloadFileDiv" class="col-md-6 offset-md-3 mt-5" style="display:none">
         <div class="form-group mr-3">
             <label for="username">Username: </label>
-            <input type="text" maxlength="100" name="Username" class="form-control" id="username" placeholder="Enter username">
+            <input type="text" maxlength="100" name="Username" class="form-control" id="usernameDownloadFile"
+                placeholder="Enter username">
         </div>
         <br>
         <div class="form-group mr-3">
             <label for="password">Password: </label>
-            <input type="password" maxlength="100" name="Password" class="form-control" id="password" placeholder="Enter password">
+            <input type="password" maxlength="100" name="Password" class="form-control" id="passwordDownloadFile"
+                placeholder="Enter password">
         </div>
         <br>
         <div class="form-group mr-3">
             <label for="downloadUrl">File URL: </label>
-            <input size="50" type="text" name="downloadUrl" class="form-control" id="downloadUrl"
+            <input size="50" type="text" name="downloadUrl" class="form-control" id="urlDownloadFile"
                 placeholder="Enter url">
         </div>
         <br>
@@ -186,35 +190,37 @@
             target="_blank" id="uploadForm">
             <div class="form-group mr-3">
                 <label for="codeLength">Code length: </label>
-                <input type="number" min="3" max="100" name="codeLength" class="form-control" id="codeLength"
+                <input type="number" min="3" max="100" name="codeLength" class="form-control" id="codeLengthUploadForm"
                     aria-describedby="codeLengthHelp" placeholder="Enter number length">
             </div>
             <br>
             <div class="form-group mr-3">
                 <label for="expireSecs">Expire time: </label>
-                <input type="number" min="1" name="expireSecs" class="form-control" id="expireSecs"
+                <input type="number" min="1" name="expireSecs" class="form-control" id="expireSecsUploadForm"
                     placeholder="Enter expire seconds">
             </div>
             <br>
             <div class="form-group mr-3">
                 <label for="maxDownload">Maximum download: </label>
-                <input size="12" type="number" min="1" name="maxDownload" class="form-control" id="maxDownload"
-                    placeholder="Enter max downloads">
+                <input size="12" type="number" min="1" name="maxDownload" class="form-control"
+                    id="maxDownloadUploadForm" placeholder="Enter max downloads">
             </div>
             <br>
             <div class="form-group mr-3">
                 <label for="username">Username: </label>
-                <input type="text" maxlength="100" name="Username" class="form-control" id="username" placeholder="Enter username">
+                <input type="text" maxlength="100" name="Username" class="form-control" id="usernameUploadForm"
+                    placeholder="Enter username">
             </div>
             <br>
             <div class="form-group mr-3">
                 <label for="password">Password: </label>
-                <input type="password" maxlength="100" name="Password" class="form-control" id="password" placeholder="Enter password">
+                <input type="password" maxlength="100" name="Password" class="form-control" id="passwordUploadForm"
+                    placeholder="Enter password">
             </div>
             <br>
             <div class="form-group mr-3">
                 <label for="allowManualDeletion">Allow manual deletion: </label>
-                <select class="form-control" id="allowManualDeletion" name="platform">
+                <select class="form-control" id="allowManualDeletionUploadForm" name="platform">
                     <option>True</option>
                     <option>False</option>
                 </select>
@@ -232,8 +238,8 @@
         <div id="progress" class="progress">0%</div>
     </div>
     <div id="urlDisplay" class="success">
-        <p><span><strong id="result-url"></strong></span></p>
-        <button id="copyButton">Copy to clipboard</button>
+        <p><span><strong id="resultUrl"></strong></span></p>
+        <button id="copyToClipboardButton">Copy to Clipboard</button>
     </div>
     <div id="qrcode" class="qr-code"></div>
     <script>
@@ -241,7 +247,7 @@
             event.preventDefault();
             $("#copyFormDiv").show();
             $('#uploadFormDiv').hide();
-            $('#downloadFormDiv').hide();
+            $('#downloadFileDiv').hide();
             $('#copy').addClass('active');
             $('#upload').removeClass('active');
             $('#download').removeClass('active');
@@ -254,7 +260,7 @@
             event.preventDefault();
             $("#uploadFormDiv").show();
             $('#copyFormDiv').hide();
-            $('#downloadFormDiv').hide();
+            $('#downloadFileDiv').hide();
             $('#upload').addClass('active');
             $('#copy').removeClass('active');
             $('#download').removeClass('active');
@@ -265,7 +271,7 @@
 
         $("#download").click(function (event) {
             event.preventDefault();
-            $("#downloadFormDiv").show();
+            $("#downloadFileDiv").show();
             $('#copyFormDiv').hide();
             $('#uploadFormDiv').hide();
             $('#download').addClass('active');
@@ -279,11 +285,25 @@
         $("#copyForm").submit(function (e) {
             e.preventDefault();
             const fileNameLength = 5;
-            const headers = createHeaders();
+            var username = $("#usernameCopyForm").val();
+            var password = $("#passwordCopyForm").val();
+            var headers = { "Accept": "application/json" };
+            if (username && password) {
+                headers['Authorization'] = createBasicAuthHeader(username, password);
+            } else if (username && !password) {
+                alert('Please set password');
+                return;
+            } else if (!username && password) {
+                alert('Please set username');
+                return;
+            }
             $('.progress-bar').addClass('is-active');
             var action = $(this).attr("action");
-            var uploadUrl = createUploadURL(action);
-            var textData = $("#textInput").val();
+            var codeLength = $("#codeLengthCopyForm").val();
+            var expireSecs = $("#expireSecsCopyForm").val();
+            var maxDownload = $("#maxDownloadCopyForm").val();
+            var uploadUrl = createUploadURL(action, codeLength, expireSecs, maxDownload);
+            var textData = $("#textInputCopyForm").val();
             if (!textData) {
                 alert('Please set text');
                 return;
@@ -325,11 +345,25 @@
 
         $("#uploadForm").submit(function (e) {
             e.preventDefault();
-            const headers = createHeaders();
+            var username = $("#usernameUploadForm").val();
+            var password = $("#passwordUploadForm").val();
+            var headers = { "Accept": "application/json" };
+            if (username && password) {
+                headers['Authorization'] = createBasicAuthHeader(username, password);
+            } else if (username && !password) {
+                console.log(password);
+                alert('Please set password');
+                return;
+            } else if (!username && password) {
+                alert('Please set username');
+                return;
+            }
             $('.progress-bar').addClass('is-active');
             var action = $(this).attr("action");
-            var uploadUrl = createUploadURL(action);
-
+            var codeLength = $("#codeLengthUploadForm").val();
+            var expireSecs = $("#expireSecsUploadForm").val();
+            var maxDownload = $("#maxDownloadUploadForm").val();
+            var uploadUrl = createUploadURL(action, codeLength, expireSecs, maxDownload);
             $.ajax({
                 xhr: function () {
                     var xhr = new window.XMLHttpRequest();
@@ -361,42 +395,14 @@
 
         $("#downloadFile").click(function (e) {
             e.preventDefault();
-            const headers = createHeaders();
-            var url = $("#downloadUrl").val();
+            var url = $("#urlDownloadFile").val();
             var request = new XMLHttpRequest();
             request.open("GET", url);
-            request.responseType = "blob";
-            request.onload = function () {
-                var a = document.createElement("a");
-                a.href = URL.createObjectURL(this.response);
-                a.download = "filename";
-                document.body.appendChild(a);
-                a.click();
-            }
-            request.send();
-        });
-
-        $("#copyButton").click(function (event) {
-            event.preventDefault();
-            navigator.clipboard.writeText($('#result-url').text()).then(() => { });
-            alert('URL copied to clipboard!');
-        });
-
-        function showUploadResponse(response) {
-            $('.success').addClass('is-active');
-            $('#result-url').empty();
-            $("#result-url").append(response.url);
-            $('#qrcode').empty();
-            $('.qr-code').addClass('is-active');
-            $('#qrcode').qrcode({ width: 256, height: 256, text: response.url });
-        }
-
-        function createHeaders() {
-            var username = $("#username").val();
-            var password = $("#password").val();
-            var headers = { "Accept": "application/json" };
+            request.setRequestHeader("Accept", "application/json");
+            var username = $("#usernameDownloadFile").val();
+            var password = $("#passwordDownloadFile").val();
             if (username && password) {
-                headers['Authorization'] = createBasicAuthHeader(username, password);
+                request.setRequestHeader("Authorization", createBasicAuthHeader(username, password));
             } else if (username && !password) {
                 alert('Please set password');
                 return;
@@ -404,16 +410,43 @@
                 alert('Please set username');
                 return;
             }
-            return headers;
+            request.responseType = "blob";
+            request.onload = function () {
+                var a = document.createElement("a");
+                a.href = URL.createObjectURL(this.response);
+                a.download = getFileName(url);
+                document.body.appendChild(a);
+                a.click();
+            }
+            request.send();
+        });
+
+        $("#copyToClipboardButton").click(function (event) {
+            event.preventDefault();
+            navigator.clipboard.writeText($('#resultUrl').text()).then(() => { });
+            alert('URL Copied to Clipboard!');
+        });
+
+        function showUploadResponse(response) {
+            $('.success').addClass('is-active');
+            $('#resultUrl').empty();
+            $("#resultUrl").append(response.url);
+            $('#qrcode').empty();
+            $('.qr-code').addClass('is-active');
+            $('#qrcode').qrcode({ width: 256, height: 256, text: response.url });
+        }
+
+        function getFileName(url) {
+            const parts = url.split('/');
+            return parts[parts.length - 1];
         }
 
         function createBasicAuthHeader(username, password) {
             return "Basic " + btoa(username + ':' + password);
         }
 
-        function createUploadURL(base_url) {
+        function createUploadURL(base_url, codeLength, expireSecs, maxDownload) {
             var result = base_url;
-            var codeLength = $('#codeLength').val();
             var first = true;
             var d = "&";
             if (codeLength) {
@@ -423,7 +456,6 @@
                 }
                 result += d + "code_length=" + codeLength;
             }
-            var expireSecs = $('#expireSecs').val();
             if (expireSecs) {
                 if (first) {
                     d = "?";
@@ -433,7 +465,6 @@
                 }
                 result += d + "expire_secs=" + expireSecs;
             }
-            var maxDownload = $('#maxDownload').val();
             if (maxDownload) {
                 if (first) {
                     d = "?";
