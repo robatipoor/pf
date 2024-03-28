@@ -3,7 +3,7 @@ FROM rust:latest as builder
 
 WORKDIR /workspace
 
-RUN apt-get update && apt-get install lld clang -y
+RUN apt-get update && apt-get install cmake lld clang -y
 
 COPY . .
 
