@@ -31,12 +31,8 @@ jobs:
       - name: Install tarpaulin
         if: ${{ steps.cache-tarpaulin.outputs.cache-hit != 'true' }}
         continue-on-error: true
-        uses: actions-rs/cargo@v1
         run: |
           cargo install cargo-tarpaulin --git https://github.com/xd009642/tarpaulin --branch fix/missing-coverage-functions
-
-      - name: Checkout repository
-        uses: actions/checkout@v4
 
       - name: Generate code coverage
         run: |
