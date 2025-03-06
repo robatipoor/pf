@@ -1,6 +1,6 @@
 use crate::{
   constant::ENV_PREFIX,
-  error::{result::ApiResult, ApiError},
+  error::{ApiError, result::ApiResult},
 };
 use config::Environment;
 use once_cell::sync::Lazy;

@@ -6,7 +6,7 @@ members = ["sdk", "api", "cli"]
 authors = ["Mahdi <Mahdi.robatipoor@gmail.com>"]
 description = "A file upload/download service"
 documentation = ""
-edition = "2021"
+edition = "2024"
 homepage = "https://github.com/robatipoor/pf"
 keywords = ["paste", "file", "transfer"]
 license = "MIT"
@@ -22,16 +22,16 @@ opt-level = "z"
 strip = true
 
 [workspace.dependencies]
-anyhow = "1.0.81"
+anyhow = "1.0.97"
 argon2 = "0.5.3"
-assert_cmd = "2.0.14"
-async-stream = "0.3.5"
-axum = { version = "0.7.5", features = ["multipart"] }
-axum-extra = { version = "0.9.3", features = ["async-read-body"] }
+assert_cmd = "2.0.16"
+async-stream = "0.3.6"
+axum = { version = "0.8.1", features = ["multipart"] }
+axum-extra = { version = "0.10.0", features = ["async-read-body"] }
 hyper = { version = "1.2.0", features = ["full"] }
 hyper-util = { version = "0.1.3" }
-rustls-pemfile = "2.1.1"
-tokio = { version = "1.36.0", features = [
+rustls-pemfile = "2.2.0"
+tokio = { version = "1.43.0", features = [
   "macros",
   "time",
   "process",
@@ -39,42 +39,42 @@ tokio = { version = "1.36.0", features = [
   "rt-multi-thread",
   "io-std",
 ] }
-tokio-util = { version = "0.7.10", features = ["io"] }
-tokio-rustls = "0.26.0"
-tower = { version = "0.4.13", features = ["util", "make"] }
-tower-http = { version = "0.5.2", features = ["fs", "cors"] }
+tokio-util = { version = "0.7.13", features = ["io"] }
+tokio-rustls = "0.26.2"
+tower = { version = "0.5.2", features = ["util", "make"] }
+tower-http = { version = "0.6.2", features = ["fs", "cors"] }
 tower-service = "0.3.2"
-base64 = "0.22.0"
+base64 = "0.22.1"
 bincode = "1.3.3"
 build_html = "2.4.0"
-chrono = { version = "0.4.37", features = ["serde"] }
-clap = { version = "4.5.4", features = ["derive"] }
-config = { version = "0.14.0", default-features = false, features = ["toml"] }
+chrono = { version = "0.4.40", features = ["serde"] }
+clap = { version = "4.5.31", features = ["derive"] }
+config = { version = "0.15.9", default-features = false, features = ["toml"] }
 chacha20poly1305 = { version = "0.10.1", features = ["stream"] }
-cuid2 = "0.1.2"
-fake = { version = "2.9.2", features = ['derive', 'uuid', 'chrono'] }
-futures-util = "0.3.30"
-indicatif = { version = "0.17.8", features = ["tokio"] }
-log = "0.4.21"
-mime_guess = "2.0.4"
-once_cell = { version = "1.19.0" }
-qrcode = "0.14.0"
-image = "0.25.0"
-rand = "0.8.5"
-reqwest = { version = "0.12.2", default-features = false, features = [
+cuid2 = "0.1.4"
+fake = { version = "4.0.0", features = ["derive", "chrono"] }
+futures-util = "0.3.31"
+indicatif = { version = "0.17.11", features = ["tokio"] }
+log = "0.4.26"
+mime_guess = "2.0.5"
+once_cell = { version = "1.20.3" }
+qrcode = "0.14.1"
+image = "0.25.5"
+rand = "0.9.0"
+reqwest = { version = "0.12.12", default-features = false, features = [
   "json",
   "multipart",
   "stream",
   "rustls-tls",
 ] }
-serde = { version = "1.0.197", features = ["derive"] }
-serde_json = "1.0.115"
+serde = { version = "1.0.218", features = ["derive"] }
+serde_json = "1.0.140"
 sled = "0.34.7"
-strum = { version = "0.26.2", features = ["derive"] }
-test-context = "0.3.0"
-thiserror = "1.0.58"
-tracing = "0.1.40"
-tracing-subscriber = "0.3.18"
-url = "2.5.0"
-garde = { version = "0.18.0", features = ["full"] }
+strum = { version = "0.27.1", features = ["derive"] }
+test-context = "0.4.1"
+thiserror = "2.0.12"
+tracing = "0.1.41"
+tracing-subscriber = "0.3.19"
+url = "2.5.4"
+garde = { version = "0.22.0", features = ["full"] }
 askama = "0.12.1"

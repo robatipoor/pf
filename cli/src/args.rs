@@ -8,8 +8,8 @@ use crate::parse::{
   parse_key_nonce, parse_source_file,
 };
 
-const HELP_ENCRYPT :&str = "The encrypt format should be `key:nonce`, with the key being 32 characters in length and the nonce being 19 characters.";
-const HELP_DECRYPT :&str = "The decrypt format should be `key:nonce`, with the key being 32 characters in length and the nonce being 19 characters.";
+const HELP_ENCRYPT: &str = "The encrypt format should be `key:nonce`, with the key being 32 characters in length and the nonce being 19 characters.";
+const HELP_DECRYPT: &str = "The decrypt format should be `key:nonce`, with the key being 32 characters in length and the nonce being 19 characters.";
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]

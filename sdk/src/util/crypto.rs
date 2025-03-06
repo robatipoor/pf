@@ -1,12 +1,12 @@
 use anyhow::anyhow;
 use chacha20poly1305::{
+  XChaCha20Poly1305,
   aead::{
+    KeyInit,
     generic_array::GenericArray,
     stream::{DecryptorBE32, EncryptorBE32},
-    KeyInit,
   },
   consts::U32,
-  XChaCha20Poly1305,
 };
 
 use std::path::Path;

@@ -6,9 +6,9 @@ use std::{
 use pf_sdk::{
   client::PasteFileClient,
   dto::{
+    FileUrlPath,
     request::UploadQueryParam,
     response::{ApiResponseResult, BodyResponseError, UploadResponse},
-    FileUrlPath,
   },
 };
 

@@ -1,10 +1,10 @@
 use anyhow::anyhow;
 use axum::{
+  Json,
   body::Body,
   extract::{Multipart, Path, Query, State},
-  http::{header::HeaderMap, Request},
+  http::{Request, header::HeaderMap},
   response::Response,
-  Json,
 };
 use garde::Validate;
 use pf_sdk::{
@@ -25,7 +25,7 @@ pub async fn upload(
   headers: HeaderMap,
   multipart: Multipart,
 ) -> ApiResult<Json<UploadResponse>> {
-  param.validate(&())?;
+  param.validate()?;
   let secret = crate::util::http::parse_basic_auth(&headers)?;
   let (file_path, expire_date_time) =
     service::file::store(&state, &param, secret, multipart).await?;

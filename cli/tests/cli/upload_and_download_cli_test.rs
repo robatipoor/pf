@@ -1,7 +1,7 @@
 use assert_cmd::Command;
 use pf_sdk::util::file::add_extension;
 
-use crate::helper::{generate_random_key_nonce, CliTestContext};
+use crate::helper::{CliTestContext, generate_random_key_nonce};
 
 #[test_context::test_context(CliTestContext)]
 #[tokio::test]

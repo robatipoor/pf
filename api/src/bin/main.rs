@@ -5,7 +5,7 @@ use pf_api::{
   configure::env::get_env_source,
   constant::ENV_PREFIX,
   error::result::ApiResult,
-  server::{worker::GarbageCollectorTask, ApiServer},
+  server::{ApiServer, worker::GarbageCollectorTask},
   util::{self, tracing::INIT_SUBSCRIBER},
 };
 

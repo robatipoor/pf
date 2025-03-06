@@ -19,7 +19,7 @@ static SETUP: Lazy<()> = Lazy::new(|| {
   std::process::Command::new("cargo")
     .arg("build")
     .arg("-q")
-    .current_dir(&get_cargo_project_root().unwrap().unwrap())
+    .current_dir(get_cargo_project_root().unwrap().unwrap())
     .stdout(Stdio::piped())
     .spawn()
     .unwrap()

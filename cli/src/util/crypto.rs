@@ -1,6 +1,6 @@
 use super::progress::progress_bar;
 use pf_sdk::util::{
-  crypto::{decrypt, decrypt_file, encrypt, encrypt_file, KeyNonce},
+  crypto::{KeyNonce, decrypt, decrypt_file, encrypt, encrypt_file},
   file::{add_extension, add_parent_dir, rm_extra_extension},
   random::generate_random_string_with_prefix,
 };
