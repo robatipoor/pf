@@ -1,8 +1,8 @@
 use crate::{configure::cors::cors_layer, error::result::ApiResult, handler, server::ApiState};
 use axum::{
+  Router,
   extract::DefaultBodyLimit,
   routing::{delete, get, post},
-  Router,
 };
 
 pub fn get_router(state: ApiState) -> ApiResult<Router> {

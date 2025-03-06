@@ -1,4 +1,4 @@
-use rand::{ distr::Alphanumeric, Rng};
+use rand::{Rng, distr::Alphanumeric};
 
 pub fn generate_random_string(len: usize) -> String {
   rand::rng()

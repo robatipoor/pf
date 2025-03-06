@@ -1,4 +1,4 @@
-use crate::helper::{generate_random_key_nonce, CliTestContext};
+use crate::helper::{CliTestContext, generate_random_key_nonce};
 use assert_cmd::Command;
 
 #[test_context::test_context(CliTestContext)]

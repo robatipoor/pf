@@ -1,5 +1,5 @@
 use crate::{
-  error::{result::ApiResult, ApiError},
+  error::{ApiError, result::ApiResult},
   util::secret::SecretHash,
 };
 use chrono::{DateTime, Utc};

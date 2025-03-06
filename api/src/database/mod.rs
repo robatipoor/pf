@@ -1,6 +1,6 @@
 use crate::{
   configure::DatabaseConfig,
-  error::{result::ApiResult, ApiError},
+  error::{ApiError, result::ApiResult},
   util::path::get_fs_path,
 };
 use chrono::{DateTime, Utc};
@@ -99,7 +99,7 @@ impl Database {
             let is_gc_notify = guard
               .iter()
               .next()
-              .map_or(true, |(first_expire, _)| *first_expire > expire_date_time);
+              .is_none_or(|(first_expire, _)| *first_expire > expire_date_time);
             guard.insert(expire.clone());
             drop(guard);
             if is_gc_notify {
