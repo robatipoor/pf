@@ -25,7 +25,7 @@ pub async fn upload(
   headers: HeaderMap,
   multipart: Multipart,
 ) -> ApiResult<Json<UploadResponse>> {
-  param.validate(&())?;
+  param.validate()?;
   let secret = crate::util::http::parse_basic_auth(&headers)?;
   let (file_path, expire_date_time) =
     service::file::store(&state, &param, secret, multipart).await?;

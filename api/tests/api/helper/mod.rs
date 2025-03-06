@@ -104,6 +104,7 @@ impl ApiTestContext {
   }
 }
 
+#[allow(dead_code)]
 #[derive(Clone)]
 pub struct DummyFile {
   pub content: Vec<u8>,
